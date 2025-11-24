@@ -3,7 +3,7 @@
 Ce dépôt héberge **exclusivement** les plugins officiellement compatibles avec **299koEVO** (branche EVO uniquement). Utilisez-le comme référence lorsque vous développez ou déployez sur cette version du CMS.
 
 Tous les plugins disponibles dans `Plugins_299koEVO/` disposent d’une fiche dédiée (`docs/<slug>/README.md`) avec :
-- la promesse du module ;
+- un volet marketing pour comprendre la promesse du module ;
 - une documentation structurée (config, routes, sécurité, tests, références).
 
 Consultez ce document pour avoir une vision d’ensemble et naviguer rapidement vers la fiche souhaitée.
@@ -15,11 +15,13 @@ Consultez ce document pour avoir une vision d’ensemble et naviguer rapidement 
 | Antispam | CAPTCHA texte / icône / Google reCAPTCHA | — | `/admin/antispam` | `docs/antispam/README.md` |
 | Blog | Articles, catégories, commentaires, RSS | `/blog` | `/admin/blog` | `docs/blog/README.md` |
 | Contact | Formulaire de contact + historique des adresses | `/contact` | `/admin/contact` | `docs/contact/README.md` |
+| CSS Editor | Surcharges CSS via éditeur visuel | (hook + `/csseditor/custom.css`) | `/admin/csseditor` | `docs/csseditor/README.md` |
 | Docs | Wiki avec catégories, versions, shortcode | `/docs` | `/admin/docs` | `docs/docs/README.md` |
 | Dons | Collecte PayPal / Stripe + dashboard | `/dons` | `/admin/dons` | `docs/dons/README.md` |
 | FAQ | Questions/réponses, votes, soumission publique | `/faq` | `/admin/faq` | `docs/faq/README.md` |
 | Galerie | Galerie photo, resize auto, catégories | `/galerie` | `/admin/galerie` | `docs/galerie/README.md` |
 | Guestbook | Livre d’or avec modération et likes | `/guestbook` | `/admin/guestbook` | `docs/guestbook/README.md` |
+| HomeBuilder | Landing page construite par blocs | `/home` | `/admin/homebuilder` | `docs/homebuilder/README.md` |
 | HighLight | Coloration syntaxique (Highlight.js) | — | `/admin/highlight` | `docs/highlight/README.md` |
 | LightStats | Tracking serveur privacy-friendly | (hook) | `/admin/lightstats` | `docs/lightstats/README.md` |
 | MDEditor | Éditeur Markdown EasyMDE | — | — | `docs/mdeditor/README.md` |

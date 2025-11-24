@@ -1,50 +1,61 @@
 <?php
 
-/**
- * @copyright (C) 2022, 299Ko/HighLight
- * @license https://www.gnu.org/licenses/gpl-3.0.en.html GPLv3
- * @author Maxence Cauderlier <mx.koder@gmail.com>
- * 
- * @package 299Ko https://github.com/299Ko/299ko
- */
-defined('ROOT') OR exit('No direct script access allowed');
+namespace Highlight {
 
-## Fonction d'installation
+use Core\Plugin\PluginsManager;
 
-function highlightInstall() {
-    
-}
+defined('ROOT') or exit('No direct script access allowed');
 
-function highlightGetThemeCSSUrl($theme) {
-    $t = 'default';
-    foreach (highlightGetThemes() as $k => $v) {
-        if ($theme === $k) {
-            $t = $theme;
-        }
+class Hooks
+{
+    public static function install(): void
+    {
     }
-    return 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/' . $t . '.min.css';
+
+    public static function getThemeCSSUrl(string $theme): string
+    {
+        $t = array_key_exists($theme, self::getThemes()) ? $theme : 'default';
+        return 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/' . $t . '.min.css';
+    }
+
+    public static function getThemes(): array
+    {
+        return [
+            'default' => 'Default',
+            'a11y-dark' => 'A 11 Y Dark',
+            'a11y-light' => 'A 11 Y Light',
+            'arta' => 'Arta',
+            'github' => 'GitHub',
+            'github-dark' => 'GitHub Dark',
+            'monokai-sublime' => 'Monokai Sublime',
+            'vs' => 'VS',
+            'vs2015' => 'VS 2015',
+        ];
+    }
+
+    public static function endFrontHead(): void
+    {
+        $plugin = PluginsManager::getInstance()->getPlugin('highlight');
+        if (!$plugin) {
+            return;
+        }
+        echo '<link rel="stylesheet" href="' . self::getThemeCSSUrl($plugin->getConfigVal('theme')) . '" type="text/css"/>';
+        echo '<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>';
+    }
+
+    public static function endFrontBody(): void
+    {
+        echo '<script>hljs.highlightAll();</script>';
+    }
 }
 
-function highlightGetThemes() {
-    return [
-        'default' => 'Default',
-        'a11y-dark' => 'A 11 Y Dark',
-        'a11y-light' => 'A 11 Y Light',
-        'arta' => 'Arta',
-        'github' => 'GitHub',
-        'github-dark' => 'GitHub Dark',
-        'monokai-sublime' => 'Monokai Sublime',
-        'vs' => 'VS',
-        'vs2015' => 'VS 2015'
-    ];
 }
 
-function highlightEndFrontHead() {
-    $plugin = pluginsManager::getInstance()->getPlugin('highlight');
-    echo '<link rel="stylesheet" href="' . highlightGetThemeCSSUrl($plugin->getConfigVal('theme')) . '" type="text/css"/>';
-    echo '<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>';
-}
+namespace {
 
-function highlightEndFrontBody() {
-    echo "<script>hljs.highlightAll();</script>";
+    function highlightInstall(): void
+    {
+        \Highlight\Hooks::install();
+    }
+
 }

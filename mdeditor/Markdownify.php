@@ -1085,6 +1085,7 @@ class Converter
                 }
             }
 
+            static $preIndent;
             if ($this->parser->isBlockElement) {
                 if ($this->parser->isStartTag) {
                     // looks like ins or del are block elements now
@@ -1095,8 +1096,7 @@ class Converter
                     // don't indent inside <pre> tags
                     if ($this->parser->tagName == 'pre') {
                         $this->out($this->parser->node);
-                        static $indent;
-                        $indent = $this->indent;
+                        $preIndent = $this->indent;
                         $this->indent = '';
                     } else {
                         $this->out($this->parser->node . "\n" . $this->indent);
@@ -1117,8 +1117,7 @@ class Converter
                     } else {
                         // reset indentation
                         $this->out($this->parser->node);
-                        static $indent;
-                        $this->indent = $indent;
+                        $this->indent = $preIndent;
                     }
 
                     if (in_array($this->parent(), ['ins', 'del'])) {
@@ -1937,6 +1936,27 @@ class ConverterExtra extends Converter
      * @var int
      */
     protected $row = 0;
+
+    /**
+     * cached table regexes
+     *
+     * @var string
+     */
+    protected $tableLookaheadHeader = '';
+
+    /**
+     * cached td substitute regex fragment
+     *
+     * @var string
+     */
+    protected $tdSubstitute = '';
+
+    /**
+     * cached tbody regex template
+     *
+     * @var string
+     */
+    protected $tableLookaheadBody = '';
 
     /**
      * constructor, see Markdownify::Markdownify() for more information

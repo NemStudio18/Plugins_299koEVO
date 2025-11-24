@@ -1,13 +1,12 @@
 <?php
 
-/**
- * @copyright (C) 2022, 299Ko
- * @license https://www.gnu.org/licenses/gpl-3.0.en.html GPLv3
- * @author Maxence Cauderlier <mx.koder@gmail.com>
- * 
- * @package 299Ko https://github.com/299Ko/299ko
- */
-defined('ROOT') OR exit('No direct script access allowed');
+namespace LightStats\Lib;
+
+use DateInterval;
+use DatePeriod;
+use Utils\Util;
+
+defined('ROOT') or exit('No direct script access allowed');
 
 class LightStatsLogsManager {
 
@@ -38,7 +37,7 @@ class LightStatsLogsManager {
             $day = $value->format('d/m/Y');
             $dayVisitors = [];
             $this->datas[$day]['pages'] = 0;
-            $logs = is_file($file) ? util::readJsonFile($file) : false;
+            $logs = is_file($file) ? Util::readJsonFile($file) : false;
             if ($logs === false) {
                 $this->datas[$day]['visitors'] = 0;
                 continue;

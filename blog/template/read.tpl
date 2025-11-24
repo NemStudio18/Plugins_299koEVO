@@ -33,6 +33,30 @@
 	</header>
 	{{ TOC }}
 	{{ generatedHtml }}
+	{% if SeoShareConfig %}
+	<section class="seo-share">
+		<h3>{{ Lang.seo.share-title }}</h3>
+		<div class="seo-share-buttons">
+			{% set shareUrl = SITE_URL ~ item.getUrl %}
+			{% set shareTitle = item.getName %}
+			{% if SeoShareConfig.facebook %}
+			<a class="seo-share-button facebook" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ shareUrl }}">
+				<i class="fa-brands fa-facebook"></i> Facebook
+			</a>
+			{% endif %}
+			{% if SeoShareConfig.x %}
+			<a class="seo-share-button twitter" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?url={{ shareUrl }}">
+				<i class="fa-brands fa-x-twitter"></i> X
+			</a>
+			{% endif %}
+			{% if SeoShareConfig.linkedin %}
+			<a class="seo-share-button linkedin" target="_blank" rel="noopener" href="https://www.linkedin.com/sharing/share-offsite/?url={{ shareUrl }}">
+				<i class="fa-brands fa-linkedin"></i> LinkedIn
+			</a>
+			{% endif %}
+		</div>
+	</section>
+	{% endif %}
 	{% if runPlugin.getConfigVal("displayAuthor") %}
 		<footer>
 			<div class='blog-author'>

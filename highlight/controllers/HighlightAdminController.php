@@ -1,12 +1,12 @@
 <?php
 
-/**
- * @copyright (C) 2024, 299Ko
- * @license https://www.gnu.org/licenses/gpl-3.0.en.html GPLv3
- * @author Maxence Cauderlier <mx.koder@gmail.com>
- * 
- * @package 299Ko https://github.com/299Ko/299ko
- */
+namespace Highlight\Controllers;
+
+use Core\Controllers\AdminController;
+use Core\Responses\AdminResponse;
+use Core\Lang;
+use Utils\Show;
+
 defined('ROOT') or exit('No direct script access allowed');
 
 class HighlightAdminController extends AdminController
@@ -25,7 +25,7 @@ class HighlightAdminController extends AdminController
         $this->runPlugin->setConfigVal('theme', trim($_POST['theme']));
         $this->pluginsManager->savePluginConfig($this->runPlugin);
 
-        show::msg(Lang::get('core-changes-saved'), 'success');
+        Show::msg(Lang::get('core-changes-saved'), 'success');
         $this->core->redirect($this->router->generate('highlight-admin'));
     }
 }

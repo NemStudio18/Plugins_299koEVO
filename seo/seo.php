@@ -1,5 +1,7 @@
 <?php
 
+use Seo\Entities\SocialConfigManager;
+
 /**
  * @copyright (C) 2022, 299Ko, based on code (2010-2021) 99ko https://github.com/99kocms/
  * @license https://www.gnu.org/licenses/gpl-3.0.en.html GPLv3
@@ -10,33 +12,204 @@
  * 
  * @package 299Ko https://github.com/299Ko/299ko
  */
-defined('ROOT') OR exit('Access denied!');
+defined('ROOT') or exit('Access denied!');
 
-## Fonction d'installation
+require_once __DIR__ . '/entities/SocialConfigManager.php';
+
+SocialConfigManager::getAll();
 
 function seoInstall() {
-    
+    SocialConfigManager::getAll();
 }
 
-## Hooks
-
 function seoEndFrontHead() {
+    seoPrintAnalytics();
+    seoPrintMetaTags();
+}
+
+function seoPrintAnalytics(): void
+{
     $plugin = \Core\Plugin\PluginsManager::getInstance()->getPlugin('seo');
-    if ($plugin->getConfigVal('trackingId') === false || $plugin->getConfigVal('trackingId') === '') {
+    $tracking = $plugin->getConfigVal('trackingId');
+    if (!$tracking) {
         return;
     }
-    $temp = "<script>
+
+    echo "<script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
   })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-  ga('create', '" . $plugin->getConfigVal('trackingId') . "', 'auto');
+  ga('create', '" . $tracking . "', 'auto');
   ga('send', 'pageview');
 
 </script>";
-    $temp .= '<meta name="google-site-verification" content="' . $plugin->getConfigVal('wt') . '" />';
-    echo $temp;
+
+    $verification = $plugin->getConfigVal('wt');
+    if ($verification) {
+        echo '<meta name="google-site-verification" content="' . htmlspecialchars($verification) . '" />';
+    }
+}
+
+function seoPrintMetaTags(): void
+{
+    global $page;
+    if (!$page || !method_exists($page, 'getName')) {
+        return;
+    }
+
+    $core = \Core\Core::getInstance();
+    $title = htmlspecialchars($page->getMetaTitle() ?: $page->getName());
+    $desc = htmlspecialchars(substr(strip_tags($page->getMetaDescription() ?: ''), 0, 160));
+    $permalink = method_exists($page, 'getPermalink') ? $page->getPermalink() : '';
+    $url = htmlspecialchars(rtrim($core->getConfigVal('siteUrl'), '/') . $permalink);
+
+    $image = '';
+    if (method_exists($page, 'getFeaturedImage')) {
+        $image = $page->getFeaturedImage();
+    } elseif (method_exists($page, 'getImg')) {
+        $image = $page->getImg();
+    }
+    if (!$image) {
+        $image = rtrim($core->getConfigVal('themeUrl'), '/') . '/img/default.jpg';
+    }
+    $image = htmlspecialchars($image);
+
+    echo <<<HTML
+<!-- SEO meta -->
+<meta property="og:title" content="$title">
+<meta property="og:description" content="$desc">
+<meta property="og:type" content="article">
+<meta property="og:url" content="$url">
+<meta property="og:image" content="$image">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="$title">
+<meta name="twitter:description" content="$desc">
+<meta name="twitter:image" content="$image">
+<link rel="canonical" href="$url">
+HTML;
+
+    $languages = SocialConfigManager::getLanguages();
+    if (!empty($languages)) {
+        foreach ($languages as $locale) {
+            $href = htmlspecialchars(rtrim($core->getConfigVal('siteUrl'), '/') . '/' . trim($locale, '/') . $permalink);
+            echo '<link rel="alternate" hreflang="' . htmlspecialchars($locale) . '" href="' . $href . '">';
+        }
+    }
+}
+
+function seoBeforeRunPlugin(): void
+{
+    global $runPlugin;
+    $enabled = [];
+    if ($runPlugin && $runPlugin->getName() === 'blog') {
+        $enabled = SocialConfigManager::getEnabledNetworks();
+    }
+    \Template\Template::addGlobal('SeoShareConfig', $enabled);
+}
+
+function seoOptimizeOutputBuffer(): void
+{
+    $html = ob_get_contents();
+    if ($html === false || $html === '') {
+        return;
+    }
+    $optimized = seoFilterHtml($html);
+    if ($optimized === $html) {
+        return;
+    }
+    ob_clean();
+    echo $optimized;
+}
+
+function seoFilterHtml($html)
+{
+    if (!is_string($html) || $html === '') {
+        return $html;
+    }
+
+    $options = SocialConfigManager::getOptimizations();
+    if (empty($options)) {
+        return $html;
+    }
+
+    if (!empty($options['lazyLoading']) || !empty($options['autoAlt'])) {
+        $html = preg_replace_callback('/<img([^>]+)>/i', function ($matches) use ($options) {
+            $attrs = $matches[1];
+            $newAttrs = $attrs;
+
+            if (!empty($options['autoAlt']) && !preg_match('/alt="/i', $attrs)) {
+                if (preg_match('/title="([^"]+)"/i', $attrs, $titleMatch)) {
+                    $alt = $titleMatch[1];
+                } elseif (preg_match('/src="[^\/]+\/([^"]+)"/i', $attrs, $srcMatch)) {
+                    $alt = pathinfo($srcMatch[1], PATHINFO_FILENAME);
+                } else {
+                    $alt = '';
+                }
+                $newAttrs .= ' alt="' . htmlspecialchars($alt) . '"';
+            }
+
+            if (!empty($options['lazyLoading']) && !preg_match('/loading="/i', $attrs)) {
+                $newAttrs .= ' loading="lazy"';
+            }
+
+            return '<img' . $newAttrs . '>';
+        }, $html);
+    }
+
+    if (!empty($options['lazyLoading'])) {
+        $html = preg_replace_callback('/<iframe([^>]+)>/i', function ($matches) {
+            $attrs = $matches[1];
+            if (!preg_match('/loading="/i', $attrs)) {
+                return '<iframe' . $attrs . ' loading="lazy">';
+            }
+            return '<iframe' . $attrs . '>';
+        }, $html);
+    }
+
+    if (!empty($options['minifyHtml'])) {
+        $html = preg_replace('/>\s+</', '><', $html);
+        $html = preg_replace('/<!--.*?-->/', '', $html);
+    }
+
+    return $html;
+}
+
+function seoBlogAfterSave(int $postId, array $postData)
+{
+    foreach (['facebook', 'x', 'linkedin'] as $network) {
+        try {
+            SocialConfigManager::postToNetwork($network, $postData);
+        } catch (\Throwable $e) {
+            continue;
+        }
+    }
+    return true;
+}
+
+function seoGenerateSitemap(): int
+{
+    $urls = ['/'];
+    if (class_exists('\newsManager')) {
+        $news = (new \newsManager())->getItems();
+        foreach ($news as $item) {
+            if (!$item->getDraft()) {
+                $urls[] = $item->getUrl();
+            }
+        }
+    }
+
+    $today = date('Y-m-d');
+    $base = rtrim(\Core\Core::getInstance()->getConfigVal('siteUrl'), '/');
+    $xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+    foreach (array_unique($urls) as $path) {
+        $loc = htmlspecialchars($base . $path);
+        $xml .= "<url><loc>{$loc}</loc><lastmod>{$today}</lastmod></url>";
+    }
+    $xml .= '</urlset>';
+
+    return file_put_contents(ROOT . 'sitemap.xml', $xml) ? 0 : 1;
 }
 
 function seoEndFrontBody() {
@@ -88,3 +261,11 @@ function seoGetSocialVars() {
         "Tumblr" => 'tumblr',
     ];
 }
+
+$seoCore = \Core\Core::getInstance();
+$seoCore->addHook('beforeRunPlugin', 'seoBeforeRunPlugin');
+$seoCore->addHook('endFrontBody', 'seoOptimizeOutputBuffer');
+$seoCore->addHook('endAdminBody', 'seoOptimizeOutputBuffer');
+$seoCore->addHook('afterRender', 'seoFilterHtml');
+$seoCore->addHook('blogAfterSave', 'seoBlogAfterSave');
+$seoCore->addHook('cli:generate-sitemap', 'seoGenerateSitemap');

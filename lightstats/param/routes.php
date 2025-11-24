@@ -7,8 +7,8 @@
  * 
  * @package 299Ko https://github.com/299Ko/299ko
  */
-defined('ROOT') OR exit('No direct script access allowed');
+defined('ROOT') or exit('No direct script access allowed');
 
-$router = router::getInstance();
+$router = \Core\Router\Router::getInstance();
 
-$router->map('GET|POST', '/admin/lightstats[/?]', 'LightStatsAdminController#home', 'admin-lightstats-home');
+$router->map('GET|POST', '/admin/lightstats[/?]', 'LightStats\Controllers\LightStatsAdminController#home', 'admin-lightstats-home');

@@ -7,9 +7,9 @@
  * 
  * @package 299Ko https://github.com/299Ko/299ko
  */
-defined('ROOT') OR exit('No direct script access allowed');
+defined('ROOT') or exit('No direct script access allowed');
 
-$router = router::getInstance();
+$router = \Core\Router\Router::getInstance();
 
-$router->map('GET', '/admin/highlight[/?]', 'HighlightAdminController#home', 'highlight-admin');
-$router->map('POST', '/admin/highlight/saveconf[/?]', 'HighlightAdminController#save', 'highlight-saveconf');
+$router->map('GET', '/admin/highlight[/?]', 'Highlight\Controllers\HighlightAdminController#home', 'highlight-admin');
+$router->map('POST', '/admin/highlight/saveconf[/?]', 'Highlight\Controllers\HighlightAdminController#save', 'highlight-saveconf');

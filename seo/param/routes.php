@@ -13,3 +13,5 @@ $router = \Core\Router\Router::getInstance();
 
 $router->map('GET', '/admin/seo[/?]', 'SEOAdminController#home', 'seo-admin-home');
 $router->map('POST', '/admin/seo/save', 'SEOAdminController#save', 'seo-admin-save');
+$router->map('POST', '/admin/seo/generate-sitemap', 'SEOAdminController#generateSitemap', 'seo-admin-generate-sitemap');
+$router->map('GET', '/admin/seo/test-optimizations', 'SEOAdminController#testOptimizations', 'seo-admin-test-optimizations');

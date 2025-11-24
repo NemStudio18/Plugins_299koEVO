@@ -1,12 +1,12 @@
 <?php
 
-/**
- * @copyright (C) 2025, 299Ko
- * @license https://www.gnu.org/licenses/gpl-3.0.en.html GPLv3
- * @author Maxence Cauderlier <mx.koder@gmail.com>
- * 
- * @package 299Ko https://github.com/299Ko/299ko
- */
+namespace LightStats\Controllers;
+
+use Core\Controllers\AdminController;
+use Core\Responses\AdminResponse;
+use Utils\Util;
+use LightStats\Lib\LightStatsLogsManager;
+
 defined('ROOT') or exit('No direct script access allowed');
 
 class LightStatsAdminController extends AdminController
@@ -22,16 +22,14 @@ class LightStatsAdminController extends AdminController
         require_once PLUGINS . 'lightstats/lib/LightStatsLogsManager.php';
         require_once PLUGINS . 'lightstats/lib/LightStatsLog.php';
 
-        $dateStart = isset($_POST['dateStart']) ? new DateTime($_POST['dateStart']) : new DateTime();
-        $dateEnd = isset($_POST['dateEnd']) ? new DateTime($_POST['dateEnd']) : new DateTime();
+        $dateStart = isset($_POST['dateStart']) ? new \DateTime($_POST['dateStart']) : new \DateTime();
+        $dateEnd = isset($_POST['dateEnd']) ? new \DateTime($_POST['dateEnd']) : new \DateTime();
 
-        // Dates for select date form
         $browserDateStart = $dateStart->format('Y-m-d');
         $browserDateEnd = $dateEnd->format('Y-m-d');
 
-        // Dates for human readable
-        $inDateStart = util::getDate($dateStart->getTimestamp());
-        $inDateEnd = util::getDate($dateEnd->getTimestamp());
+        $inDateStart = Util::getDate($dateStart->getTimestamp());
+        $inDateEnd = Util::getDate($dateEnd->getTimestamp());
 
         $dateEnd->modify('+1 day');
 
@@ -42,6 +40,7 @@ class LightStatsAdminController extends AdminController
         $chartVisitors = $logsManager->getChartsVisitors();
         $chartPages = $logsManager->getChartsPages();
         $chartDays = $logsManager->getChartsDays();
+
         $response = new AdminResponse();
         $tpl = $response->createPluginTemplate('lightstats', 'admin');
         $tpl->set('linkToHome', $this->router->generate('admin-lightstats-home'));

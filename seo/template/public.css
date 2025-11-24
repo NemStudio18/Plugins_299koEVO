@@ -58,3 +58,37 @@
     padding: 8px;
     font-size: 16px;
 }
+
+.seo-share {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fafafa;
+}
+
+.seo-share h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.seo-share-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.seo-share-button {
+    text-decoration: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fff;
+}
+
+.seo-share-button.facebook { background: #1877f2; }
+.seo-share-button.twitter { background: #000000; }
+.seo-share-button.linkedin { background: #0a66c2; }

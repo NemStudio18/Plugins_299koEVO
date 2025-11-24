@@ -1,30 +1,28 @@
 <?php
 
-/**
- * @copyright (C) 2022, 299Ko/MDEditor
- * @license https://www.gnu.org/licenses/gpl-3.0.en.html GPLv3
- * @author Maxence Cauderlier <mx.koder@gmail.com>
- * 
- * @package 299Ko https://github.com/299Ko/299ko
- */
-defined('ROOT') OR exit('No direct script access allowed');
+namespace MdEditor {
 
-## Fonction d'installation
+use Core\Plugin\PluginsManager;
 
-function mdeditorInstall() {
-    //Désactiver tinymce
-    if (pluginsManager::isActivePlugin('tinymce')) {
-        $pluginsManager = pluginsManager::getInstance();
-        $tiny = $pluginsManager->getPlugin('tinymce');
-        $tiny->setConfigVal('activate', 0);
-        $pluginsManager->savePluginConfig($tiny);
+defined('ROOT') or exit('No direct script access allowed');
+
+class Hooks
+{
+    public static function install(): void
+    {
+        if (PluginsManager::isActivePlugin('tinymce')) {
+            $pluginsManager = PluginsManager::getInstance();
+            $tiny = $pluginsManager->getPlugin('tinymce');
+            if ($tiny) {
+                $tiny->setConfigVal('activate', 0);
+                $pluginsManager->savePluginConfig($tiny);
+            }
+        }
     }
-}
 
-## Hooks
-
-function mdeditorAdmin() {
-    echo "<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css'>
+    public static function adminAssets(): void
+    {
+        echo "<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css'>
         <script src='https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js'></script>
         <script>
             var editors = document.getElementsByClassName('editor');
@@ -38,22 +36,36 @@ function mdeditorAdmin() {
                         'guide'],
                         spellChecker: false,
                         inputStyle: 'contenteditable',
-                                    nativeSpellcheck: true,
+                        nativeSpellcheck: true,
                         element: editor
                     });
-            	}
+                }
             }
         </script>";
+    }
+
+    public static function beforeEdit(string $content = ''): string
+    {
+        require_once PLUGINS . 'mdeditor/Markdownify.php';
+        $converter = new \Markdownify\ConverterExtra();
+        return $converter->parseString($content);
+    }
+
+    public static function beforeSave(string $content): string
+    {
+        require_once PLUGINS . 'mdeditor/Parsedown.php';
+        $converter = new \ParsedownExtra();
+        return $converter->text($content);
+    }
 }
 
-function mdeditorBeforeEdit($content = '') {
-    require_once PLUGINS . '/mdeditor/Markdownify.php';
-    $converter = new \Markdownify\ConverterExtra;
-    return $converter->parseString($content);
 }
 
-function mdeditorBeforeSave($content) {
-    require_once PLUGINS . '/mdeditor/Parsedown.php';
-    $converter = new ParsedownExtra();
-    return $converter->text($content);
+namespace {
+
+    function mdeditorInstall(): void
+    {
+        \MdEditor\Hooks::install();
+    }
+
 }

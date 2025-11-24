@@ -5,5 +5,5 @@
     "authorEmail": "mx.koder@gmail.com",
     "authorWebsite" : "https://299ko.ovh",
     "version": "2.0.0",
-    "homeAdminMethod" : "HighlightAdminController#home"
+  "homeAdminMethod" : "Highlight\\Controllers\\HighlightAdminController#home"
 }

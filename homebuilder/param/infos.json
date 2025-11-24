@@ -1,0 +1,11 @@
+{
+  "slug": "homebuilder",
+  "name": "HomeBuilder",
+  "icon": "fa-solid fa-house-laptop",
+  "description": "Constructeur de page d'accueil combinant les fonctionnalités Home + Constructor",
+  "version": "1.0.0",
+  "author": "299Ko Team",
+  "hideInPublicMenu": true,
+  "homePublicMethod": "HomeBuilder\\Controllers\\HomeBuilderController#home",
+  "homeAdminMethod": "HomeBuilder\\Controllers\\HomeBuilderAdminController#index"
+}

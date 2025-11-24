@@ -5,7 +5,7 @@
 		<p>
 			<label for="theme-select">{{ Lang.highlight.theme-choose }}</label><br>
 			<select name="theme" id="theme-select">
-                {% for k, v in highlightGetThemes() %}
+                {% for k, v in Highlight\\Hooks::getThemes() %}
                     <option value='{{k}}'
                     {% if runPlugin.getConfigVal("theme") == k %} selected {% endif %}
                     >{{v}}</option>

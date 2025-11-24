@@ -1,5 +1,5 @@
 {
-    "endAdminBody": "mdeditorAdmin",
-    "beforeEditEditor": "mdeditorBeforeEdit",
-    "beforeSaveEditor": "mdeditorBeforeSave"
+    "endAdminBody": "MdEditor\\Hooks::adminAssets",
+    "beforeEditEditor": "MdEditor\\Hooks::beforeEdit",
+    "beforeSaveEditor": "MdEditor\\Hooks::beforeSave"
 }

@@ -1,4 +1,4 @@
 {
-    "endFrontHead": "highlightEndFrontHead",
-    "endFrontBody": "highlightEndFrontBody"
+    "endFrontHead": "Highlight\\Hooks::endFrontHead",
+    "endFrontBody": "Highlight\\Hooks::endFrontBody"
 }
