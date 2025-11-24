@@ -3,7 +3,7 @@
 Ce dépôt héberge **exclusivement** les plugins officiellement compatibles avec **299koEVO** (branche EVO uniquement). Utilisez-le comme référence lorsque vous développez ou déployez sur cette version du CMS.
 
 Tous les plugins disponibles dans `Plugins_299koEVO/` disposent d’une fiche dédiée (`docs/<slug>/README.md`) avec :
-- un volet marketing pour comprendre la promesse du module ;
+- la promesse du module ;
 - une documentation structurée (config, routes, sécurité, tests, références).
 
 Consultez ce document pour avoir une vision d’ensemble et naviguer rapidement vers la fiche souhaitée.
