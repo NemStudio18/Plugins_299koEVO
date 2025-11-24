@@ -1,0 +1,14 @@
+{
+  "slug": "pwa",
+  "name": "PWA",
+  "icon": "fa-solid fa-bell",
+  "description": "Progressive Web App avec notifications push",
+  "authorEmail": "mx.koder@gmail.com",
+  "authorWebsite": "https://299ko.ovh",
+  "version": "1.0",
+  "homePublicMethod": "PwaController#home",
+  "homeAdminMethod": "PwaAdminController#home",
+  "hideInPublicMenu": true
+}
+
+

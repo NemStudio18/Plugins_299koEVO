@@ -1,0 +1,13 @@
+{
+    "name" : "FAQ",
+    "icon" : "fa-solid fa-circle-question",
+    "description" : "Questions fréquemment posées",
+    "authorEmail" : "",
+    "authorWebsite" : "",
+    "version" : "1.0",
+    "homePublicMethod" : "FaqController#home",
+    "homeAdminMethod" : "FaqAdminController#list"
+}
+
+
+

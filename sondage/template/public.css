@@ -1,0 +1,312 @@
+/* Plugin Sondage - Styles publics */
+
+.sondages-list {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.sondage-item {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.sondage-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.sondage-item h3 {
+    margin: 0 0 0.5rem 0;
+}
+
+.sondage-item h3 a {
+    color: #1a3a5f;
+    text-decoration: none;
+}
+
+.sondage-item h3 a:hover {
+    color: #6b3fa0;
+}
+
+.already-voted {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: #ffc107;
+    color: #000;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.already-voted-notice {
+    margin-top: 1rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+}
+
+.already-voted-badge {
+    display: inline-block;
+    padding: 0.35rem 0.85rem;
+    background: linear-gradient(135deg, #6b3fa0 0%, #8b5fc0 100%);
+    color: #ffffff;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.sondage-stats-preview {
+    margin-top: 1rem;
+}
+
+.sondage-stats-preview strong {
+    display: block;
+    margin-bottom: 1rem;
+    color: #1a3a5f;
+    font-size: 0.95rem;
+}
+
+.stats-visualization {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.stat-bar-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-bar-label {
+    min-width: 120px;
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.stat-bar-container {
+    flex: 1;
+    height: 28px;
+    background: #f0f0f0;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stat-bar-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #6b3fa0 0%, #8b5fc0 100%);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 0.75rem;
+    transition: width 0.6s ease;
+    min-width: fit-content;
+    position: relative;
+}
+
+.stat-bar-value {
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Si la barre est trop petite, mettre le texte à l'extérieur */
+.stat-bar-fill[style*="width: 0%"],
+.stat-bar-fill[style*="width: 1%"],
+.stat-bar-fill[style*="width: 2%"],
+.stat-bar-fill[style*="width: 3%"],
+.stat-bar-fill[style*="width: 4%"],
+.stat-bar-fill[style*="width: 5%"] {
+    padding-right: 0;
+}
+
+.stat-bar-fill[style*="width: 0%"] .stat-bar-value,
+.stat-bar-fill[style*="width: 1%"] .stat-bar-value,
+.stat-bar-fill[style*="width: 2%"] .stat-bar-value,
+.stat-bar-fill[style*="width: 3%"] .stat-bar-value,
+.stat-bar-fill[style*="width: 4%"] .stat-bar-value,
+.stat-bar-fill[style*="width: 5%"] .stat-bar-value {
+    position: absolute;
+    left: calc(100% + 0.5rem);
+    color: #1a3a5f;
+    text-shadow: none;
+}
+
+.sondage-results {
+    margin-top: 2rem;
+}
+
+.sondage-total {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #1a3a5f;
+}
+
+.sondage-option-result {
+    margin-bottom: 1.5rem;
+}
+
+.option-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.option-text {
+    font-weight: 500;
+}
+
+.option-stats {
+    color: #666;
+}
+
+.option-bar {
+    height: 30px;
+    background: #f0f0f0;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+}
+
+.option-progress {
+    height: 100%;
+    background: linear-gradient(135deg, #6b3fa0 0%, #8b5fc0 100%);
+    border-radius: 15px;
+    transition: width 0.6s ease;
+}
+
+.sondage-options {
+    margin: 1.5rem 0;
+}
+
+.sondage-option {
+    display: block;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: #f9f9f9;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.sondage-option:hover {
+    background: #f0f0f0;
+    border-color: #6b3fa0;
+}
+
+.sondage-option input[type="radio"] {
+    margin-right: 0.75rem;
+}
+
+.sondage-option input[type="radio"]:checked + span {
+    font-weight: 600;
+    color: #6b3fa0;
+}
+
+.sondage-options-label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    color: #1a3a5f;
+}
+
+form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #1a3a5f;
+}
+
+form input[type="email"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+form small {
+    display: block;
+    color: #666;
+    font-size: 0.875rem;
+    margin-top: -0.25rem;
+    margin-bottom: 1rem;
+}
+
+.required {
+    color: #f44336;
+}
+
+.rgpd-checkbox {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+}
+
+.rgpd-checkbox label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.rgpd-checkbox input[type="checkbox"] {
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+}
+
+.rgpd-text {
+    display: block;
+    margin-top: 0.5rem;
+    margin-left: 1.75rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #555;
+}
+
+/* Bouton retour à la liste */
+a.button {
+    color: #ffffff !important;
+    background-color: var(--color-primary, #6b3fa0) !important;
+    text-decoration: none;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+a.button:hover {
+    background-color: var(--color-accent, #8b5fc0) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+a.button span {
+    color: #ffffff !important;
+}
+
+a.button i {
+    color: #ffffff !important;
+}

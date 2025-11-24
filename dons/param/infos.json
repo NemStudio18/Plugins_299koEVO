@@ -1,0 +1,13 @@
+{
+    "name" : "Dons",
+    "icon" : "fa-solid fa-hand-holding-heart",
+    "description" : "Collecte de dons avec PayPal et Stripe",
+    "authorEmail" : "",
+    "authorWebsite" : "",
+    "version" : "1.0",
+    "homePublicMethod" : "DonController#home",
+    "homeAdminMethod" : "DonAdminController#list"
+}
+
+
+
