@@ -2,9 +2,9 @@
     "name" : "FAQ",
     "icon" : "fa-solid fa-circle-question",
     "description" : "Questions fréquemment posées",
-    "authorEmail" : "",
-    "authorWebsite" : "",
-    "version" : "1.0",
+    "authorEmail" : "maximeblanc@flexcb.fr",
+    "authorWebsite" : "https://www.flexcb.fr",
+    "version" : "0.1",
     "homePublicMethod" : "FaqController#home",
     "homeAdminMethod" : "FaqAdminController#list"
 }

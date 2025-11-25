@@ -2,9 +2,9 @@
     "name" : "Sondage",
     "icon" : "fa-solid fa-chart-bar",
     "description" : "Gestion de sondages et votes",
-    "authorEmail" : "",
-    "authorWebsite" : "",
-    "version" : "1.0",
+    "authorEmail" : "maximeblanc@flexcb.fr",
+    "authorWebsite" : "https://www.flexcb.fr",
+    "version" : "BETA",
     "homePublicMethod" : "SondageController#home",
     "homeAdminMethod" : "SondageAdminController#list"
 }

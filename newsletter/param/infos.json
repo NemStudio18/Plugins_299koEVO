@@ -2,9 +2,9 @@
   "name" : "Newsletter",
   "icon" : "fa-regular fa-newspaper",
   "description" : "Gestion des abonnements à la newsletter",
-  "authorEmail" : "",
-  "authorWebsite" : "",
-  "version" : "1.0",
+  "authorEmail" : "maximeblanc@flexcb.fr",
+  "authorWebsite" : "https://www.flexcb.fr",
+  "version" : "BETA",
   "homePublicMethod" : "NewsletterController#home",
   "homeAdminMethod" : "NewsletterAdminController#list",
   "hideInPublicMenu": true

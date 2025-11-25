@@ -3,9 +3,9 @@
   "name": "PWA",
   "icon": "fa-solid fa-bell",
   "description": "Progressive Web App avec notifications push",
-  "authorEmail": "mx.koder@gmail.com",
-  "authorWebsite": "https://299ko.ovh",
-  "version": "1.0",
+  "authorEmail": "maximeblanc@flexcb.fr",
+  "authorWebsite": "https://www.flexcb.fr",
+  "version": "BETA",
   "homePublicMethod": "PwaController#home",
   "homeAdminMethod": "PwaAdminController#home",
   "hideInPublicMenu": true

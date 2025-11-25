@@ -3,9 +3,9 @@
     "name" : "CSS Editor",
     "icon" : "fa-solid fa-palette",
     "description" : "Éditeur CSS en ligne",
-    "authorEmail" : "mx.koder@gmail.com",
-    "authorWebsite" : "https://299ko.ovh",
-    "version" : "1.0",
+    "authorEmail" : "maximeblanc@flexcb.fr",
+    "authorWebsite" : "https://www.flexcb.fr",
+    "version" : "BETA",
   "homeAdminMethod"  : "CssEditor\\Controllers\\CssEditorAdminController#home",
     "hooks" : ["endFrontHead"]
 } 
