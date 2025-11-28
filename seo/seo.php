@@ -109,73 +109,6 @@ function seoBeforeRunPlugin(): void
     \Template\Template::addGlobal('SeoShareConfig', $enabled);
 }
 
-function seoOptimizeOutputBuffer(): void
-{
-    $html = ob_get_contents();
-    if ($html === false || $html === '') {
-        return;
-    }
-    $optimized = seoFilterHtml($html);
-    if ($optimized === $html) {
-        return;
-    }
-    ob_clean();
-    echo $optimized;
-}
-
-function seoFilterHtml($html)
-{
-    if (!is_string($html) || $html === '') {
-        return $html;
-    }
-
-    $options = SocialConfigManager::getOptimizations();
-    if (empty($options)) {
-        return $html;
-    }
-
-    if (!empty($options['lazyLoading']) || !empty($options['autoAlt'])) {
-        $html = preg_replace_callback('/<img([^>]+)>/i', function ($matches) use ($options) {
-            $attrs = $matches[1];
-            $newAttrs = $attrs;
-
-            if (!empty($options['autoAlt']) && !preg_match('/alt="/i', $attrs)) {
-                if (preg_match('/title="([^"]+)"/i', $attrs, $titleMatch)) {
-                    $alt = $titleMatch[1];
-                } elseif (preg_match('/src="[^\/]+\/([^"]+)"/i', $attrs, $srcMatch)) {
-                    $alt = pathinfo($srcMatch[1], PATHINFO_FILENAME);
-                } else {
-                    $alt = '';
-                }
-                $newAttrs .= ' alt="' . htmlspecialchars($alt) . '"';
-            }
-
-            if (!empty($options['lazyLoading']) && !preg_match('/loading="/i', $attrs)) {
-                $newAttrs .= ' loading="lazy"';
-            }
-
-            return '<img' . $newAttrs . '>';
-        }, $html);
-    }
-
-    if (!empty($options['lazyLoading'])) {
-        $html = preg_replace_callback('/<iframe([^>]+)>/i', function ($matches) {
-            $attrs = $matches[1];
-            if (!preg_match('/loading="/i', $attrs)) {
-                return '<iframe' . $attrs . ' loading="lazy">';
-            }
-            return '<iframe' . $attrs . '>';
-        }, $html);
-    }
-
-    if (!empty($options['minifyHtml'])) {
-        $html = preg_replace('/>\s+</', '><', $html);
-        $html = preg_replace('/<!--.*?-->/', '', $html);
-    }
-
-    return $html;
-}
-
 function seoBlogAfterSave(int $postId, array $postData)
 {
     foreach (['facebook', 'x', 'linkedin'] as $network) {
@@ -264,8 +197,5 @@ function seoGetSocialVars() {
 
 $seoCore = \Core\Core::getInstance();
 $seoCore->addHook('beforeRunPlugin', 'seoBeforeRunPlugin');
-$seoCore->addHook('endFrontBody', 'seoOptimizeOutputBuffer');
-$seoCore->addHook('endAdminBody', 'seoOptimizeOutputBuffer');
-$seoCore->addHook('afterRender', 'seoFilterHtml');
 $seoCore->addHook('blogAfterSave', 'seoBlogAfterSave');
 $seoCore->addHook('cli:generate-sitemap', 'seoGenerateSitemap');

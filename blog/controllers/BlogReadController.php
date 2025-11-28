@@ -42,8 +42,11 @@ class BlogReadController extends PublicController
         $toc = $this->generateTOC($generatedHTML);
 
         $categories = [];
+        $itemId = (int) $item->getId();
         foreach ($categoriesManager->getCategories() as $cat) {
-            if (in_array($item->getId(), $cat->items)) {
+            // Convertir les items en entiers pour la comparaison stricte
+            $catItems = array_map('intval', $cat->items ?? []);
+            if (in_array($itemId, $catItems, true)) {
                 $categories[] = [
                     'label' => $cat->label,
                     'url' => $this->router->generate('blog-category', ['name' => Util::strToUrl($cat->label), 'id' => $cat->id]),
@@ -65,6 +68,9 @@ class BlogReadController extends PublicController
         $tpl->set('categories', $categories);
         $tpl->set('newsManager', $newsManager);
         $tpl->set('commentSendUrl', $this->router->generate('blog-send'));
+        // Vérifier si le plugin SEO est activé et si au moins un réseau est configuré
+        $seoActive = $this->pluginsManager->isActivePlugin('seo');
+        $tpl->set('seoActive', $seoActive);
 
         $response->addTemplate($tpl);
         return $response;

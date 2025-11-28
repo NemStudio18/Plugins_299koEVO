@@ -47,11 +47,6 @@ class SocialConfigManager
                 'accessToken' => '',
             ],
             'languages' => [],
-            'optimizations' => [
-                'lazyLoading' => true,
-                'autoAlt' => true,
-                'minifyHtml' => true,
-            ],
         ];
     }
 
@@ -84,12 +79,6 @@ class SocialConfigManager
             }
         }
         return $enabled;
-    }
-
-    public static function getOptimizations(): array
-    {
-        $config = self::getAll();
-        return $config['optimizations'] ?? [];
     }
 
     public static function getLanguages(): array

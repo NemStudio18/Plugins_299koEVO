@@ -75,35 +75,12 @@
         </p>
     </section>
 
-    <section>
-        <header>{{ Lang.seo.optimizations }}</header>
-        <p>
-            <label>
-                <input type="checkbox" name="optimizations_lazyLoading" {% if socialConfig.optimizations.lazyLoading %}checked{% endif %}>
-                {{ Lang.seo.optimizations.lazy }}
-            </label>
-        </p>
-        <p>
-            <label>
-                <input type="checkbox" name="optimizations_autoAlt" {% if socialConfig.optimizations.autoAlt %}checked{% endif %}>
-                {{ Lang.seo.optimizations.alt }}
-            </label>
-        </p>
-        <p>
-            <label>
-                <input type="checkbox" name="optimizations_minifyHtml" {% if socialConfig.optimizations.minifyHtml %}checked{% endif %}>
-                {{ Lang.seo.optimizations.minify }}
-            </label>
-        </p>
-    </section>
-
     <section class="seo-actions">
         <header>{{ Lang.seo.sitemap.title }}</header>
         <p>{{ Lang.seo.sitemap.help }}</p>
         <div class="seo-actions-buttons">
             <button type="submit" class="button success">{{ Lang.submit }}</button>
             <button type="submit" formaction="{{ ROUTER.generate("seo-admin-generate-sitemap") }}" class="button">{{ Lang.seo.sitemap.generate }}</button>
-            <a class="button secondary" href="{{ ROUTER.generate("seo-admin-test-optimizations") }}">{{ Lang.seo.optimizations.test }}</a>
         </div>
     </section>
 </form>

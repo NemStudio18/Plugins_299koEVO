@@ -73,13 +73,6 @@ class SEOAdminController extends AdminController {
 
         $cfg['languages'] = array_values(array_filter(array_map('trim', explode(',', $_POST['languages'] ?? ''))));
 
-        if (!isset($cfg['optimizations']) || !is_array($cfg['optimizations'])) {
-            $cfg['optimizations'] = [];
-        }
-        $cfg['optimizations']['lazyLoading'] = !empty($_POST['optimizations_lazyLoading']);
-        $cfg['optimizations']['autoAlt'] = !empty($_POST['optimizations_autoAlt']);
-        $cfg['optimizations']['minifyHtml'] = !empty($_POST['optimizations_minifyHtml']);
-
         $pluginSaved = $this->pluginsManager->savePluginConfig($this->runPlugin);
         $socialSaved = SocialConfigManager::saveAll($cfg);
 
@@ -103,29 +96,6 @@ class SEOAdminController extends AdminController {
             Show::msg(Lang::get('seo.sitemap.error'), 'error');
         }
         $this->core->redirect($this->router->generate('seo-admin-home'));
-    }
-
-    public function testOptimizations()
-    {
-        $response = new AdminResponse();
-        $tpl = $response->createPluginTemplate('seo', 'test_optimizations');
-        $cfg = SocialConfigManager::getAll();
-
-        $sample = '
-        <div class="seo-test-container">
-            <h2>Images</h2>
-            <img src="/img/test1.jpg" title="Image de test 1">
-            <img src="/img/test2.jpg" alt="Image de test 2">
-            <img src="/img/test3.jpg">
-            <h2>Iframes</h2>
-            <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe>
-            <iframe src="https://maps.google.com/maps?q=Paris&amp;output=embed"></iframe>
-        </div>';
-
-        $tpl->set('content', seoFilterHtml($sample));
-        $tpl->set('optimizations', $cfg['optimizations'] ?? []);
-        $response->addTemplate($tpl);
-        return $response;
     }
 
     protected function seoSavePositionMenu($position) {

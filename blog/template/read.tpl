@@ -33,7 +33,7 @@
 	</header>
 	{{ TOC }}
 	{{ generatedHtml }}
-	{% if SeoShareConfig %}
+	{% if seoActive and SeoShareConfig and (SeoShareConfig.facebook or SeoShareConfig.x or SeoShareConfig.linkedin) %}
 	<section class="seo-share">
 		<h3>{{ Lang.seo.share-title }}</h3>
 		<div class="seo-share-buttons">

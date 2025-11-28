@@ -28,7 +28,8 @@ class ContactAdminController extends AdminController {
         Template::addGlobal('contactUsers', User::all());
         Template::addGlobal('contactSelected', $selectedUserId);
         $tpl->set('token', $this->user->token);
-        $tpl->set('emails', implode("\n", Util::readJsonFile(DATA_PLUGIN . 'contact/emails.json')));
+        $emails = Util::readJsonFile(DATA_PLUGIN . 'contact/emails.json');
+        $tpl->set('emails', is_array($emails) ? implode("\n", $emails) : '');
         $response->addTemplate($tpl);
         return $response;
     }
