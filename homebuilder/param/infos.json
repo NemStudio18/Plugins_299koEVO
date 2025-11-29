@@ -3,7 +3,7 @@
   "name": "HomeBuilder",
   "icon": "fa-solid fa-house-laptop",
   "description": "Constructeur de page d'accueil combinant les fonctionnalités Home + Constructor",
-  "version": "BETA",
+  "version": "0.1.0b",
   "authorEmail": "maximeblanc@flexcb.fr",
   "authorWebsite": "http://www.flexcb.fr",
   "hideInPublicMenu": true,

@@ -4,7 +4,7 @@
   "description" : "Gestion des abonnements à la newsletter",
   "authorEmail" : "maximeblanc@flexcb.fr",
   "authorWebsite" : "https://www.flexcb.fr",
-  "version" : "BETA",
+  "version" : "0.1.0b",
   "homePublicMethod" : "NewsletterController#home",
   "homeAdminMethod" : "NewsletterAdminController#list",
   "hideInPublicMenu": true

@@ -5,7 +5,7 @@
   "description": "Progressive Web App avec notifications push",
   "authorEmail": "maximeblanc@flexcb.fr",
   "authorWebsite": "https://www.flexcb.fr",
-  "version": "BETA",
+  "version": "0.1.0b",
   "homePublicMethod": "PwaController#home",
   "homeAdminMethod": "PwaAdminController#home",
   "hideInPublicMenu": true

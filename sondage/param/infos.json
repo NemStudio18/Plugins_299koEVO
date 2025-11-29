@@ -4,7 +4,7 @@
     "description" : "Gestion de sondages et votes",
     "authorEmail" : "maximeblanc@flexcb.fr",
     "authorWebsite" : "https://www.flexcb.fr",
-    "version" : "BETA",
+    "version" : "0.1.0b",
     "homePublicMethod" : "SondageController#home",
     "homeAdminMethod" : "SondageAdminController#list"
 }

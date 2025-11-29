@@ -5,6 +5,6 @@
     "description" : "Ajoute des options liées au référencement et aux réseaux sociaux",
     "authorEmail" : "mx.koder@gmail.com",
     "authorWebsite" : "https://299ko.ovh",
-    "version" : "2.0",
+    "version" : "0.1.0b",
     "homeAdminMethod"  : "SEOAdminController#home"
 }

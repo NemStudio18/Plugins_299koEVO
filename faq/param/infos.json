@@ -4,7 +4,7 @@
     "description" : "Questions fréquemment posées",
     "authorEmail" : "maximeblanc@flexcb.fr",
     "authorWebsite" : "https://www.flexcb.fr",
-    "version" : "0.1",
+    "version" : "0.1.0b",
     "homePublicMethod" : "FaqController#home",
     "homeAdminMethod" : "FaqAdminController#list"
 }

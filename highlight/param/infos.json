@@ -4,6 +4,6 @@
     "description": "Coloration syntaxique du code",
     "authorEmail": "mx.koder@gmail.com",
     "authorWebsite" : "https://299ko.ovh",
-    "version": "2.0.0",
+    "version": "0.1.0b",
   "homeAdminMethod" : "Highlight\\Controllers\\HighlightAdminController#home"
 }

@@ -5,7 +5,7 @@
     "description" : "Éditeur CSS en ligne",
     "authorEmail" : "maximeblanc@flexcb.fr",
     "authorWebsite" : "https://www.flexcb.fr",
-    "version" : "BETA",
+    "version" : "0.1.0b",
   "homeAdminMethod"  : "CssEditor\\Controllers\\CssEditorAdminController#home",
     "hooks" : ["endFrontHead"]
 } 

@@ -4,7 +4,7 @@
     "description" : "Collecte de dons avec PayPal et Stripe",
     "authorEmail" : "maximeblanc@flexcb.fr",
     "authorWebsite" : "https://www.flexcb.fr",
-    "version" : "0.1",
+    "version" : "0.1.0b",
     "homePublicMethod" : "DonController#home",
     "homeAdminMethod" : "DonAdminController#list"
 }

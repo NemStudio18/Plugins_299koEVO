@@ -5,7 +5,7 @@
     "description" : "Gestion d'une Documentation type Wiki avec système de versions",
     "authorEmail" : "maximeblanc@flexcb.fr",
     "authorWebsite" : "https://www.flexcb.fr",
-    "version" : "BETA",
+    "version" : "0.1.0b",
     "homePublicMethod" : "Docs\\Controllers\\DocsListController#home",
     "homeAdminMethod" : "Docs\\Controllers\\DocsAdminPagesController#list"
 }
