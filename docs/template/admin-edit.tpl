@@ -1,5 +1,5 @@
 <form method="post" id="mainForm" action="{{ ROUTER.generate("admin-docs-save-page")}}" enctype="multipart/form-data">
-    {{SHOW.tokenField}}
+    {{ SHOW.tokenField }}
     <input type="hidden" name="id" value="{{ wikiPage.getId() }}" />
     {% if pluginsManager.isActivePlugin("galerie") %}
         <input type="hidden" name="imgId" value="{{ wikiPage.getImg() }}" />

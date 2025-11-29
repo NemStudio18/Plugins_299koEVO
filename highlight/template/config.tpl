@@ -1,7 +1,7 @@
 <section>
 	<header>{{Lang.core-settings}}</header>
 	<form method="post" action="{{ ROUTER.generate("highlight-saveconf") }}" enctype="multipart/form-data">
-		{{SHOW.tokenField()}}
+		{{ SHOW.tokenField }}
 		<p>
 			<label for="theme-select">{{ Lang.highlight.theme-choose }}</label><br>
 			<select name="theme" id="theme-select">

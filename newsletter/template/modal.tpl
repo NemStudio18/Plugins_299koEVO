@@ -17,6 +17,7 @@
             <div class="newsletter-modal-body">
                 {{ SHOW.displayMsg }}
                 <form method="post" action="{{ subscribeUrl }}" id="newsletter-form">
+                    {{ SHOW.tokenField }}
                     <label for="newsletter-email">{{ Lang.newsletter.email }}</label>
                     <input type="email" name="email" id="newsletter-email" placeholder="{{ Lang.newsletter.email-placeholder }}" required />
                     

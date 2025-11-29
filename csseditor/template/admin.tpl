@@ -2,7 +2,7 @@
     <header>{{ Lang.csseditor.title }}</header>
     
     <form method="post" action="{{ ROUTER.generate("csseditor-admin-save") }}" id="csseditorForm">
-        {{ SHOW.tokenField() }}
+        {{ SHOW.tokenField }}
         
         <!-- Boutons d'action principaux (hors du bloc scrollable) -->
         <div class="main-actions">

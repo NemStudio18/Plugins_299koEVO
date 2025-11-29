@@ -1,6 +1,8 @@
-<section>
+<section class="module-card">
+    <header>{{ Lang.lightstats.name }}</header>
     <h3>{{Lang.lightstats.choose-date}}</h3>
     <form method="post" action="{{linkToHome}}">
+        {{ SHOW.tokenField }}
         <p>
             <label for="dateStart">{{Lang.lightstats.begin-date}}</label>
             <input id="dateStart" name="dateStart" type="date" value="{{browserDateStart}}">

@@ -20,7 +20,7 @@
         <div id="categorie-add-form-container">
             <h4 id="head-add-cat">{{ Lang.wiki.categories.addCategory }}</h4>
             <form method="post" action="{{ ROUTER.generate('admin-docs-add-category') }}">
-                {{ SHOW.tokenField() }}
+                {{ SHOW.tokenField }}
                 <div class="input-field">
                     <label for="category-list-add-label">{{ Lang.wiki.categories.categoryName }}</label>
                     <input type="text" name="label" id="category-list-add-label" required/>

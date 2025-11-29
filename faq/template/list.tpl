@@ -18,6 +18,7 @@
                         <h3>{{ q.question }}</h3>
                         <div class="faq-vote">
                             <form method="post" action="{{ q.voteUrl }}" style="display: inline;">
+                                {{ SHOW.tokenField }}
                                 <button type="submit" class="faq-vote-btn{% if q.hasVoted %} voted{% endif %}"{% if q.hasVoted %} disabled{% endif %}>
                                     <i class="fa-solid fa-thumbs-up"></i> {{ q.votes }}
                                 </button>
@@ -35,6 +36,7 @@
     <div class="faq-ask">
         <h3>{{ Lang.faq.ask-question }}</h3>
         <form method="post" action="{{ askUrl }}">
+            {{ SHOW.tokenField }}
             <input type="text" name="_name" style="display: none;" tabindex="-1" autocomplete="off" />
             
             <label for="question">{{ Lang.faq.your-question }}</label>

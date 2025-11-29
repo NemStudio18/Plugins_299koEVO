@@ -30,7 +30,7 @@
 
 {% if mode == "edit" %}
     <form method="post" action="{{ ROUTER.generate("admin-galerie-save") }}" enctype="multipart/form-data">
-        {{ show::tokenField() }}
+        {{ SHOW.tokenField }}
         <section>
             <input type="hidden" name="id" value="{{ item.getId() }}" />
             <header>{{ Lang.core-settings }}</header>

@@ -25,7 +25,7 @@
 <section>
     <header>{{Lang.antispam.conf-head}}</header>
     <form method="post" action='{{ROUTER.generate("antispam-saveconf")}}'>
-        {{SHOW.tokenField()}}
+        {{ SHOW.tokenField }}
         <p>
             <input {{useText}} type="radio" name="captcha" value="useText" id="radioText"/><label for="radioText">{{Lang.antispam.use-text-captcha}}</label>
         </p>

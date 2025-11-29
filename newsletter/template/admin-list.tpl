@@ -47,7 +47,7 @@
     <div style="margin-top: 2rem;">
         <h3>{{ Lang.newsletter-admin.send-email }}</h3>
         <form method="post" action="{{ ROUTER.generate("newsletter-admin-send") }}">
-            {{ SHOW.tokenField }}
+            {{ SHOW.tokenField() }}
             
             <label for="subject">{{ Lang.newsletter-admin.send-subject }}</label>
             <input type="text" name="subject" id="subject" required />

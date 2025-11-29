@@ -1,5 +1,5 @@
 <form method="post" id="mainForm" action="{{ ROUTER.generate("admin-blog-save-post")}}" enctype="multipart/form-data">
-    {{SHOW.tokenField}}
+    {{ SHOW.tokenField }}
     <input type="hidden" name="id" value="{{ news.getId() }}" />
     <input type="hidden" name="imgId" value="{{ news.getImg() }}" />
 
