@@ -12,54 +12,28 @@
  */
 defined('ROOT') OR exit('Access denied!');
 
-require_once PLUGINS . 'blog/entities/news.php';
-require_once PLUGINS . 'blog/entities/newsComment.php';
-require_once PLUGINS . 'blog/entities/newsManager.php';
-require_once PLUGINS . 'blog/entities/BlogCategoriesManager.php';
-require_once PLUGINS . 'blog/entities/BlogCategory.php';
+use Blog\Hooks\BlogHooks;
 
-
-
-## Fonction d'installation
-
-function blogInstall() {
-
-}
-
-## Hooks
-
-function blogEndFrontHead() {
-    $core = \Core\Core::getInstance();
-    echo '<link rel="alternate" type="application/rss+xml" href="' . \Core\Router\Router::getInstance()->generate('blog-rss') . '" title="' . $core->getConfigVal('siteName') . '">' . "\n";
-}
-
-function blogLinkShortcode(array $attributes):string {
-    $newsManager = new newsManager();
-    $news = $newsManager->create((int) $attributes['id']);
-    if (!$news) {
-        return '';
+// 1. Autoloader for Blog namespace (maps to src/)
+spl_autoload_register(function ($class) {
+    if (strpos($class, 'Blog\\') === 0) {
+        $path = str_replace('\\', '/', substr($class, 5));
+        $file = __DIR__ . '/src/' . $path . '.php';
+        if (file_exists($file)) {
+            require_once $file;
+        }
     }
-    if (!isset($attributes['name'])) {
-        $attributes['name'] = $news->getName();
+});
+
+// 2. Register Hooks
+// Hooks are now registered via param/hooks.json
+
+// 3. Wrappers for legacy Core calls
+
+function blogInstall()
+{
+    if (class_exists('\Blog\Hooks\BlogHooks')) {
+        BlogHooks::install();
     }
-    return '<a href="' . \Core\Router\Router::getInstance()->generate('blog-read', ['id' => $news->getId(), 'name' => \Utils\Util::strToUrl($news->getName())]) . '">' . $attributes['name'] . '</a>';
 }
-
-function blogBeforeRunPlugin() {
-    \Content\ContentParser::addShortcode('blogLink', 'BlogLinkShortcode');
-}
-
-function BlogAdminCategoriesTemplates() {
-    global $runPlugin;
-    if ($runPlugin === null || $runPlugin->getName() !== 'blog') {
-        return;
-    }
-
-    $catsManager = new BlogCategoriesManager();
-
-    echo '<a title="' . \Core\Lang::get('blog-categories-management-title') . '" id="cat_link" data-fancybox data-type="ajax" href="#" data-src="' .  $catsManager->getAjaxDisplayListUrl() . '"><i class="fa-regular fa-folder-open"></i></a>';
-}
-
-
-## Code relatif au plugin
 

@@ -1,23 +1,33 @@
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
 
-    if (document.querySelector('.galerie .categories button')) {
+    const categoryButtons = document.querySelectorAll('.categories-nav button');
+    const galleryItems = document.querySelectorAll('.galerie-grid .galerie-item');
 
-        document.querySelectorAll('.galerie .categories button').forEach(function(item, index) {
-            item.addEventListener('click', function(){
-                var rel = this.getAttribute('rel');
+    if (categoryButtons.length > 0) {
+        categoryButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const rel = this.getAttribute('rel');
 
-                document.querySelectorAll('.galerie #list li').forEach(function(item, index) {
+                // Update active state
+                categoryButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+
+                // Filter items
+                galleryItems.forEach(item => {
                     item.style.display = 'none';
+                    item.style.opacity = '0';
                 });
 
-                document.querySelectorAll('.galerie #list li.'+rel).forEach(function(item, index) {
-                    fadeIn(item, 'block');
+                document.querySelectorAll('.galerie-grid .' + rel).forEach(item => {
+                    item.style.display = 'block';
+                    // Re-trigger animation or transition
+                    setTimeout(() => {
+                        item.style.opacity = '1';
+                    }, 10);
                 });
-
             });
         });
-
     }
 
 });

@@ -15,8 +15,38 @@ use Seo\Entities\SocialConfigManager;
 defined('ROOT') or exit('Access denied!');
 
 require_once __DIR__ . '/entities/SocialConfigManager.php';
+require_once __DIR__ . '/entities/Redirect.php';
 
 SocialConfigManager::getAll();
+
+/**
+ * Gère les redirections enregistrées avant le dispatching du routeur
+ */
+function seoHandleRedirections(): void
+{
+    // Ne pas rediriger en mode admin
+    if (defined('ADMIN_MODE') && ADMIN_MODE) {
+        return;
+    }
+
+    $uri = $_SERVER['REQUEST_URI'] ?? '';
+    // Retirer le base path si présent
+    $uri = preg_replace('/^' . preg_quote(BASE_PATH, '/') . '/', '', $uri);
+    // Retirer les query params pour le match d'URL propre
+    $urlPath = parse_url($uri, PHP_URL_PATH);
+    
+    if (!$urlPath) return;
+
+    $redirect = \Seo\Entities\Redirect::findMatch($urlPath);
+    if ($redirect) {
+        $redirect->incrementHits();
+        $code = $redirect->code ?: 301;
+        header("Location: " . $redirect->new_url, true, $code);
+        exit();
+    }
+}
+
+// Hook beforeExecution is now declared in param/hooks.json
 
 function seoInstall() {
     SocialConfigManager::getAll();
@@ -54,7 +84,10 @@ function seoPrintAnalytics(): void
 
 function seoPrintMetaTags(): void
 {
-    global $page;
+    global $page, $runPlugin;
+    if ($runPlugin) {
+        return;
+    }
     if (!$page || !method_exists($page, 'getName')) {
         return;
     }
@@ -65,11 +98,15 @@ function seoPrintMetaTags(): void
     $permalink = method_exists($page, 'getPermalink') ? $page->getPermalink() : '';
     $url = htmlspecialchars(rtrim($core->getConfigVal('siteUrl'), '/') . $permalink);
 
+    $plugin = \Core\Plugin\PluginsManager::getInstance()->getPlugin('seo');
     $image = '';
     if (method_exists($page, 'getFeaturedImage')) {
         $image = $page->getFeaturedImage();
     } elseif (method_exists($page, 'getImg')) {
         $image = $page->getImg();
+    }
+    if (!$image) {
+        $image = $plugin->getConfigVal('defaultOgImage');
     }
     if (!$image) {
         $image = rtrim($core->getConfigVal('themeUrl'), '/') . '/img/default.jpg';
@@ -123,22 +160,43 @@ function seoBlogAfterSave(int $postId, array $postData)
 
 function seoGenerateSitemap(): int
 {
-    $urls = ['/'];
+    $items = ['/', '/recherche'];
     if (class_exists('\newsManager')) {
         $news = (new \newsManager())->getItems();
         foreach ($news as $item) {
             if (!$item->getDraft()) {
-                $urls[] = $item->getUrl();
+                $items[] = $item->getUrl();
             }
         }
     }
 
-    $today = date('Y-m-d');
-    $base = rtrim(\Core\Core::getInstance()->getConfigVal('siteUrl'), '/');
+    // Call hook to allow other plugins to add URLs
+    $items = \Core\Core::getInstance()->callHook('seo:collect-sitemap-urls', $items);
+
+    $base = rtrim((string)\Core\Core::getInstance()->getConfigVal('siteUrl'), '/');
     $xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
-    foreach (array_unique($urls) as $path) {
-        $loc = htmlspecialchars($base . $path);
-        $xml .= "<url><loc>{$loc}</loc><lastmod>{$today}</lastmod></url>";
+    $seen = [];
+    foreach ($items as $entry) {
+        $path = '';
+        $lastmod = null;
+        if (is_array($entry)) {
+            $path = $entry['loc'] ?? '';
+            $lastmod = !empty($entry['lastmod']) ? substr($entry['lastmod'], 0, 10) : null;
+        } else {
+            $path = (string)$entry;
+        }
+        $path = '/' . ltrim($path, '/');
+        if (isset($seen[$path]) || $path === '') {
+            continue;
+        }
+        $seen[$path] = true;
+
+        $loc = htmlspecialchars($base . $path, ENT_QUOTES, 'UTF-8');
+        $xml .= "<url><loc>{$loc}</loc>";
+        if ($lastmod && preg_match('/^\d{4}-\d{2}-\d{2}$/', $lastmod)) {
+            $xml .= "<lastmod>{$lastmod}</lastmod>";
+        }
+        $xml .= "</url>";
     }
     $xml .= '</urlset>';
 
@@ -195,7 +253,4 @@ function seoGetSocialVars() {
     ];
 }
 
-$seoCore = \Core\Core::getInstance();
-$seoCore->addHook('beforeRunPlugin', 'seoBeforeRunPlugin');
-$seoCore->addHook('blogAfterSave', 'seoBlogAfterSave');
-$seoCore->addHook('cli:generate-sitemap', 'seoGenerateSitemap');
+// Hooks are now declared in param/hooks.json

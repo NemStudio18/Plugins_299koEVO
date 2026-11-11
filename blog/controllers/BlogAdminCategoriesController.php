@@ -2,7 +2,10 @@
 
 use Core\Controllers\AdminController;
 use Core\Responses\ApiResponse;
+use Core\Responses\AdminResponse;
 use Core\Responses\StringResponse;
+use Blog\Entities\CategoriesManager;
+use Blog\Entities\NewsManager;
 
 /**
  * @copyright (C) 2024, 299Ko
@@ -13,39 +16,47 @@ use Core\Responses\StringResponse;
  */
 defined('ROOT') OR exit('Access denied!');
 
-class BlogAdminCategoriesController extends AdminController {
+class BlogAdminCategoriesController extends AdminController
+{
 
-    public BlogCategoriesManager $categoriesManager;
+    public CategoriesManager $categoriesManager;
 
-    public newsManager $newsManager;
+    public NewsManager $newsManager;
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
-        $this->categoriesManager = new BlogCategoriesManager();
-        $this->newsManager = new newsManager();
+        $this->categoriesManager = new CategoriesManager();
+        $this->newsManager = new NewsManager();
     }
 
-    public function addCategory() {
+    public function addCategory()
+    {
         $response = new ApiResponse();
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('blog:admin'), $ctx)) {
             $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
             return $response;
         }
-        $label = filter_var($this->jsonData['label'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-        $parentId = filter_var($this->jsonData['parentId'], FILTER_SANITIZE_NUMBER_INT) ?? 0;
+        $label = filter_var($this->jsonData['label'] ?? $_POST['label'] ?? $_POST['name'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $parentId = (int) ($this->jsonData['parentId'] ?? $_POST['parentId'] ?? 0);
         $this->categoriesManager->createCategory($label, $parentId);
         $response->status = ApiResponse::STATUS_CREATED;
         return $response;
     }
 
-    public function deleteCategory() {
+    public function deleteCategory()
+    {
         // Called by Ajax
         $response = new ApiResponse();
-        $id = (int) $this->jsonData['id'] ?? 0;
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('blog:admin'), $ctx)) {
             $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
             return $response;
         }
+        $id = (int) $this->jsonData['id'] ?? 0;
         if ($this->categoriesManager->isCategoryExist($id)) {
             if ($this->categoriesManager->deleteCategory($id)) {
                 $response->status = ApiResponse::STATUS_NO_CONTENT;
@@ -56,9 +67,12 @@ class BlogAdminCategoriesController extends AdminController {
         return $response;
     }
 
-    public function editCategory() {
+    public function editCategory()
+    {
         // Called By Fancybox
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('blog:admin'), $ctx)) {
             echo 'forbidden';
             die();
         }
@@ -78,15 +92,18 @@ class BlogAdminCategoriesController extends AdminController {
         return $response;
     }
 
-    public function saveCategory($id) {
+    public function saveCategory($id)
+    {
         // Called by Ajax
         $response = new ApiResponse();
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('blog:admin'), $ctx)) {
             $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
             return $response;
         }
         $label = filter_var($this->jsonData['label'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-        $parentId = (int)filter_var($this->jsonData['parentId'], FILTER_SANITIZE_NUMBER_INT) ?? 0;
+        $parentId = (int) filter_var($this->jsonData['parentId'], FILTER_SANITIZE_NUMBER_INT) ?? 0;
         if (!$this->categoriesManager->isCategoryExist($id)) {
             $response->status = ApiResponse::STATUS_NOT_FOUND;
             return $response;
@@ -103,8 +120,22 @@ class BlogAdminCategoriesController extends AdminController {
         return $response;
     }
 
-    public function listAjaxCategories() {
-        echo $this->categoriesManager->outputAsList();
+    public function list()
+    {
+        $response = new AdminResponse();
+        $tpl = $response->createPluginTemplate('blog', 'admin-home');
+        $tpl->set('activeTab', 'categories');
+        $tpl->set('newsManager', $this->newsManager);
+        $tpl->set('posts', $this->newsManager->getItems());
+        $tpl->set('categoriesManager', $this->categoriesManager);
+        $tpl->set('token', $this->user->token);
+        $response->addTemplate($tpl);
+        return $response;
+    }
+
+    public function listAjaxCategories()
+    {
+        $this->categoriesManager->outputAsList();
         die();
     }
 

@@ -7,6 +7,8 @@ use Core\Lang;
 use Utils\Util;
 use Core\Core;
 use Core\Plugin\PluginsManager;
+use Core\Security\Csrf;
+use Newsletter\Entities\NewsletterManager;
 
 /**
  * @copyright (C) 2025, 299Ko
@@ -21,6 +23,14 @@ class NewsletterAdminController extends AdminController
 {
     public function list()
     {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('newsletter:admin'), $ctx)) {
+            \Utils\Show::msg(Lang::get('core-not-authorized'), 'error');
+            $this->core->redirect($this->router->generate('admin-home'));
+            return;
+        }
 
         $newsletterManager = new NewsletterManager();
         $subscribers = $newsletterManager->getSubscribers();
@@ -45,7 +55,7 @@ class NewsletterAdminController extends AdminController
         $tpl->set('subscribers', $subscribersData);
         $tpl->set('subscribersCount', count($subscribersData));
         $tpl->set('activeCount', count(array_filter($subscribersData, function($s) { return $s['active']; })));
-        $tpl->set('token', $this->user->token);
+        $tpl->set('token', Csrf::token());
         
         $response->addTemplate($tpl);
         return $response;
@@ -53,7 +63,10 @@ class NewsletterAdminController extends AdminController
 
     public function delete($id)
     {
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('newsletter:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->list();
         }
@@ -76,7 +89,10 @@ class NewsletterAdminController extends AdminController
 
     public function send()
     {
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('newsletter:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->list();
         }
@@ -124,7 +140,10 @@ class NewsletterAdminController extends AdminController
 
     public function params()
     {
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('newsletter:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->list();
         }
@@ -141,7 +160,10 @@ class NewsletterAdminController extends AdminController
 
     public function saveParams()
     {
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('newsletter:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->params();
         }

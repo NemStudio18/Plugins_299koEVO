@@ -1,5 +1,6 @@
-<form method="post" action="{{ ROUTER.generate("admin-galerie-save-config")}}">
+<form method="post" action="{ ROUTER.generate("admin-galerie-save-config") }">
     {{ SHOW.tokenField }}
+    <input type="hidden" name="activeTab" value="settings" />
 
     <p>
         <input {% if runPlugin.getConfigVal("showTitles") %} checked {% endif %} type="checkbox" name="showTitles" id="showTitles" />

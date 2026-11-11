@@ -30,12 +30,167 @@ function galerieInstall() {
 
 ## Hooks
 
-function galerieEndFrontHead() {
-    
+function galerieEndFrontHead($param = ''): string
+{
+    $output = (string)$param;
+    $siteUrl = \Core\Core::getInstance()->getConfigVal('siteUrl');
+    $cssUrl = $siteUrl . '/plugin/galerie/template/public.css';
+    $output .= '<link rel="stylesheet" href="' . $cssUrl . '?v=' . VERSION . '">' . "\n";
+
+    // Swiper assets if any carousel is enabled
+    if (PluginsManager::getPluginConfVal('galerie', 'carouselGalleryEnabled') || PluginsManager::getPluginConfVal('galerie', 'carouselHookEnabled')) {
+        $output .= '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />' . "\n";
+        $output .= '<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>' . "\n";
+    }
+
+    return $output;
 }
 
+function galerieDisplayGalleryCarousel() {
+    return galerieRenderCarousel('carouselGallery');
+}
+
+function galerieDisplayHookCarousel() {
+    return galerieRenderCarousel('carouselHook');
+}
+
+function galerieRenderCarousel($prefix) {
+    if (!PluginsManager::getPluginConfVal('galerie', $prefix . 'Enabled')) {
+        return '';
+    }
+    
+    $galerie = new galerie();
+    $items = $galerie->getCarouselItems($prefix);
+    if (empty($items)) {
+        return '';
+    }
+
+    $response = new \Core\Responses\PublicResponse();
+    $tpl = $response->createPluginTemplate('galerie', 'public-carousel');
+    $tpl->set('items', $items);
+    $tpl->set('type', PluginsManager::getPluginConfVal('galerie', $prefix . 'Type'));
+    $tpl->set('prefix', $prefix);
+    
+    return $tpl->output();
+}
+
+/**
+ * Hook pour la recherche globale : cherche dans la galerie
+ */
+function galerieSearchResultsHook(array $data): array
+{
+    $query = $data['query'];
+    $results = [];
+    try {
+        $galerieManager = new \galerie();
+        $items = $galerieManager->getItems();
+
+        foreach ($items as $item) {
+            if ($item->getHidden()) continue;
+            
+            if (stripos($item->getTitle(), $query) !== false || stripos($item->getContent(), $query) !== false || stripos($item->getCategory(), $query) !== false) {
+                $results[] = [
+                    'title' => 'Photo : ' . $item->getTitle(),
+                    'excerpt' => substr(strip_tags($item->getContent()), 0, 150) . '...',
+                    'url' => \Core\Router\Router::getInstance()->generate('galerie-item', ['id' => $item->getId()]),
+                    'icon' => 'fa-solid fa-image',
+                    'source' => 'galerie',
+                    'source_label' => 'Galerie',
+                    'date' => $item->getDate(),
+                    'date_formatted' => date('d/m/Y', strtotime($item->getDate())),
+                    'score' => (stripos($item->getTitle(), $query) !== false ? 10 : 0) + (stripos($item->getContent(), $query) !== false ? 5 : 0)
+                ];
+            }
+        }
+        $data['results'] = array_merge($data['results'], $results);
+    } catch (\Exception $e) {
+        // Ignorer
+    }
+    return $data;
+}
+
+// Hooks are now registered in hooks.json
+
+/**
+ * Hook page:admin-edit-sections
+ */
+function galerieAdminEditSections(array $data): array {
+    $pageItem = $data['pageItem'] ?? null;
+    $img = $pageItem ? ($pageItem->getImg() ?? '') : '';
+    
+    // Hidden field
+    $data['hiddenFields'] .= '<input type="hidden" name="imgId" value="' . htmlspecialchars($img) . '" />';
+    
+    // Section
+    $sectionHtml = '<section>';
+    $sectionHtml .= '<header>' . Lang::get('galerie.featured-image') . '</header>';
+    $sectionHtml .= '<p>';
+    if ($img != '') {
+        $imgUrl = \Core\Core::getInstance()->getConfigVal('siteUrl') . '/' . str_replace('./', '', UPLOAD) . 'galerie/' . $img;
+        $sectionHtml .= '<div class="galerie-featured-preview">';
+        $sectionHtml .= '<img src="' . $imgUrl . '" alt="' . htmlspecialchars($img) . '" class="galerie-featured-thumb" />';
+        $sectionHtml .= '<br><input type="checkbox" name="delImg" id="delImg" /> <label for="delImg" class="galerie-featured-delete-label">' . Lang::get('galerie.delete-featured-image') . '</label>';
+        $sectionHtml .= '</div>';
+        $sectionHtml .= '<label for="file">Modifier l\'icône/image</label><br>';
+    } else {
+        $sectionHtml .= '<label for="file">' . Lang::get('galerie.file') . ' (png, jpg, jpeg, gif)</label><br>';
+    }
+    $sectionHtml .= '<input type="file" name="file" id="file" accept="image/*" />';
+    $sectionHtml .= '</p>';
+    $sectionHtml .= '</section>';
+    
+    $data['sections'][] = $sectionHtml;
+    
+    return $data;
+}
+
+/**
+ * Hook page:og-image
+ */
+function galerieOgImage(array $data): array {
+    $pageItem = $data['pageItem'] ?? null;
+    if ($pageItem && $pageItem->getImg()) {
+        if (galerie::searchByfileName($pageItem->getImg())) {
+            $core = \Core\Core::getInstance();
+            $data['url'] = $core->getConfigVal('siteUrl') . '/' . str_replace('./', '', UPLOAD) . 'galerie/' . $pageItem->getImg();
+        }
+    }
+    return $data;
+}
+
+/**
+ * Hook page:save-featured-image
+ */
+function galerieSaveFeaturedImage(array $data): array {
+    $file = $data['file'] ?? null;
+    if ($file && !empty($file['name'])) {
+        $galerie = new galerie();
+        $img = new galerieItem(array('category' => ''));
+        $img->setTitle(($data['pageName'] ?? 'Page') . ' (' . Lang::get('galerie.featured-image') . ')');
+        $img->setHidden(1);
+        $galerie->saveItem($img);
+        $data['currentImgId'] = $galerie->getLastId() . '.' . Util::getFileExtension($file['name']);
+    }
+    return $data;
+}
+
+/**
+ * Hook page:content-header
+ */
+function galeriePageContentHeader($pageItem) {
+    if ($pageItem instanceof \Core\Page\PageItem && $pageItem->getImg()) {
+        if (galerie::searchByfileName($pageItem->getImg())) {
+            echo '<header>';
+            echo '<img class="featured" src="' . $pageItem->getImgUrl() . '" alt="' . $pageItem->getName() . '"/>';
+            echo '</header>';
+        }
+    }
+}
 function galerieGenerateEditor() {
     global $runPlugin;
+    if ($runPlugin === null) {
+        $runPlugin = \Core\Plugin\PluginsManager::getInstance()->getPlugin('galerie');
+    }
     $introEditor = new Editor('introduction', $runPlugin->getConfigVal('introduction'), Lang::get('galerie.introduction'), true);
     return $introEditor;
 }
@@ -45,6 +200,7 @@ function galerieGenerateEditor() {
 class galerie {
 
     private $items;
+    private $categories;
     private $size;
 
     public function __construct() {
@@ -62,11 +218,101 @@ class galerie {
             }
         }
         $this->items = $data;
+
+        $this->categories = [];
+        if (file_exists(DATA_PLUGIN . 'galerie/categories.json')) {
+            $this->categories = Util::readJsonFile(DATA_PLUGIN . 'galerie/categories.json');
+        }
+
         $this->size = PluginsManager::getPluginConfVal('galerie', 'size');
     }
 
     public function getItems() {
         return $this->items;
+    }
+
+    public function getGroupedItems() {
+        $grouped = [];
+        $uncategorized = [];
+        
+        // Preparation of categories
+        foreach ($this->categories as $cat) {
+            $grouped[$cat['name']] = [];
+        }
+
+        foreach ($this->items as $item) {
+            $catName = $item->getCategory();
+            if ($catName && isset($grouped[$catName])) {
+                $grouped[$catName][] = $item;
+            } else {
+                $uncategorized[] = $item;
+            }
+        }
+
+        // Remove empty predefined categories for the admin list view? 
+        // Or keep them? Usually cleaner to only show categories with items or specifically defined ones.
+        // The user wants to see their photos grouped.
+        
+        $result = [];
+        foreach ($grouped as $name => $items) {
+            if (!empty($items)) {
+                $result[$name] = $items;
+            }
+        }
+        
+        if (!empty($uncategorized)) {
+            $result[Lang::get('galerie.uncategorized') ?? 'Sans catégorie'] = $uncategorized;
+        }
+
+        return $result;
+    }
+
+    public function getCategories() {
+        return $this->categories;
+    }
+
+    public function saveCategory($name, $parentId = '') {
+        $name = trim($name);
+        if ($name === '') return false;
+
+        // Check if already exists
+        foreach ($this->categories as $cat) {
+            if ($cat['name'] === $name && $cat['parent'] === $parentId) {
+                return true;
+            }
+        }
+
+        $this->categories[] = [
+            'id' => uniqid(),
+            'name' => $name,
+            'parent' => $parentId
+        ];
+
+        return $this->saveCategories();
+    }
+
+    public function deleteCategory($id) {
+        foreach ($this->categories as $k => $v) {
+            if ($v['id'] === $id) {
+                unset($this->categories[$k]);
+                $this->categories = array_values($this->categories);
+                // Also update children parents? For simplicity, just orphans them (parent = '')
+                foreach ($this->categories as $k2 => $v2) {
+                    if ($v2['parent'] === $id) {
+                        $this->categories[$k2]['parent'] = '';
+                    }
+                }
+                return $this->saveCategories();
+            }
+        }
+        return false;
+    }
+
+    private function saveCategories() {
+        if (Util::writeJsonFile(DATA_PLUGIN . 'galerie/categories.json', $this->categories)) {
+            return true;
+        }
+        return false;
     }
 
     public function createItem($id) {
@@ -116,6 +362,11 @@ class galerie {
 
     public function listCategories($hiddenItems = true) {
         $data = array();
+        // Add predefined categories
+        foreach ($this->categories as $cat) {
+            $data[] = $cat['name'];
+        }
+        // Add categories from items
         foreach ($this->items as $k => $v)
             if ($v->getCategory() != null && $v->getCategory() != '') {
                 if ($hiddenItems || (!$hiddenItems && !$v->getHidden()))
@@ -123,6 +374,23 @@ class galerie {
             }
         asort($data);
         return array_unique($data);
+    }
+
+    public function getCarouselItems($prefix = 'carouselGallery') {
+        $enabled = PluginsManager::getPluginConfVal('galerie', $prefix . 'Enabled');
+        if (!$enabled) return [];
+
+        $source = PluginsManager::getPluginConfVal('galerie', $prefix . 'Source');
+        $category = PluginsManager::getPluginConfVal('galerie', $prefix . 'Category');
+
+        $data = [];
+        foreach ($this->items as $item) {
+            if ($item->getHidden()) continue;
+            if ($source == 'all' || ($source == 'category' && $item->getCategory() == $category)) {
+                $data[] = $item;
+            }
+        }
+        return $data;
     }
 
     public function useCategories() {
@@ -259,6 +527,10 @@ class galerieItem {
 
     public function getUrl():string {
         return Util::urlBuild(UPLOAD . 'galerie/' . $this->img);
+    }
+
+    public function getRelUrl():string {
+        return '/data/upload/galerie/' . ltrim((string)$this->img, '/');
     }
 
     public function getCategory() {

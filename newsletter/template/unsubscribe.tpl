@@ -1,5 +1,7 @@
-<section>
-    <header>{{ Lang.newsletter.unsubscribe-title }}</header>
+<section class="newsletter-unsubscribe-page">
+    <header class="content-panel">
+        <h1>{{ Lang.newsletter.unsubscribe-title }}</h1>
+    </header>
     
     {{ SHOW.displayMsg }}
     

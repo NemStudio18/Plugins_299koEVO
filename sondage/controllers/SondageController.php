@@ -6,6 +6,7 @@ use Utils\Show;
 use Core\Lang;
 use Utils\VoteProtection;
 use Core\Auth\UsersManager;
+use Core\Auth\User;
 use Core\Plugin\PluginsManager;
 
 /**
@@ -24,20 +25,20 @@ class SondageController extends PublicController
         $sondageManager = new SondageManager();
         $activeSondages = $sondageManager->getActiveItems();
 
-        $this->runPlugin->setMainTitle(Lang::get('sondage.name'));
-        $this->runPlugin->setTitleTag(Lang::get('sondage.name'));
-
         $response = new PublicResponse();
+        $response->setTitle('<i class="fa-solid fa-square-poll-vertical"></i> ' . Lang::get('sondage.name'));
+
         $tpl = $response->createPluginTemplate('sondage', 'list');
 
         $sondages = [];
         foreach ($activeSondages as $sondage) {
             $totalVotes = $sondage->getTotalVotes();
             $hasVoted = $this->hasUserVoted($sondage);
+            $isClosed = $sondage->isClosed();
             
-            // Préparer les stats si déjà voté
+            // Préparer les stats seulement si le sondage est terminé
             $optionsStats = [];
-            if ($hasVoted && $totalVotes > 0) {
+            if ($isClosed && $totalVotes > 0) {
                 $allOptions = $sondage->getOptions();
                 foreach ($allOptions as $index => $option) {
                     $votes = $sondage->getVotesForOption($index);
@@ -57,6 +58,7 @@ class SondageController extends PublicController
                 'totalVotes' => $totalVotes,
                 'votesCountText' => Lang::get('sondage.votes-count', $totalVotes),
                 'hasVoted' => $hasVoted,
+                'isClosed' => $isClosed,
                 'optionsStats' => $optionsStats,
                 'url' => $this->router->generate('sondage-read', ['id' => $sondage->getId()])
             ];
@@ -73,14 +75,13 @@ class SondageController extends PublicController
         $sondageManager = new SondageManager();
         $sondage = $sondageManager->create($id);
 
-        if (!$sondage || $sondage->getActive() != '1') {
+        if (!$sondage || (!$sondage->getActive() && !$sondage->isClosed())) {
             $this->core->error404();
         }
 
-        $this->runPlugin->setMainTitle($sondage->getTitle());
-        $this->runPlugin->setTitleTag($sondage->getTitle());
-
         $response = new PublicResponse();
+        $response->setTitle('<i class="fa-solid fa-circle-question"></i> ' . $sondage->getTitle());
+
         $tpl = $response->createPluginTemplate('sondage', 'read');
 
         $optionsData = [];
@@ -98,15 +99,34 @@ class SondageController extends PublicController
             ];
         }
 
+        // Prepare chart data for main pie chart
+        $chartLabels = [];
+        $chartDataValues = [];
+        foreach ($optionsData as $opt) {
+            $chartLabels[] = $opt['text'];
+            $chartDataValues[] = $opt['votes'];
+        }
+
         $totalVotes = $sondage->getTotalVotes();
         $hasVoted = $this->hasUserVoted($sondage);
+        $isClosed = $sondage->isClosed();
         
+        // Données de participation (Démographie) via le manager
+        $participationStats = $sondageManager->getParticipationStats($sondage);
+
         $tpl->set('sondage', $sondage);
         $tpl->set('optionsData', $optionsData);
         $tpl->set('hasVoted', $hasVoted);
+        $tpl->set('isClosed', $isClosed);
+        $tpl->set('participationStats', $participationStats);
+        $tpl->set('jsonCities', json_encode($participationStats['cities'], JSON_UNESCAPED_UNICODE));
+        $tpl->set('jsonDistricts', json_encode($participationStats['districts'], JSON_UNESCAPED_UNICODE));
+        $tpl->set('jsonChartLabels', json_encode($chartLabels, JSON_UNESCAPED_UNICODE));
+        $tpl->set('jsonChartData', json_encode($chartDataValues));
         $tpl->set('voteUrl', $this->router->generate('sondage-vote', ['id' => $sondage->getId()]));
         $tpl->set('allOptions', $allOptions);
         $tpl->set('totalVotesText', Lang::get('sondage.votes-count', $totalVotes));
+        $tpl->set('otherVotes', $sondage->getOtherVotes());
         $tpl->set('listUrl', $this->router->generate('sondage-home'));
         $response->addTemplate($tpl);
         return $response;
@@ -117,8 +137,23 @@ class SondageController extends PublicController
         $sondageManager = new SondageManager();
         $sondage = $sondageManager->create($id);
 
-        if (!$sondage || $sondage->getActive() != '1') {
+        if (!$sondage || !$sondage->getActive() || $sondage->isClosed()) {
             Show::msg(Lang::get('sondage.vote-error'), 'error');
+            return $this->read($id);
+        }
+
+        // Vérifier si autorisé à voter
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext(UsersManager::getCurrentUser());
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('sondage:vote'), $ctx)) {
+            Show::msg(Lang::get('sondage.require-login'), 'error');
+            return $this->read($id);
+        }
+
+        // Vérifier si le profil est complet (Ville + Quartier)
+        $user = UsersManager::getCurrentUser();
+        if (empty($user->attributes['city']) || empty($user->attributes['district'])) {
+            Show::msg("Merci de renseigner votre ville et votre quartier dans votre profil pour participer au vote.", 'warning');
             return $this->read($id);
         }
 
@@ -128,40 +163,35 @@ class SondageController extends PublicController
             return $this->read($id);
         }
 
-        // Vérifier si login requis
-        if ($this->runPlugin->getConfigVal('requireLogin') == '1' && !IS_LOGGED) {
-            Show::msg(Lang::get('sondage.require-login'), 'error');
-            return $this->read($id);
+        // Récupérer les options votées (index ou indices)
+        $options = $_POST['options'] ?? $_POST['option'] ?? [];
+        if (!is_array($options)) {
+            $options = [$options];
+        }
+        
+        $verifiedOptions = [];
+        $availableOptionsCount = count($sondage->getOptions());
+        foreach ($options as $opt) {
+            $idx = intval($opt);
+            if ($idx >= 0 && $idx < $availableOptionsCount) {
+                $verifiedOptions[] = $idx;
+            }
         }
 
-        // Récupérer et valider l'email (obligatoire)
-        $email = filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL);
-        if (empty($email) || !VoteProtection::validateEmail($email)) {
-            Show::msg(Lang::get('sondage.email-required'), 'error');
-            return $this->read($id);
+        // Option "Autre"
+        $otherText = null;
+        if ($sondage->getAllowOther() && !empty($_POST['other_text'])) {
+            $otherText = $_POST['other_text'];
         }
 
-        // Vérifier l'acceptation RGPD
-        if (!VoteProtection::hasAcceptedRGPD($_POST)) {
-            Show::msg(Lang::get('sondage.rgpd-required'), 'error');
-            return $this->read($id);
-        }
-
-        // Récupérer l'option votée
-        $optionIndex = isset($_POST['option']) ? intval($_POST['option']) : -1;
-        if ($optionIndex < 0 || $optionIndex >= count($sondage->getOptions())) {
+        if (empty($verifiedOptions) && $otherText === null) {
             Show::msg(Lang::get('sondage.vote-error'), 'error');
             return $this->read($id);
         }
 
-        // Consentement pour stocker l'email en clair (pour les stats) ou seulement le hash
-        $emailConsentStats = isset($_POST['email_consent_stats']) && $_POST['email_consent_stats'] == '1';
-        $emailToStore = $emailConsentStats ? $email : null; // Si pas de consentement, null (seul le hash sera utilisé)
-
-        // Ajouter le vote avec fingerprint (pas d'IP en clair)
-        $userId = IS_LOGGED ? UsersManager::getCurrentUser()->id : null;
-        $fingerprint = VoteProtection::getFingerprint();
-        $sondage->addVote($optionIndex, $userId, $fingerprint, $emailToStore);
+        // Ajouter le vote
+        $userId = UsersManager::getCurrentUser()->id;
+        $sondage->addVote($verifiedOptions, $userId, $otherText);
         $sondageManager->saveSondage($sondage);
 
         Show::msg(Lang::get('sondage.vote-success'), 'success');
@@ -177,7 +207,9 @@ class SondageController extends PublicController
             return false;
         }
 
-        $userId = IS_LOGGED ? UsersManager::getCurrentUser()->id : null;
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext(UsersManager::getCurrentUser());
+        $userId = $evaluator->canAccess(new \Core\Navigation\GenericResource('sondage:access'), $ctx) ? UsersManager::getCurrentUser()->id : null;
         $fingerprint = VoteProtection::getFingerprint();
         
         return $sondage->hasUserVoted($userId, $fingerprint);

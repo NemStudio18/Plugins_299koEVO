@@ -87,7 +87,18 @@ class newsManager {
 
     public function saveNews($obj) {
         $id = intval($obj->getId());
-        if ($id < 1) {
+        $isNew = ($id < 1);
+        $wasPublished = false;
+
+        // Si ce n'est pas un nouveau, on vérifie son état actuel pour savoir s'il était déjà publié
+        if (!$isNew) {
+            $old = $this->create($id);
+            if ($old) {
+                $wasPublished = ($old->getDraft() === "0");
+            }
+        }
+
+        if ($isNew) {
             $obj->setId($this->makeId());
             $this->items[] = $obj;
         } else {
@@ -96,7 +107,29 @@ class newsManager {
                     $this->items[$k] = $obj;
             }
         }
-        return $this->save();
+        
+        $saved = $this->save();
+        
+        // Si sauvegardé avec succès et publié (draft=0) alors qu'il ne l'était pas
+        if ($saved && $obj->getDraft() === "0" && !$wasPublished) {
+            try {
+                $data = [
+                    'user_id' => 0, // Broadcast
+                    'source_plugin' => 'blog',
+                    'entity_type' => 'post',
+                    'entity_id' => $obj->getId(),
+                    'notification_type' => 'new_post',
+                    'title' => 'Nouvel article publié',
+                    'message' => 'L\'article "' . $obj->getName() . '" vient d\'être publié sur le blog.',
+                    'link_url' => $obj->getUrl()
+                ];
+                Core::getInstance()->callHook('notifications:send', $data);
+            } catch (\Exception $e) {
+                Core::getInstance()->getLogger()->log('ERROR', "[Blog] Erreur lors de l'envoi de la notification: " . $e->getMessage());
+            }
+        }
+
+        return $saved;
     }
 
     /**

@@ -1,5 +1,7 @@
-<section>
-    <header>{{ Lang.newsletter.name }}</header>
+<section class="newsletter-subscribe-page">
+    <header class="content-panel">
+        <h1>{{ Lang.newsletter.name }}</h1>
+    </header>
     
     {{ SHOW.displayMsg }}
     

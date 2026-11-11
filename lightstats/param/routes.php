@@ -11,4 +11,12 @@ defined('ROOT') or exit('No direct script access allowed');
 
 $router = \Core\Router\Router::getInstance();
 
-$router->map('GET|POST', '/admin/lightstats[/?]', 'LightStats\Controllers\LightStatsAdminController#home', 'admin-lightstats-home');
+// Route principale - accepter avec ou sans slash (les paramètres GET sont gérés automatiquement par AltoRouter)
+// Définir deux routes pour garantir le matching avec ou sans slash
+$router->map('GET|POST', '/admin/lightstats', 'LightStats\Controllers\LightStatsAdminController#home', 'admin-lightstats-home');
+$router->map('GET|POST', '/admin/lightstats/', 'LightStats\Controllers\LightStatsAdminController#home', 'admin-lightstats-home-slash');
+$router->map('POST', '/admin/lightstats/save-config', 'LightStats\Controllers\LightStatsAdminController#saveConfig', 'admin-lightstats-save-config');
+
+// Endpoint API pour les micro-événements (Beacon JS)
+$router->map('POST', '/lightstats/api/event', 'LightStats\Controllers\LightStatsApiController#logEvent', 'lightstats-api-event');
+$router->map('POST', '/api/analytics/event', 'LightStats\Controllers\LightStatsApiController#logEvent', 'api-analytics-event');

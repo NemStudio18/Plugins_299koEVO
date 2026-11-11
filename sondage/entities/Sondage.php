@@ -1,4 +1,7 @@
 <?php
+namespace Sondage\Entities;
+
+use Core\Storage\JsonActiveRecord;
 
 /**
  * @copyright (C) 2024, 299Ko
@@ -9,164 +12,117 @@
  */
 defined('ROOT') OR exit('No direct script access allowed');
 
-class Sondage
+class Sondage extends JsonActiveRecord
 {
-    private $id;
-    private $title;
-    public $options = [];
-    private $active;
-    private $votes;
-    private $date;
-    private $closeDate;
+    protected static string $tableName = 'sondages';
+    protected static string $filePath = DATA_PLUGIN . 'sondage/sondages.json';
+    protected static string $primaryKey = 'id';
+    
+    protected static array $casts = [
+        'options' => 'array',
+        'votes' => 'array',
+        'active' => 'integer',
+        'isMultipleChoice' => 'integer',
+        'allowOther' => 'integer'
+    ];
 
-    public function __construct($val = array())
+    public function __construct(array $data = [])
     {
-        if (count($val) > 0) {
-            $this->id = $val['id'] ?? null;
-            $this->title = $val['title'] ?? '';
-            $this->options = $val['options'] ?? [];
-            $this->active = $val['active'] ?? '0';
-            $this->votes = $val['votes'] ?? [];
-            $this->date = $val['date'] ?? date('Y-m-d H:i:s');
-            $this->closeDate = $val['closeDate'] ?? null;
+        parent::__construct($data);
+        if (empty($this->attributes['date'])) {
+            $this->attributes['date'] = date('Y-m-d H:i:s');
         }
     }
 
-    public function setId($val)
-    {
-        $this->id = intval($val);
-    }
+    public function setId($val) { $this->attributes['id'] = $val; }
+    public function setTitle($val) { $this->attributes['title'] = trim($val); }
+    public function setOptions($val) { $this->attributes['options'] = is_array($val) ? $val : []; }
+    public function setActive($val) { $this->attributes['active'] = (int)$val; }
+    public function setVotes($val) { $this->attributes['votes'] = is_array($val) ? $val : []; }
+    public function setDate($val) { $this->attributes['date'] = $val ?: date('Y-m-d H:i:s'); }
+    public function setCloseDate($val) { $this->attributes['closeDate'] = $val ?: null; }
+    public function setIsMultipleChoice($val) { $this->attributes['isMultipleChoice'] = (int)$val; }
+    public function setAllowOther($val) { $this->attributes['allowOther'] = (int)$val; }
 
-    public function setTitle($val)
-    {
-        $this->title = trim($val);
-    }
-
-    public function setOptions($val)
-    {
-        $this->options = is_array($val) ? $val : [];
-    }
-
-    public function setActive($val)
-    {
-        $this->active = trim($val);
-    }
-
-    public function setVotes($val)
-    {
-        $this->votes = is_array($val) ? $val : [];
-    }
-
-    public function setDate($val)
-    {
-        if ($val === null || empty($val)) {
-            $val = date('Y-m-d H:i:s');
-        }
-        $this->date = trim($val);
-    }
-
-    public function setCloseDate($val)
-    {
-        $this->closeDate = ($val === null || empty($val)) ? null : trim($val);
-    }
-
-    public function getCloseDate()
-    {
-        return $this->closeDate;
-    }
+    public function getId() { return $this->attributes['id'] ?? null; }
+    public function getTitle() { return $this->attributes['title'] ?? ''; }
+    public function getOptions() { return $this->attributes['options'] ?? []; }
+    public function getActive() { return (int)($this->attributes['active'] ?? 0) === 1; }
+    public function getIsMultipleChoice() { return (int)($this->attributes['isMultipleChoice'] ?? 0) === 1; }
+    public function getAllowOther() { return (int)($this->attributes['allowOther'] ?? 0) === 1; }
+    public function getVotes() { return $this->attributes['votes'] ?? []; }
+    public function getDate() { return $this->attributes['date'] ?? ''; }
+    public function getCloseDate() { return $this->attributes['closeDate'] ?? null; }
 
     public function isClosed()
     {
-        if ($this->closeDate === null || empty($this->closeDate)) {
+        $closeDate = $this->getCloseDate();
+        if ($closeDate === null || empty($closeDate)) {
             return false;
         }
-        return strtotime($this->closeDate) < time();
-    }
-
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    public function getTitle()
-    {
-        return $this->title;
-    }
-
-    public function getOptions()
-    {
-        return $this->options;
-    }
-
-    public function getActive()
-    {
-        // Si le sondage a une date de clôture et qu'elle est dépassée, il n'est plus actif
-        if ($this->isClosed()) {
-            return false;
-        }
-        return $this->active == '1';
-    }
-
-    public function getVotes()
-    {
-        return $this->votes;
-    }
-
-    public function getDate()
-    {
-        return $this->date;
+        return strtotime($closeDate) <= time();
     }
 
     public function getTotalVotes()
     {
-        return count($this->votes);
+        return count($this->getVotes());
+    }
+
+    public function getUrl()
+    {
+        return \Core\Router\Router::getInstance()->generate('sondage-read', ['id' => $this->getId()]);
     }
 
     public function getVotesForOption($optionIndex)
     {
         $count = 0;
-        foreach ($this->votes as $vote) {
+        foreach ($this->getVotes() as $vote) {
             if (isset($vote['option']) && $vote['option'] == $optionIndex) {
+                $count++;
+            }
+            if (isset($vote['options']) && is_array($vote['options']) && in_array($optionIndex, $vote['options'])) {
                 $count++;
             }
         }
         return $count;
     }
 
+    public function getOtherVotes()
+    {
+        $others = [];
+        foreach ($this->getVotes() as $vote) {
+            if (!empty($vote['other'])) {
+                $others[] = $vote['other'];
+            }
+        }
+        return $others;
+    }
+
     public function hasUserVoted($userId = null, $fingerprint = null)
     {
-        foreach ($this->votes as $vote) {
-            if ($userId && isset($vote['userId']) && $vote['userId'] == $userId) {
-                return true;
-            }
-            if ($fingerprint && isset($vote['fingerprint']) && $vote['fingerprint'] === $fingerprint) {
+        if (!$userId) return false;
+        foreach ($this->getVotes() as $vote) {
+            if (isset($vote['userId']) && $vote['userId'] == $userId) {
                 return true;
             }
         }
         return false;
     }
 
-    public function addVote($optionIndex, $userId = null, $fingerprint = null, $email = null)
+    public function addVote($options, $userId = null, $otherText = null)
     {
-        $this->votes[] = [
-            'option' => intval($optionIndex),
+        $votes = $this->getVotes();
+        $votes[] = [
+            'options' => is_array($options) ? $options : [intval($options)],
             'userId' => $userId,
-            'fingerprint' => $fingerprint,
-            'email' => $email ? filter_var($email, FILTER_SANITIZE_EMAIL) : null,
+            'other' => $otherText ? trim(filter_var($otherText, FILTER_SANITIZE_FULL_SPECIAL_CHARS)) : null,
             'date' => date('Y-m-d H:i:s')
         ];
+        $this->setVotes($votes);
     }
 
-    public function toArray()
+    public function toArray(): array
     {
-        return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'options' => $this->options,
-            'active' => $this->active,
-            'votes' => $this->votes,
-            'date' => $this->date,
-            'closeDate' => $this->closeDate
-        ];
+        return $this->attributes;
     }
 }

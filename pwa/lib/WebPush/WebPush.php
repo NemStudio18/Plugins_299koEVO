@@ -151,10 +151,9 @@ class WebPush
     }
 
     /**
-     * Chiffre le payload (implémentation simplifiée)
-     * Note: En production, utiliser une bibliothèque complète comme web-push-php
+     * @return array|false
      */
-    private function encryptPayload(string $payload, string $p256dh, string $auth): array|false
+    private function encryptPayload(string $payload, string $p256dh, string $auth)
     {
         // Générer une clé de chiffrement
         $salt = random_bytes(16);
@@ -198,9 +197,9 @@ class WebPush
     }
 
     /**
-     * Convertit une clé privée base64url en format PEM
+     * @return string|false
      */
-    private function convertPrivateKeyToPEM(string $base64urlKey): string|false
+    private function convertPrivateKeyToPEM(string $base64urlKey)
     {
         // Décoder la clé
         $key = $this->base64UrlDecode($base64urlKey);

@@ -1,64 +1,64 @@
-<section class="overflow-auto">
-	<header>{{ Lang.blog-posts-list }}</header>
-	<a class="button" href="{{ ROUTER.generate("admin-blog-edit-post") }}">{{ Lang.blog-add }}</a>
-	<a target="_blank" class="button" href="{{ ROUTER.generate("blog-rss") }}">{{ Lang.rss_feed }}</a>
+﻿<section class="overflow-auto">
+	<header>{{Lang.blog-posts-list}}</header>
+	<a class="button" href="{ ROUTER.generate("admin-blog-edit-post") }">{{Lang.blog-add}}</a>
+	<a target="_blank" class="button" href="{ ROUTER.generate("blog-rss") }">{{Lang.rss_feed}}</a>
 	<table class="small">
 		<tr>
-			<th>{{ Lang.blog-title }}</th>
-			<th>{{ Lang.blog-date }}</th>
-			<th>{{ Lang.blog-comments }}</th>
-			<th>{{ Lang.blog-see }}</th>
-			<th>{{ Lang.blog-categories }}</th>
-			<th>{{ Lang.delete }}</th>
+			<th>{{Lang.blog-title}}</th>
+			<th>{{Lang.blog-date}}</th>
+			<th>{{Lang.blog-comments}}</th>
+			<th>{{Lang.blog-see}}</th>
+			<th>{{Lang.blog-categories}}</th>
+			<th>{{Lang.delete}}</th>
 		</tr>
-		{% for item in newsManager.getItems() %}
-			<tr id="post{{ item.getId() }}">
+		{% FOR item IN newsManager.getItems() %}
+			<tr id="post{{item.getId()}}">
 				<td>
-					<a title="{{ Lang.blog-edit }}" href="{{ ROUTER.generate("admin-blog-edit-post", ["id" => item.getId()]) }}">{{ item.getName() }}</a>
+					<a title="{{Lang.blog-edit}}" href="{ ROUTER.generate("admin-blog-edit-post", ["id" => item.getId()]) }">{{item.getName()}}</a>
 				</td>
 				<td>
-                    {{ util.getDate(item.getDate()) }}
+                    {{util.getDate(item.getDate())}}
                 </td>
-				<td style="text-align: center">
-					{% if newsManager.countComments(item.getId()) > 0 %}
-						<a title="{{ newsManager.countComments(item.getId()) }} {{ Lang.blog-comments}}" href="{{ ROUTER.generate("admin-blog-list-comments", ["id" => item.getId()]) }}" class="button">
+				<td class="text-center">
+					{% IF newsManager.countComments(item.getId()) > 0 %}
+						<a title="{{newsManager.countComments(item.getId())}} {{Lang.blog-comments}}" href="{ ROUTER.generate("admin-blog-list-comments", ["id" => item.getId()]) }" class="button">
 							<i class="fa-regular fa-comments"></i>
-							{{ newsManager.countComments(item.getId()) }}</a>
+							{{newsManager.countComments(item.getId())}}</a>
                     {% else %}
                         0
-					{% endif %}
+					{% ENDIF %}
 				</td>
-				<td style="text-align: center">
-					<a title="{{ Lang.blog-see }}" target="_blank" href="{{ item.getUrl }}" class="button">
+				<td class="text-center">
+					<a title="{{Lang.blog-see}}" target="_blank" href="{{item.getUrl}}" class="button">
 						<i class="fa-solid fa-eye"></i>
 					</a>
 				</td>
                 <td>
-                    {% if item.categories %}
-						{% for cat in item.categories %}
-                            <span class="blog-category">{{ cat.label }}</span>
-                        {% endfor %}
-                    {% else %}
-                        {{ Lang.blog.categories.none}}
-                    {% endif %}
+                    {% IF item.categories %}
+						{% FOR cat IN item.categories %}
+                            <span class="blog-category">{{cat.label}}</span>
+                        {% ENDFOR %}
+                    {% ELSE %}
+                        {{Lang.blog.categories.none}}
+                    {% ENDIF %}
                 </td>
-				<td style="text-align: center">
-					<a title="{{ Lang.delete }}" onclick="BlogDeletePost('{{ item.getId() }}')" class="button alert">
+				<td class="text-center">
+					<a title="{{Lang.delete}}" onclick="BlogDeletePost('{{item.getId()}}')" class="button alert">
 						<i class="fa-regular fa-trash-can"></i>
 					</a>
 				</td>
 			</tr>
-		{% endfor %}
+		{% ENDFOR %}
 	</table>
 </section>
 
 <script>
 async function BlogDeletePost(id) {
-	if (confirm('{{ Lang.confirm.deleteItem }}') === true) {
-		let url = '{{ ROUTER.generate("admin-blog-delete-post") }}';
+	if (confirm('{{Lang.confirm.deleteItem}}') === true) {
+		let url = '{ ROUTER.generate("admin-blog-delete-post") }';
 		let data = {
 			id: id,
-			token: '{{ token }}'
+			token: '{{token}}'
 		};
 		let response = await fetch(url, {
 			method: 'POST',
@@ -72,12 +72,12 @@ async function BlogDeletePost(id) {
 		if (result.status === 204) {
 			fadeOut(document.querySelector('#post' + id));
 			Toastify({
-				text: "{{ Lang.core-item-deleted}}",
+				text: "{{Lang.core-item-deleted}}",
 				className: "success"		
 			}).showToast();
 		} else {
 			Toastify({
-				text: "{{ Lang.core-item-not-deleted}}",
+				text: "{{Lang.core-item-not-deleted}}",
 				className: "error"		
 			}).showToast();
 		}				

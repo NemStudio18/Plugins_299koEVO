@@ -1,33 +1,22 @@
 <?php
 
-/**
- * @copyright (C) 2025, 299Ko
- * @license https://www.gnu.org/licenses/gpl-3.0.en.html GPLv3
- * @author Maxence Cauderlier <mx.koder@gmail.com>
- * 
- * @package 299Ko https://github.com/299Ko/299ko
- */
-defined('ROOT') OR exit('No direct script access allowed');
+namespace Newsletter\Entities;
 
-class NewsletterSubscriber
+use Core\Storage\JsonActiveRecord;
+
+defined('ROOT') or exit('Access denied!');
+
+class NewsletterSubscriber extends JsonActiveRecord
 {
-    private $id;
-    private $email;
-    private $date;
-    private $token;
-    private $active;
+    protected static string $tableName = 'newsletter_subscribers';
+    protected static string $filePath = DATA_PLUGIN . 'newsletter/subscribers.json';
+    protected static string $primaryKey = 'id';
 
-    public function __construct($val = array())
+    public function __construct(array $data = [])
     {
-        if (count($val) > 0) {
-            $this->id = $val['id'] ?? null;
-            $this->email = $val['email'] ?? '';
-            $this->date = $val['date'] ?? date('Y-m-d H:i:s');
-            $this->token = $val['token'] ?? $this->generateToken();
-            $this->active = $val['active'] ?? '1';
-        } else {
+        parent::__construct($data);
+        if (empty($this->token)) {
             $this->token = $this->generateToken();
-            $this->active = '1';
         }
     }
 
@@ -38,63 +27,67 @@ class NewsletterSubscriber
 
     public function setId($val)
     {
-        $this->id = intval($val);
+        $this->attributes['id'] = intval($val);
     }
 
     public function setEmail($val)
     {
-        $this->email = trim(filter_var($val, FILTER_SANITIZE_EMAIL));
+        $this->attributes['email'] = trim(filter_var($val, FILTER_SANITIZE_EMAIL));
     }
 
     public function setDate($val)
     {
-        $this->date = $val;
+        $this->attributes['date'] = $val;
     }
 
     public function setToken($val)
     {
-        $this->token = $val;
+        $this->attributes['token'] = $val;
     }
 
     public function setActive($val)
     {
-        $this->active = $val ? '1' : '0';
+        $this->attributes['active'] = $val ? '1' : '0';
+    }
+
+    public function setUserId($val)
+    {
+        $this->attributes['userId'] = $val ? intval($val) : null;
     }
 
     public function getId()
     {
-        return $this->id;
+        return isset($this->attributes['id']) ? (int)$this->attributes['id'] : null;
     }
 
     public function getEmail()
     {
-        return $this->email;
+        return $this->attributes['email'] ?? '';
     }
 
     public function getDate()
     {
-        return $this->date;
+        return $this->attributes['date'] ?? date('Y-m-d H:i:s');
     }
 
     public function getToken()
     {
-        return $this->token;
+        return $this->attributes['token'] ?? '';
     }
 
     public function isActive()
     {
-        return $this->active == '1';
+        return ($this->attributes['active'] ?? '1') == '1';
     }
 
-    public function toArray()
+    public function getUserId()
     {
-        return [
-            'id' => $this->id,
-            'email' => $this->email,
-            'date' => $this->date,
-            'token' => $this->token,
-            'active' => $this->active
-        ];
+        return isset($this->attributes['userId']) ? (int)$this->attributes['userId'] : null;
+    }
+
+    public function toArray(): array
+    {
+        return $this->attributes;
     }
 }
 

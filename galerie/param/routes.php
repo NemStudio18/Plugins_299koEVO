@@ -11,11 +11,17 @@ defined('ROOT') OR exit('Access denied!');
 
 $router = \Core\Router\Router::getInstance();
 
-$router->map('GET', '/galerie[/?]', 'GalerieController#home', 'galerie-home');
+$router->map('GET', '/galerie', 'GalerieController#home', 'galerie-home');
+$router->map('GET', '/galerie/', 'GalerieController#home');
 
-$router->map('GET', '/admin/galerie[/?]', 'GalerieAdminController#home', 'admin-galerie-home');
+$router->map('GET', '/admin/galerie', 'GalerieAdminController#home', 'admin-galerie-home');
+$router->map('GET', '/admin/galerie/', 'GalerieAdminController#home');
 $router->map('GET', '/admin/galerie/edit', 'GalerieAdminController#edit', 'admin-galerie-edit');
 $router->map('GET', '/admin/galerie/edit/[a:id]', 'GalerieAdminController#editId', 'admin-galerie-edit-id');
 $router->map('GET', '/admin/galerie/delete/[a:id]/[a:token]', 'GalerieAdminController#delete', 'admin-galerie-delete');
 $router->map('POST', '/admin/galerie/save', 'GalerieAdminController#save', 'admin-galerie-save');
 $router->map('POST', '/admin/galerie/saveConf', 'GalerieAdminController#saveConf', 'admin-galerie-save-config');
+$router->map('POST', '/admin/galerie/category/add', 'GalerieAdminController#addCategory', 'admin-galerie-category-add');
+$router->map('GET', '/admin/galerie/category/delete/[a:id]', 'GalerieAdminController#deleteCategory', 'admin-galerie-category-delete');
+
+$router->map('GET', '/admin/galerie/selector/[*:token]', 'GalerieSelectorController#selector', 'admin-galerie-selector');

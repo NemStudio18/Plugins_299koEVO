@@ -4,6 +4,8 @@ use Core\Controllers\AdminController;
 use Core\Responses\AdminResponse;
 use Utils\Show;
 use Core\Lang;
+use Sondage\Entities\SondageManager;
+use Sondage\Entities\Sondage;
 
 /**
  * @copyright (C) 2024, 299Ko
@@ -18,7 +20,15 @@ class SondageAdminController extends AdminController
 {
     public function list()
     {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('sondage:admin'), $ctx)) {
+            Show::msg(Lang::get('core-not-authorized'), 'error');
+            return $this->core->redirect($this->router->generate('admin-home'));
+        }
+
         $sondageManager = new SondageManager();
+        $totalUsersCount = count(\Core\Auth\User::all());
 
         $this->runPlugin->setMainTitle(Lang::get('sondage-admin-list'));
         $this->runPlugin->setTitleTag(Lang::get('sondage-admin-list'));
@@ -29,12 +39,20 @@ class SondageAdminController extends AdminController
         // Préparer les stats pour tous les sondages (chargement direct depuis JSON)
         $allSondagesStats = [];
         foreach ($sondageManager->getItems() as $sondage) {
+            /** @var Sondage $sondage */
+            $participation = $sondageManager->getParticipationStats($sondage);
             $stats = [
                 'id' => $sondage->getId(),
                 'title' => $sondage->getTitle(),
                 'totalVotes' => $sondage->getTotalVotes(),
                 'active' => $sondage->getActive(),
-                'optionsStats' => []
+                'optionsStats' => [],
+                'participation' => $participation,
+                'participationRate' => ($totalUsersCount > 0) ? round(($sondage->getTotalVotes() / $totalUsersCount) * 100, 1) : 0,
+                'top5Cities' => array_slice($participation['cities'], 0, 5, true),
+                'top5Districts' => array_slice($participation['districts'], 0, 5, true),
+                'optionsLabels' => [],
+                'optionsVotes' => []
             ];
             
             if ($sondage->getTotalVotes() > 0) {
@@ -48,12 +66,31 @@ class SondageAdminController extends AdminController
                         'votes' => $votesCount,
                         'percentage' => $percentage
                     ];
+                    $stats['optionsLabels'][] = $option;
+                    $stats['optionsVotes'][] = $votesCount;
+                }
+                
+                // Ajouter "Autre" si activé
+                if ($sondage->getAllowOther()) {
+                    $otherVotes = $sondage->getOtherVotes();
+                    if (count($otherVotes) > 0) {
+                        $otherCount = count($otherVotes);
+                        $stats['optionsStats'][] = [
+                            'index' => 'other',
+                            'text' => 'Autre',
+                            'votes' => $otherCount,
+                            'percentage' => round(($otherCount / $sondage->getTotalVotes()) * 100, 1)
+                        ];
+                        $stats['optionsLabels'][] = 'Autre';
+                        $stats['optionsVotes'][] = $otherCount;
+                    }
                 }
             }
             $allSondagesStats[] = $stats;
         }
 
         $tpl->set('sondageManager', $sondageManager);
+        $tpl->set('totalUsersCount', $totalUsersCount);
         $tpl->set('addUrl', $this->router->generate('sondage-admin-edit'));
         $tpl->set('saveUrl', $this->router->generate('sondage-admin-save'));
         $tpl->set('token', $this->user->token);
@@ -65,9 +102,17 @@ class SondageAdminController extends AdminController
 
     public function edit($id = null)
     {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('sondage:admin'), $ctx)) {
+            Show::msg(Lang::get('core-not-authorized'), 'error');
+            return $this->core->redirect($this->router->generate('admin-home'));
+        }
+
         $sondageManager = new SondageManager();
         
         if ($id !== null) {
+            /** @var Sondage $sondage */
             $sondage = $sondageManager->create($id);
             if (!$sondage) {
                 $this->core->error404();
@@ -117,15 +162,18 @@ class SondageAdminController extends AdminController
 
     public function save()
     {
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('sondage:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->list();
         }
 
         $sondageManager = new SondageManager();
-        $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+        $id = isset($_POST['id']) ? trim($_POST['id']) : '';
 
-        if ($id > 0) {
+        if (!empty($id)) {
+            /** @var Sondage $sondage */
             $sondage = $sondageManager->create($id);
             if (!$sondage) {
                 Show::msg(Lang::get('core-item-not-edited'), 'error');
@@ -156,6 +204,8 @@ class SondageAdminController extends AdminController
         $sondage->setOptions($options);
         
         $sondage->setActive(isset($_POST['active']) ? '1' : '0');
+        $sondage->setIsMultipleChoice(isset($_POST['isMultipleChoice']) ? '1' : '0');
+        $sondage->setAllowOther(isset($_POST['allowOther']) ? '1' : '0');
 
         if ($sondageManager->saveSondage($sondage)) {
             Show::msg(Lang::get('core-item-edited'), 'success');
@@ -169,7 +219,9 @@ class SondageAdminController extends AdminController
 
     public function delete($id, $token)
     {
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('sondage:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->list();
         }
@@ -180,6 +232,7 @@ class SondageAdminController extends AdminController
         }
 
         $sondageManager = new SondageManager();
+        /** @var Sondage $sondage */
         $sondage = $sondageManager->create($id);
 
         if ($sondage && $sondageManager->delSondage($sondage)) {

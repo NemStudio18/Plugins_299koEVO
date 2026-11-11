@@ -74,6 +74,17 @@
     
     <div class="form-section">
         <p class="checkbox-field">
+            <input type="checkbox" name="isMultipleChoice" id="multiple" value="1" {% if sondage.getIsMultipleChoice() %}checked{% endif %} />
+            <label for="multiple">{{ Lang.sondage.multiple-choice }}</label>
+        </p>
+        <p class="checkbox-field">
+            <input type="checkbox" name="allowOther" id="other" value="1" {% if sondage.getAllowOther() %}checked{% endif %} />
+            <label for="other">{{ Lang.sondage.allow-other }}</label>
+        </p>
+    </div>
+    
+    <div class="form-section">
+        <p class="checkbox-field">
             <input type="checkbox" name="active" id="active" {% if sondage.getActive() %}checked{% endif %} />
             <label for="active">{{ Lang.sondage.active }}</label>
             <small>{{ Lang.sondage.active-help }}</small>

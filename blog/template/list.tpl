@@ -1,61 +1,59 @@
-{% if mode === "list_empty" %}
+﻿{% IF mode === "list_empty" %}
 	<p>{{Lang.galerie.no-item-found}}</p>
-{% else %}
-	{% for k, v in news %}
+{% ELSE %}
+	{% FOR k, v IN news %}
 		<article>
-			{% if runPlugin.getConfigVal("hideContent") == false %}
+			{% IF runPlugin.getConfigVal("hideContent") == false %}
 				<header>
-					{% if v.img %}
+					{% IF v.img %}
 						<img class="featured" src="{{v.imgUrl}}" alt="{{v.img}}"/>
-					{% endif %}
+					{% ENDIF %}
 					<div class="item-head">
 						<h2>
 							<a href="{{v.url}}">{{v.name}}</a>
 						</h2>
 						<p class="date">{{v.date}}
-							{% if runPlugin.getConfigVal("comments") && v.commentsOff == false %}
+							{% IF runPlugin.getConfigVal("comments") && v.commentsOff == false %}
 								|
-								<a href="{{v.url}}#comments">{{ newsManager.countComments(v.id) }}
-								commentaire{% if newsManager.countComments(v.id) > 1 %}s{% endif %}</a>
-							{% endif %}
+								commentaire{% IF newsManager.countComments(v.id) > 1 %}s{% ENDIF %}</a>
+							{% ENDIF %}
 							 | <span class="item-categories"><i class="fa-regular fa-folder-open"></i>
-							{% if count(v.cats) == 0 %}
+							{% IF count(v.cats) == 0 %}
 								Non classé
-							{% else %}
-								{% for cat in v.cats %}
-									<span class="blog-label-category"><a href="{{ cat.url }}">{{ cat.label }}</a></span>
-								{% endfor %}
-							{% endif %}
+							{% ELSE %}
+								{% FOR cat IN v.cats %}
+									<span class="blog-label-category"><a href="{{cat.url}}">{{cat.label}}</a></span>
+								{% ENDFOR %}
+							{% ENDIF %}
 						</p>
                     </span>
 					</div>
 				</header>
-				{% if v.intro %}
+				{% IF v.intro %}
 					{{htmlspecialchars_decode(v.intro)}}
-				{% else %}
+				{% ELSE %}
 					{{htmlspecialchars_decode(v.content)}}
-				{% endif %}
-			{% else %}
+				{% ENDIF %}
+			{% ELSE %}
 				<h2>
 					<a href="{{v.url}}">{{v.name}}</a>
 				</h2>
 				<p class="date">{{v.date}}
-					{% if runPlugin.getConfigVal("comments") && v.commentsOff == false %}
+					{% IF runPlugin.getConfigVal("comments") && v.commentsOff == false %}
 						|
-						{{ newsManager.countComments(v.id) }}
-						commentaire{% if newsManager.countComments(v.id) > 1 %}s{% endif %}
-					{% endif %}
+						commentaire{% IF newsManager.countComments(v.id) > 1 %}s{% ENDIF %}
+					{% ENDIF %}
 				</p>
-			{% endif %}
+			{% ENDIF %}
 		</article>
-	{% endfor %}
-	{% if pagination %}
+	{% ENDFOR %}
+	{% IF pagination %}
 		<ul class="pagination">
-			{% for k, v in pagination %}
+			{% FOR k, v IN pagination %}
 				<li>
 					<a href="{{v.url}}">{{v.num}}</a>
 				</li>
-			{% endfor %}
+			{% ENDFOR %}
 		</ul>
-	{% endif %}
-{% endif %}
+	{% ENDIF %}
+{% ENDIF %}

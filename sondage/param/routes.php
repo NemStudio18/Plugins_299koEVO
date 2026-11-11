@@ -12,11 +12,11 @@ defined('ROOT') OR exit('No direct script access allowed');
 $router = \Core\Router\Router::getInstance();
 
 $router->map('GET', '/sondage[/?]', 'SondageController#home', 'sondage-home');
-$router->map('GET', '/sondage/[i:id]', 'SondageController#read', 'sondage-read');
-$router->map('POST', '/sondage/vote/[i:id]', 'SondageController#vote', 'sondage-vote');
+$router->map('GET', '/sondage/[*:id]', 'SondageController#read', 'sondage-read');
+$router->map('POST', '/sondage/vote/[*:id]', 'SondageController#vote', 'sondage-vote');
 
 $router->map('GET', '/admin/sondage[/?]', 'SondageAdminController#list', 'sondage-admin-list');
 $router->map('GET', '/admin/sondage/edit[/?]', 'SondageAdminController#edit', 'sondage-admin-edit');
-$router->map('GET', '/admin/sondage/edit/[i:id]', 'SondageAdminController#edit', 'sondage-admin-edit-id');
+$router->map('GET', '/admin/sondage/edit/[*:id]', 'SondageAdminController#edit', 'sondage-admin-edit-id');
 $router->map('POST', '/admin/sondage/save', 'SondageAdminController#save', 'sondage-admin-save');
-$router->map('GET', '/admin/sondage/delete/[i:id]/[a:token]', 'SondageAdminController#delete', 'sondage-admin-delete');
+$router->map('GET', '/admin/sondage/delete/[*:id]/[a:token]', 'SondageAdminController#delete', 'sondage-admin-delete');

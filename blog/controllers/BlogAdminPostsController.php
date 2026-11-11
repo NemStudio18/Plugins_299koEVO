@@ -6,6 +6,9 @@ use Core\Responses\ApiResponse;
 use Content\Editor;
 use Utils\Show;
 use Core\Lang;
+use Blog\Entities\NewsManager;
+use Blog\Entities\CategoriesManager;
+use Blog\Entities\News;
 
 /**
  * @copyright (C) 2024, 299Ko
@@ -19,23 +22,26 @@ defined('ROOT') or exit('Access denied!');
 class BlogAdminPostsController extends AdminController
 {
 
-    public BlogCategoriesManager $categoriesManager;
+    public CategoriesManager $categoriesManager;
 
-    public newsManager $newsManager;
+    public NewsManager $newsManager;
 
     public function __construct()
     {
         parent::__construct();
-        $this->categoriesManager = new BlogCategoriesManager();
-        $this->newsManager = new newsManager();
+        $this->categoriesManager = new CategoriesManager();
+        $this->newsManager = new NewsManager();
     }
 
     public function list()
     {
         $response = new AdminResponse();
-        $tpl = $response->createPluginTemplate('blog', 'admin-list');
+        $tpl = $response->createPluginTemplate('blog', 'admin-home');
 
+        $tpl->set('activeTab', 'posts');
         $tpl->set('newsManager', $this->newsManager);
+        $tpl->set('posts', $this->newsManager->getItems());
+        $tpl->set('categoriesManager', $this->categoriesManager);
         $tpl->set('token', $this->user->token);
 
         $response->addTemplate($tpl);
@@ -45,11 +51,13 @@ class BlogAdminPostsController extends AdminController
     public function deletePost()
     {
         $response = new ApiResponse();
-        if (!$this->user->isAuthorized()) {
-            $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
-            return $response;
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('blog:admin'), $ctx)) {
+            Show::msg(Lang::get('core-not-authorized'), 'error');
+            return $this->list();
         }
-        $newsManager = new newsManager();
+        $newsManager = new NewsManager();
         $id = (int) $this->jsonData['id'] ?? 0;
         $item = $newsManager->create($id);
         if (!$item) {
@@ -59,6 +67,9 @@ class BlogAdminPostsController extends AdminController
         $title = $item->getName();
         if ($newsManager->delNews($item)) {
             \Core\Core::getInstance()->getLogger()->log('INFO', $this->user->email . ' deleted post ' . $title);
+            $cacheManager = new \Core\Storage\CacheManager();
+            $cacheManager->clearCache();
+            $this->core->invalidateAllCache();
             $response->status = ApiResponse::STATUS_NO_CONTENT;
         } else {
             $response->status = ApiResponse::STATUS_BAD_REQUEST;
@@ -69,7 +80,7 @@ class BlogAdminPostsController extends AdminController
     public function editPost($id = false)
     {
         if ($id === false) {
-            $news = new news();
+            $news = new News();
             $news->setDate(date('Y-m-d'));
         } else {
             $news = $this->newsManager->create($id);
@@ -83,10 +94,12 @@ class BlogAdminPostsController extends AdminController
         $tpl = $response->createPluginTemplate('blog', 'admin-edit');
 
         $contentEditor = new Editor('blogContent', $news->getContent(), Lang::get('blog-content'));
-        
+
         $tpl->set('contentEditor', $contentEditor);
         $tpl->set('news', $news);
         $tpl->set('categoriesManager', $this->categoriesManager);
+        $tpl->set('hasGalerie', $this->pluginsManager->isActivePlugin('galerie'));
+        $tpl->set('token', $this->user->token);
 
         $response->addTemplate($tpl);
         return $response;
@@ -94,23 +107,43 @@ class BlogAdminPostsController extends AdminController
 
     public function savePost()
     {
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('blog:admin'), $ctx)) {
             return $this->list();
         }
 
         $contentEditor = new Editor('blogContent', '', Lang::get('blog-content'));
 
-        $news = ($_REQUEST['id']) ? $this->newsManager->create($_REQUEST['id']) : new news();
+        $news = ($_REQUEST['id']) ? $this->newsManager->create($_REQUEST['id']) : new News();
         $news->setName($_REQUEST['name']);
         $news->setContent($contentEditor->getPostContent());
         $news->setIntro($this->core->callHook('beforeSaveEditor', htmlspecialchars($_REQUEST['intro'])));
         $news->setSEODesc($_REQUEST['seoDesc']);
         $news->setDraft((isset($_POST['draft']) ? 1 : 0));
-        if (!isset($_REQUEST['date']) || $_REQUEST['date'] == "")
+        if (!isset($_REQUEST['date']) || $_REQUEST['date'] == "") {
             $news->setDate($news->getDate());
-        else
+        } else {
             $news->setDate($_REQUEST['date']);
-        $news->setImg($this->request->post('news-image' , ''));
+        }
+        $imgInput = trim($this->request->post('news-image', ''));
+        if ($imgInput !== '' && preg_match('~^https?://~i', $imgInput)) {
+            $siteUrl = \Core\Core::getInstance()->getConfigVal('siteUrl');
+            $isOwnDomain = !empty($siteUrl) && str_starts_with($imgInput, $siteUrl);
+            if (!$isOwnDomain) {
+                // Rapatriement automatique, conversion en WebP et stockage local sécurisé
+                $uploadDir = UPLOAD . 'blog' . DS;
+                $optimizedPath = \Utils\ImageOptimizer::downloadAndOptimizeUrl(
+                    $imgInput,
+                    $uploadDir,
+                    \Utils\Util::strToUrl($_REQUEST['name'] ?? 'blog')
+                );
+                if ($optimizedPath) {
+                    $imgInput = $optimizedPath;
+                }
+            }
+        }
+        $news->setImg($imgInput);
         $news->setCommentsOff(isset($_POST['commentsOff']) ? 1 : 0);
         if ($this->newsManager->saveNews($news)) {
             $choosenCats = [];
@@ -124,7 +157,10 @@ class BlogAdminPostsController extends AdminController
                 $parentId = filter_input(INPUT_POST, 'category-add-parentId', FILTER_VALIDATE_INT) ?? 0;
                 $choosenCats[] = $this->categoriesManager->createCategory($label, $parentId);
             }
-            BlogCategoriesManager::saveItemToCategories($news->getId(), $choosenCats);
+            CategoriesManager::saveItemToCategories($news->getId(), $choosenCats);
+            $cacheManager = new \Core\Storage\CacheManager();
+            $cacheManager->clearCache();
+            $this->core->invalidateAllCache();
             Show::msg(Lang::get('core-changes-saved'), 'success');
         } else {
             Show::msg(Lang::get('core-changes-not-saved'), 'error');

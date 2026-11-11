@@ -17,6 +17,7 @@ $router->map('GET', '/blog/cat-[*:name]-[i:id]/[i:page][/?]', 'BlogListControlle
 $router->map('GET', '/blog/cat-[*:name]-[i:id].html', 'BlogListController#category', 'blog-category');
 $router->map('GET', '/blog/[*:name]-[i:id].html', 'BlogReadController#read', 'blog-read');
 $router->map('POST', '/blog/send.html', 'BlogReadController#send', 'blog-send');
+$router->map('POST', '/blog/like/[i:id]', 'BlogReadController#like', 'blog-like');
 $router->map('GET', '/blog/rss.html', 'BlogReadController#rss', 'blog-rss');
 $router->map('GET', '/blog/[i:page][/?]', 'BlogListController#page', 'blog-page');
 
@@ -26,9 +27,11 @@ $router->map('POST', '/admin/blog/deleteCategory', 'BlogAdminCategoriesControlle
 $router->map('POST', '/admin/blog/editCategory', 'BlogAdminCategoriesController#editCategory', 'admin-blog-edit-category');
 $router->map('POST', '/admin/blog/saveCategory/[i:id]', 'BlogAdminCategoriesController#saveCategory', 'admin-blog-save-category');
 $router->map('GET', '/admin/blog/listAjaxCategories', 'BlogAdminCategoriesController#listAjaxCategories', 'admin-blog-list-ajax-categories');
+$router->map('GET', '/admin/blog/categories', 'BlogAdminCategoriesController#list', 'admin-blog-categories');
 
 // Configuration
 $router->map('POST', '/admin/blog/saveConfig', 'BlogAdminConfigController#saveConfig', 'admin-blog-save-config');
+$router->map('GET', '/admin/blog/config', 'BlogAdminConfigController#list', 'admin-blog-config');
 
 // Posts
 $router->map('GET', '/admin/blog[/?]', 'BlogAdminPostsController#list', 'admin-blog-list');

@@ -143,7 +143,7 @@ REGEX
 
 		$findT = function ( array $search, &$key = null, &$value = null ) use ( $find ) {
 			$value2 = null;
-			if( $find(array_keys($search), $key, $value2) ) {
+			if( $find(array_keys($search), $key, $value2) && isset($search[$value2]) ) {
 				$value = $search[$value2];
 
 				return true;

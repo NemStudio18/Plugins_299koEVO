@@ -18,14 +18,9 @@ class GalerieController extends PublicController
     public function home()
     {
         $galerie = new galerie();
-        $this->runPlugin->setTitleTag($this->runPlugin->getConfigVal('label'));
-        if($this->runPlugin->getIsDefaultPlugin()){
-            $this->runPlugin->setTitleTag($this->core->getConfigVal('siteName'));
-            $this->runPlugin->setMetaDescriptionTag($this->core->getConfigVal('siteDescription'));
-        }
-        $this->runPlugin->setMainTitle($this->runPlugin->getConfigVal('label'));
-
         $response = new PublicResponse();
+        $response->setTitle('<i class="fa-solid fa-image"></i> ' . ($this->runPlugin->getConfigVal('label') ?: 'Galerie'));
+
         $tpl = $response->createPluginTemplate('galerie', 'galerie');
 
         $tpl->set('galerie', $galerie);

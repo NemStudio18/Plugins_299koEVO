@@ -12,5 +12,6 @@ defined('ROOT') OR exit('Access denied!');
 $router = \Core\Router\Router::getInstance();
 
 $router->map('GET', '/admin/seo[/?]', 'SEOAdminController#home', 'seo-admin-home');
-$router->map('POST', '/admin/seo/save', 'SEOAdminController#save', 'seo-admin-save');
-$router->map('POST', '/admin/seo/generate-sitemap', 'SEOAdminController#generateSitemap', 'seo-admin-generate-sitemap');
+$router->map('POST', '/admin/seo/save[/?]', 'SEOAdminController#save', 'seo-admin-save');
+$router->map('POST', '/admin/seo/generate-sitemap[/?]', 'SEOAdminController#generateSitemap', 'seo-admin-generate-sitemap');
+$router->map('POST', '/admin/seo/delete-redirect/[i:id][/?]', 'SEOAdminController#deleteRedirect', 'seo-admin-delete-redirect');

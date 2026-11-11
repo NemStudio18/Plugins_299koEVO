@@ -3,6 +3,7 @@
 use Core\Controllers\AdminController;
 use Core\Responses\AdminResponse;
 use Core\Responses\ApiResponse;
+use Blog\Entities\NewsManager;
 
 /**
  * @copyright (C) 2024, 299Ko
@@ -13,17 +14,19 @@ use Core\Responses\ApiResponse;
  */
 defined('ROOT') OR exit('Access denied!');
 
-class BlogAdminCommentsController extends AdminController {
+class BlogAdminCommentsController extends AdminController
+{
 
-    public newsManager $newsManager;
+    public NewsManager $newsManager;
 
     public function __construct()
     {
         parent::__construct();
-        $this->newsManager = new newsManager();
+        $this->newsManager = new NewsManager();
     }
 
-    public function listComments($id) {
+    public function listComments($id)
+    {
         $this->newsManager->loadComments($id);
         $response = new AdminResponse();
         $tpl = $response->createPluginTemplate('blog', 'admin-list-comments');
@@ -39,7 +42,9 @@ class BlogAdminCommentsController extends AdminController {
     public function deleteComment()
     {
         $response = new ApiResponse();
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('blog:admin'), $ctx)) {
             $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
             return $response;
         }
@@ -60,10 +65,13 @@ class BlogAdminCommentsController extends AdminController {
         return $response;
     }
 
-    public function saveComment() {
+    public function saveComment()
+    {
         $response = new ApiResponse();
         $response->body = 'Updated';
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('blog:admin'), $ctx)) {
             $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
             return $response;
         }

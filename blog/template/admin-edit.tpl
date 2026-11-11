@@ -1,7 +1,7 @@
-<form method="post" id="mainForm" action="{{ ROUTER.generate("admin-blog-save-post")}}" enctype="multipart/form-data">
-    {{ SHOW.tokenField }}
-    <input type="hidden" name="id" value="{{ news.getId() }}" />
-    <input type="hidden" name="imgId" value="{{ news.getImg() }}" />
+<form method="post" id="mainForm" action="{ ROUTER.generate("admin-blog-save-post") }" enctype="multipart/form-data">
+    {{SHOW.tokenField}}
+    <input type="hidden" name="id" value="{{news.getId()}}" />
+    <input type="hidden" name="imgId" value="{{news.getImg()}}" />
 
     <div class='tabs-container'>
         <ul class="tabs-header">
@@ -14,12 +14,12 @@
         </ul>
         <ul class="tabs">
             <li class="tab">
-                {{ contentEditor }}
+                {{contentEditor}}
             </li>
             <li class="tab">
                 <label for="intro">{{Lang.blog-intro-content}}</label><br>
                 <textarea name="intro" id="intro" class="editor">{%HOOK.beforeEditEditor(news.getIntro())%}</textarea><br>
-                {{filemanagerDisplayManagerButton()}}
+                {{filemanagerDisplayManagerButton("intro")}}
             </li>
             <li class="tab">
                 <div class='form'>
@@ -27,7 +27,7 @@
                     <div class='tooltip'>
                         <span id='seoDescDesc'>{{Lang.blog-seo-content-tooltip}}</span>
                     </div>
-                    <textarea name="seoDesc" id="seoDesc" aria-describedby="seoDescDesc">{{ news.getSEODesc() }}</textarea>
+                    <textarea name="seoDesc" id="seoDesc" aria-describedby="seoDescDesc">{{news.getSEODesc()}}</textarea>
                     <div id='seoDescProgress'></div>
                     <div id='seoDescCounter'></div>
                     <script>
@@ -62,7 +62,7 @@
             </li>
             <li class='tab'>
                 <label for="name">{{Lang.blog-title}}</label><br>
-                <input type="text" name="name" id="name" value="{{ news.getName() }}" required="required" />
+                <input type="text" name="name" id="name" value="{{news.getName()}}" required="required" />
                 <label for="date">{{Lang.blog-date}}</label><br>
                 <input placeholder="{{Lang.blog-date-placeh}}" type="date" name="date" id="date" value="{{news.getDate()}}" required="required" />
             </li>
@@ -72,21 +72,21 @@
                     <input {% if news.getdraft() %}checked{% endif %} type="checkbox" name="draft" id="draft"/>
                     <label for="draft">{{Lang.blog-do-not-publish}}</label>
                 </p>
-                {% if runPlugin.getConfigVal("comments") %}
+                {% IF runPlugin.getConfigVal("comments") %}
                     <p>
-                        <input {% if news.getCommentsOff() %}checked{% endif %} type="checkbox" name="commentsOff" id="commentsOff"/>
+                        <input {% IF news.getCommentsOff() %}checked{% ENDIF %} type="checkbox" name="commentsOff" id="commentsOff"/>
                         <label for="commentsOff">{{Lang.blog-disable-comments-once}}</label>
                     </p>
-                {% endif %}
+                {% ENDIF %}
                 <h4>{{Lang.blog-categories}}</h4>
-                {{ categoriesManager.outputAsCheckbox(news.getId())}}
+                {{categoriesManager.outputAsCheckbox(news.getId())}}
 
                 <h4>{{Lang.blog-affect-new-category}}</h4>
                 <div class="input-field">
                     <label class="active" for="category-add-label">{{Lang.blog.categories.categoryName}}</label>
                     <input type="text" name="category-add-label" id="category-add-label"/>
                     <label for="category-add-parentId">{{Lang.blog.categories.categoryParent}}</label>
-                    {{ categoriesManager.outputAsSelectOne(0, "category-add-parentId")}}
+                    {{categoriesManager.outputAsSelectOne(0, "category-add-parentId")}}
                 </div>
             </li>
             <li class='tab'>
@@ -95,8 +95,16 @@
                     <section id="news-image-fields">
                         <header>{{Lang.blog-featured-img-select-title}}</header>
                         <label for="news-image">{{Lang.blog-featured-img-url}}</label>
-                        <input type="text" id="news-image" name="news-image" oninput="blogDisplayPreview()" value="{{ news.getImg() }}">
-                        {{ filemanagerDisplayManagerButton("news-image", Lang.blog-featured-img-select) }}
+                        <input type="text" id="news-image" name="news-image" oninput="blogDisplayPreview()" value="{{news.getImg()}}">
+                        <div class="blog-img-actions">
+                            {{filemanagerDisplayManagerButton("news-image", "depuis les fichiers")}}
+                            {% IF hasGalerie %}
+                                <a class="button" data-fancybox data-type="ajax" href="{ ROUTER.generate('admin-galerie-selector', {'token': token}) }"><i class="fa-solid fa-images"></i> depuis la galerie</a>
+                            {% ENDIF %}
+                            <button type="button" class="button alert small" id="news-image-clear" onclick="blogClearImage()">
+                                <i class="fa-solid fa-xmark"></i> Retirer
+                            </button>
+                        </div>
                     </section>
                     <section id="news-image-preview-container">
                         <header>{{Lang.blog-featured-img-preview}}</header>
@@ -106,13 +114,39 @@
             </li>
         </ul>
     </div>
-    <p><button id="mainSubmit" type="submit" class="floating" title='{{ Lang.save }}'><i class="fa-regular fa-floppy-disk"></i></button></p>
+    <p><button id="mainSubmit" type="submit" class="floating" title='{{Lang.save}}'><i class="fa-regular fa-floppy-disk"></i></button></p>
 </form>
 
 <script>
     function blogDisplayPreview() {
-        $url = document.getElementById('news-image').value;
-        document.getElementById('news-image-preview').innerHTML = '<img src="' + $url + '" alt="' + $url + '" />';
+        var input = document.getElementById('news-image');
+        var preview = document.getElementById('news-image-preview');
+        var clearBtn = document.getElementById('news-image-clear');
+        if (!input || !preview) return;
+        var raw = input.value.trim();
+        if (!raw) {
+            preview.innerHTML = '<span class="blog-no-img">Aucune image sélectionnée</span>';
+            if (clearBtn) clearBtn.style.display = 'none';
+            return;
+        }
+        var src = raw;
+        if (!/^https?:\/\//i.test(raw) && !raw.startsWith('/')) {
+            src = '/' + raw;
+        }
+        preview.innerHTML = '';
+        var img = document.createElement('img');
+        img.src = src;
+        img.alt = raw;
+        preview.appendChild(img);
+        if (clearBtn) clearBtn.style.display = 'inline-flex';
+    }
+
+    function blogClearImage() {
+        var input = document.getElementById('news-image');
+        if (input) {
+            input.value = '';
+            blogDisplayPreview();
+        }
     }
 
     blogDisplayPreview();

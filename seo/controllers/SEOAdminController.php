@@ -19,32 +19,52 @@ defined('ROOT') or exit('Access denied!');
 class SEOAdminController extends AdminController {
     
     public function home() {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('seo:admin'), $ctx)) {
+            Show::msg(Lang::get('core-not-authorized'), 'error');
+            $this->core->redirect($this->router->generate('admin-home'));
+            return;
+        }
         $response = new AdminResponse();
         $tpl = $response->createPluginTemplate('seo', 'admin');
 
         $tpl->set('position', $this->runPlugin->getConfigVal('position'));
         $tpl->set('socialConfig', SocialConfigManager::getAll());
         $tpl->set('shareNetworks', ['facebook','x','linkedin']);
+        $tpl->set('redirects', \Seo\Entities\Redirect::all());
 
         $response->addTemplate($tpl);
         return $response;
     }
 
     public function save() {
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('seo:admin'), $ctx)) {
             return $this->home();
         }
         $pos = $_POST['position'] ?? 'menu';
         $this->seoSavePositionMenu($pos);
 
         $this->runPlugin->setConfigVal('position', $pos);
-        $this->runPlugin->setConfigVal('trackingId', trim($_POST['trackingId']));
-        $this->runPlugin->setConfigVal('wt', trim($_POST['wt']));
+        $this->runPlugin->setConfigVal('trackingId', trim($_POST['trackingId'] ?? ''));
+        $this->runPlugin->setConfigVal('wt', trim($_POST['wt'] ?? ''));
+        $this->runPlugin->setConfigVal('defaultOgImage', trim($_POST['defaultOgImage'] ?? ''));
 
         // Save social addresses
         $vars = seoGetSocialVars();
         foreach ($vars as $v) {
-            $this->runPlugin->setConfigVal($v, trim($_POST[$v]));
+            $this->runPlugin->setConfigVal($v, trim($_POST[$v] ?? ''));
+        }
+
+        // Save new redirection if provided
+        if (!empty($_POST['new_redirect_from']) && !empty($_POST['new_redirect_to'])) {
+            $rd = new \Seo\Entities\Redirect();
+            $rd->old_url = '/' . ltrim(trim($_POST['new_redirect_from']), '/');
+            $rd->new_url = trim($_POST['new_redirect_to']);
+            $rd->code = (int)$_POST['new_redirect_code'];
+            $rd->save();
         }
 
         // Save extended config
@@ -86,7 +106,9 @@ class SEOAdminController extends AdminController {
 
     public function generateSitemap()
     {
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('seo:admin'), $ctx)) {
             return $this->home();
         }
         $code = seoGenerateSitemap();
@@ -98,7 +120,37 @@ class SEOAdminController extends AdminController {
         $this->core->redirect($this->router->generate('seo-admin-home'));
     }
 
+    public function deleteRedirect($id)
+    {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('seo:admin'), $ctx)) {
+            return $this->home();
+        }
+        $rd = \Seo\Entities\Redirect::findPK($id);
+        if ($rd) {
+            $rd->delete();
+            Show::msg('Redirection supprimée.', 'success');
+        }
+        $this->core->redirect($this->router->generate('seo-admin-home'));
+    }
+
     protected function seoSavePositionMenu($position) {
+        $hooksFile = PLUGINS . 'seo/param/hooks.json';
+        $existingHooks = [];
+        if (file_exists($hooksFile)) {
+            $existingHooks = Util::readJsonFile($hooksFile);
+            if (!is_array($existingHooks)) {
+                $existingHooks = [];
+            }
+        }
+
+        // Remove old display hooks
+        $displayHooks = ['endMainNavigation', 'footer', 'endFooter', 'endFrontBody'];
+        foreach ($displayHooks as $hook) {
+            unset($existingHooks[$hook]);
+        }
+
         $arr = ['endFrontHead' => 'seoEndFrontHead'];
         switch ($position) {
             case 'menu':
@@ -116,7 +168,7 @@ class SEOAdminController extends AdminController {
             default:
                 $tmp = [];
         }
-        $data = array_merge($arr, $tmp);
-        Util::writeJsonFile(PLUGINS . 'seo/param/hooks.json', $data);
+        $data = array_merge($existingHooks, $arr, $tmp);
+        Util::writeJsonFile($hooksFile, $data);
     }
 }

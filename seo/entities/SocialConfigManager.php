@@ -20,7 +20,8 @@ class SocialConfigManager
 
         if (!file_exists(self::DATA_FILE)) {
             if (file_exists(self::LEGACY_FILE)) {
-                @copy(self::LEGACY_FILE, self::DATA_FILE);
+                $payload = Util::readJsonFile(self::LEGACY_FILE, true);
+                Util::writeJsonFile(self::DATA_FILE, $payload);
             } else {
                 Util::writeJsonFile(self::DATA_FILE, self::getDefaultConfig());
             }

@@ -26,7 +26,7 @@ class PwaController extends PublicController
         header('Cache-Control: no-cache, no-store, must-revalidate');
         header('Pragma: no-cache');
         header('Expires: 0');
-        
+
         $swContent = file_get_contents(PLUGINS . 'pwa/sw.js');
         if ($swContent === false) {
             http_response_code(404);
@@ -40,17 +40,20 @@ class PwaController extends PublicController
 
     public function manifest()
     {
-        // Désactiver le traitement de la réponse par le système
+        // Désactiver le traitement de la réponse par le système et forcer l'accès public
         $this->core->getLogger()->log(Logger::LEVEL_INFO, 'PWA: manifest endpoint hit (router match successful)');
+
+        // Headers essentiels
         header('Content-Type: application/manifest+json; charset=utf-8');
         header('Cache-Control: no-cache, no-store, must-revalidate');
         header('Pragma: no-cache');
         header('Expires: 0');
-        
+        header('Access-Control-Allow-Origin: *'); // Autoriser l'accès cross-origin pour le manifest
+
         $core = Core::getInstance();
         $siteName = $core->getConfigVal('siteName') ?: '299Ko';
         $siteUrl = $core->getConfigVal('siteUrl') ?: '/';
-        
+
         $defaultIcon192 = 'plugin/pwa/icons/icon-192.png';
         $defaultIcon512 = 'plugin/pwa/icons/icon-512.png';
         $icon192Path = $defaultIcon192;
@@ -65,7 +68,7 @@ class PwaController extends PublicController
             'name' => $siteName,
             'short_name' => $siteName,
             'description' => $this->runPlugin ? ($this->runPlugin->getConfigVal('description') ?: 'Progressive Web App') : 'Progressive Web App',
-            'start_url' => $siteUrl,
+            'start_url' => $siteUrl, // S'assurer que ça pointe vers la racine
             'display' => 'standalone',
             'background_color' => $this->runPlugin ? ($this->runPlugin->getConfigVal('backgroundColor') ?: '#ffffff') : '#ffffff',
             'theme_color' => $this->runPlugin ? ($this->runPlugin->getConfigVal('themeColor') ?: '#000000') : '#000000',
@@ -81,17 +84,19 @@ class PwaController extends PublicController
         foreach ($iconEntries as $icon) {
             $url = $this->formatIconUrl($icon['path']);
             if ($url) {
+                // S'assurer que l'URL est absolue si possible ou valide
                 $manifest['icons'][] = [
                     'src' => $url,
                     'sizes' => $icon['size'],
-                    'type' => 'image/png'
+                    'type' => 'image/png',
+                    'purpose' => 'any maskable'
                 ];
             }
         }
-        
+
         $this->core->getLogger()->log(Logger::LEVEL_INFO, 'PWA: manifest payload generated');
-        echo json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        die();
+        echo json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        exit; // Utiliser exit au lieu de die pour plus de propreté
     }
 
     public function getPublicKey()
@@ -116,19 +121,28 @@ class PwaController extends PublicController
         }
         $file = DATA_PLUGIN . 'pwa/subscriptions.json';
         $subs = Util::readJsonFile($file, true);
-        if (!is_array($subs)) { $subs = []; }
+        if (!is_array($subs)) {
+            $subs = [];
+        }
         // Deduplicate by endpoint
         $exists = false;
         foreach ($subs as $s) {
-            if (isset($s['endpoint']) && $s['endpoint'] === $data['endpoint']) { $exists = true; break; }
+            if (isset($s['endpoint']) && $s['endpoint'] === $data['endpoint']) {
+                $exists = true;
+                break;
+            }
         }
         if (!$exists) {
+            $user = \Core\Auth\UsersManager::getCurrentUser();
+            $userId = $user ? (int) $user->attributes['id'] : 0;
+
             $subs[] = [
                 'endpoint' => $data['endpoint'],
                 'keys' => [
                     'p256dh' => $data['keys']['p256dh'],
                     'auth' => $data['keys']['auth']
                 ],
+                'user_id' => $userId,
                 'createdAt' => date('c')
             ];
             Util::writeJsonFile($file, $subs);
@@ -149,8 +163,10 @@ class PwaController extends PublicController
         }
         $file = DATA_PLUGIN . 'pwa/subscriptions.json';
         $subs = Util::readJsonFile($file, true);
-        if (!is_array($subs)) { $subs = []; }
-        $subs = array_values(array_filter($subs, function($s) use ($data) {
+        if (!is_array($subs)) {
+            $subs = [];
+        }
+        $subs = array_values(array_filter($subs, function ($s) use ($data) {
             return !isset($s['endpoint']) || $s['endpoint'] !== $data['endpoint'];
         }));
         Util::writeJsonFile($file, $subs);
