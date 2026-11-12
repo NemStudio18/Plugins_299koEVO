@@ -21,7 +21,8 @@ class GuestbookController extends PublicController
 {
     public function home()
     {
-        $antispam = ($this->pluginsManager->isActivePlugin('antispam')) ? new antispam() : false;
+        $antispamData = $this->core->callHook('antispam:get-captcha', ['field_html' => '']);
+        $antispamField = $antispamData['field_html'] ?? '';
         $guestbookManager = new GuestbookManager();
         $approvedEntries = $guestbookManager->getApprovedItems();
 
@@ -31,10 +32,9 @@ class GuestbookController extends PublicController
             $pageTitle = Lang::get('guestbook.name');
         }
         
-        $this->runPlugin->setMainTitle($pageTitle);
-        $this->runPlugin->setTitleTag($pageTitle);
-
         $response = new PublicResponse();
+        $response->setTitle('<i class="fa-solid fa-book"></i> ' . $pageTitle);
+
         $tpl = $response->createPluginTemplate('guestbook', 'list');
 
         $fingerprint = VoteProtection::getFingerprint();
@@ -67,7 +67,7 @@ class GuestbookController extends PublicController
         $tpl->set('addUrl', $this->router->generate('guestbook-add'));
         $tpl->set('requireEmail', $this->runPlugin->getConfigVal('requireEmail') == '1');
         $tpl->set('maxLength', intval($this->runPlugin->getConfigVal('maxMessageLength')));
-        $tpl->set('antispam', $antispam);
+        $tpl->set('antispamField', $antispamField);
         $response->addTemplate($tpl);
         return $response;
     }
@@ -77,8 +77,8 @@ class GuestbookController extends PublicController
         $guestbookManager = new GuestbookManager();
         
         // Vérification antispam
-        $antispam = ($this->pluginsManager->isActivePlugin('antispam')) ? new antispam() : false;
-        if ($antispam && !$antispam->isValid()) {
+        $antispamResult = $this->core->callHook('antispam:validate', ['is_valid' => true]);
+        if (!$antispamResult['is_valid']) {
             Show::msg(Lang::get('antispam.invalid-captcha'), 'error');
             return $this->home();
         }

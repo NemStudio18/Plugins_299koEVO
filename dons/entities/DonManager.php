@@ -1,5 +1,9 @@
 <?php
 
+namespace Dons\Entities;
+
+use Dons\Entities\Don;
+
 /**
  * @copyright (C) 2025, 299Ko
  * @license https://www.gnu.org/licenses/gpl-3.0.en.html GPLv3
@@ -11,40 +15,18 @@ defined('ROOT') OR exit('No direct script access allowed');
 
 class DonManager
 {
-    private $dataFile;
-
     public function __construct()
     {
-        $this->dataFile = DATA_PLUGIN . 'dons/dons.json';
-        if (!is_dir(dirname($this->dataFile))) {
-            mkdir(dirname($this->dataFile), 0755, true);
-        }
-        if (!file_exists($this->dataFile)) {
-            file_put_contents($this->dataFile, json_encode([]));
-        }
     }
 
     public function getDons()
     {
-        $content = file_get_contents($this->dataFile);
-        $content = trim($content, "\xEF\xBB\xBF");
-        $data = json_decode($content, true);
-        if (!is_array($data)) {
-            return [];
-        }
-        $dons = [];
-        foreach ($data as $don) {
-            $dons[] = new Don($don);
-        }
-        return $dons;
+        return Don::query()->get();
     }
 
     public function getCompletedDons()
     {
-        $dons = $this->getDons();
-        return array_filter($dons, function($don) {
-            return $don->isCompleted();
-        });
+        return Don::query()->where('status', '=', 'completed')->get();
     }
 
     public function getTotalAmount()
@@ -59,60 +41,51 @@ class DonManager
 
     public function create($id = null)
     {
-        $dons = $this->getDons();
         if ($id === null) {
             return new Don();
         }
-        foreach ($dons as $don) {
-            if ($don->getId() == $id) {
-                return $don;
-            }
-        }
-        return null;
+        return Don::findPK($id);
     }
 
     public function findByTransactionId($transactionId)
     {
-        $dons = $this->getDons();
-        foreach ($dons as $don) {
-            if ($don->getTransactionId() === $transactionId) {
-                return $don;
-            }
-        }
-        return null;
+        return Don::query()->where('transactionId', '=', $transactionId)->first();
     }
 
     public function saveDon($don)
     {
-        $dons = $this->getDons();
-        
         if ($don->getId() === null) {
-            // Nouveau don
-            $maxId = 0;
-            foreach ($dons as $d) {
-                if ($d->getId() > $maxId) {
-                    $maxId = $d->getId();
-                }
-            }
-            $don->setId($maxId + 1);
-            $don->setDate(date('Y-m-d H:i:s'));
-            $dons[] = $don;
-        } else {
-            // Modification
-            foreach ($dons as $key => $d) {
-                if ($d->getId() == $don->getId()) {
-                    $dons[$key] = $don;
-                    break;
-                }
+            $don->date = date('Y-m-d H:i:s');
+        }
+        return $don->save();
+    }
+
+    public function getDailyDonations($days = 30)
+    {
+        $dons = $this->getCompletedDons();
+        $dailyTotals = [];
+        
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date = date('Y-m-d', strtotime("-$i days"));
+            $dailyTotals[$date] = 0;
+        }
+        
+        foreach ($dons as $don) {
+            $donDate = date('Y-m-d', strtotime($don->date));
+            if (isset($dailyTotals[$donDate])) {
+                $dailyTotals[$donDate] += (float)$don->amount;
             }
         }
-
-        $data = [];
-        foreach ($dons as $d) {
-            $data[] = $d->toArray();
+        
+        $result = [];
+        foreach ($dailyTotals as $date => $amount) {
+            $result[] = [
+                'date' => $date,
+                'amount' => $amount
+            ];
         }
-
-        return file_put_contents($this->dataFile, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) !== false;
+        
+        return $result;
     }
 }
 

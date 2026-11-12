@@ -20,8 +20,6 @@ $router->map('POST', '/admin/docs/addCategory', 'Docs\\Controllers\\DocsAdminCat
 $router->map('POST', '/admin/docs/deleteCategory', 'Docs\\Controllers\\DocsAdminCategoriesController#deleteCategory', 'admin-docs-delete-category');
 $router->map('POST', '/admin/docs/editCategory', 'Docs\\Controllers\\DocsAdminCategoriesController#editCategory', 'admin-docs-edit-category');
 $router->map('POST', '/admin/docs/saveCategory/[i:id]', 'Docs\\Controllers\\DocsAdminCategoriesController#saveCategory', 'admin-docs-save-category');
-$router->map('GET', '/admin/docs/listAjaxCategories', 'Docs\\Controllers\\DocsAdminCategoriesController#listAjaxCategories', 'admin-docs-list-ajax-categories');
-$router->map('GET', '/admin/docs/getCategoriesSelect', 'Docs\\Controllers\\DocsAdminCategoriesController#getCategoriesSelect', 'admin-docs-get-categories-select');
 $router->map('GET', '/admin/docs/getCategoriesList', 'Docs\\Controllers\\DocsAdminCategoriesController#getCategoriesList', 'admin-docs-get-categories-list');
 $router->map('POST', '/admin/docs/saveConfig', 'Docs\\Controllers\\DocsAdminConfigController#saveConfig', 'admin-docs-save-config');
 $router->map('GET', '/admin/docs/history/[i:id]', 'Docs\\Controllers\\DocsAdminHistoryController#showHistory', 'admin-docs-history');

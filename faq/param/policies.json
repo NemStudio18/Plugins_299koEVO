@@ -3,8 +3,9 @@
         "logic": "OR",
         "conditions": [
             {
+                "provider": "role",
                 "type": "role",
-                "value": "admin"
+                "value": "ADM"
             }
         ]
     }

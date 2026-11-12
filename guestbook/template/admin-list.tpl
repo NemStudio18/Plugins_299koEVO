@@ -3,7 +3,7 @@
     
     <!-- DEBUG: Informations de debug (affiché seulement si le mode debug du CMS est actif) -->
     {% if isDebugMode %}
-        <div style="background: #fff3cd; padding: 1rem; margin-bottom: 1rem; border: 1px solid #ffc107;">
+        <div class="guestbook-warning-box">
             <strong>DEBUG:</strong><br/>
             File exists: {% if debugInfo.file_exists %}YES{% else %}NO{% endif %}<br/>
             File path: {{ debugInfo.file_path }}<br/>
@@ -44,23 +44,23 @@
                                 <small>({{ entry.adminReplyDate }})</small>
                             {% endif %}
                             {% if entry.adminReplyAuthor %}
-                                <small style="display: block; color: #666; margin-top: 0.25rem;">— {{ entry.adminReplyAuthor }}</small>
+                                <small class="guestbook-admin-reply-author">— {{ entry.adminReplyAuthor }}</small>
                             {% endif %}
                         </div>
                     {% endif %}
                 </td>
                 <td>{{ entry.date }}</td>
-                <td style="text-align: center">
+                <td class="text-center">
                     {% if entry.approved %}
                         <span class="status-approved">{{ Lang.guestbook.approved }}</span>
                     {% else %}
                         <span class="status-pending">{{ Lang.guestbook.pending }}</span>
                     {% endif %}
                 </td>
-                <td style="text-align: center">{{ entry.likesCount }}</td>
-                <td style="text-align: center">
+                <td class="text-center">{{ entry.likesCount }}</td>
+                <td class="text-center">
                     {% if entry.isPending %}
-                        <a title="{{ Lang.guestbook-admin-approve }}" href="{{ ROUTER.generate("guestbook-admin-approve", ["id" => entry.id, "token" => token]) }}" class="button">{{ Lang.guestbook-admin-approve }}</a>
+                        <a title="{{ Lang.guestbook-admin-approve }}" href="{ ROUTER.generate("guestbook-admin-approve", ["id" => entry.id, "token" => token]) }" class="button">{{ Lang.guestbook-admin-approve }}</a>
                     {% endif %}
                     <button type="button" onclick="showReplyForm(event, {{ entry.id }})" class="button" data-entry-id="{{ entry.id }}" data-reply-text="{% if entry.hasAdminReply %}{{ entry.adminReply }}{% endif %}">
                         {% if entry.hasAdminReply %}{{ Lang.guestbook.edit-reply }}{% else %}{{ Lang.guestbook.reply }}{% endif %}
@@ -74,7 +74,7 @@
         {% endfor %}
         {% if entriesCount == 0 %}
             <tr>
-                <td colspan="6" style="text-align: center; padding: 2rem;">
+                <td colspan="6" class="guestbook-empty-message">
                     <p>{{ Lang.guestbook.no-messages }}</p>
                 </td>
             </tr>
@@ -83,14 +83,14 @@
 </section>
 
 <!-- Modal pour répondre -->
-<div id="reply-modal" style="display: none;">
+<div id="reply-modal" class="modal-hidden">
     <div class="modal-content">
         <form method="post" action="" id="reply-form">
             {{ SHOW.tokenField }}
             <input type="hidden" name="reply" id="reply-text" />
             <label for="reply-message">{{ Lang.guestbook.reply }}:</label>
-            <textarea id="reply-message" name="reply-message" rows="5" style="width: 100%;"></textarea>
-            <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+            <textarea id="reply-message" name="reply-message" rows="5" class="full-width"></textarea>
+            <div class="modal-actions">
                 <button type="submit" class="button">{{ Lang.save }}</button>
                 <button type="button" onclick="closeReplyForm()" class="button">{{ Lang.cancel }}</button>
             </div>
@@ -109,18 +109,18 @@
 .admin-reply-preview {
     margin-top: 0.5rem;
     padding: 0.5rem;
-    background: #f5f5f5;
-    border-left: 3px solid #6b3fa0;
+    background: var(--section-head-bg-color);
+    border-left: 3px solid var(--primary-color);
     font-size: 0.9rem;
 }
 
 .status-approved {
-    color: #4caf50;
+    color: var(--success-color);
     font-weight: 600;
 }
 
 .status-pending {
-    color: #ff9800;
+    color: var(--warning-color);
     font-weight: 600;
 }
 
@@ -130,7 +130,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -138,7 +138,8 @@
 }
 
 .modal-content {
-    background: white;
+    background: var(--section-bg-color);
+    color: var(--font-color);
     padding: 2rem;
     border-radius: 8px;
     max-width: 600px;
@@ -154,7 +155,7 @@ function showReplyForm(event, entryId) {
     const modal = document.getElementById('reply-modal');
     const form = document.getElementById('reply-form');
     const textarea = document.getElementById('reply-message');
-    const replyUrl = '{{ ROUTER.generate("guestbook-admin-reply", ["id" => "REPLACE_ID", "token" => token]) }}'.replace('REPLACE_ID', entryId);
+    const replyUrl = '{ ROUTER.generate("guestbook-admin-reply", ["id" => "REPLACE_ID", "token" => token]) }'.replace('REPLACE_ID', entryId);
     const button = event.target || document.querySelector('[data-entry-id="' + entryId + '"]');
     const existingReply = button ? button.getAttribute('data-reply-text') : '';
     
@@ -183,13 +184,13 @@ document.getElementById('reply-modal')?.addEventListener('click', function(e) {
 
 function GuestbookDeleteEntry(id, token) {
     if (confirm('{{ Lang.confirm.deleteItem }}')) {
-        window.location.href = '{{ ROUTER.generate("guestbook-admin-delete", ["id" => "ENTRY_ID", "token" => "TOKEN"]) }}'.replace('ENTRY_ID', id).replace('TOKEN', token);
+        window.location.href = '{ ROUTER.generate("guestbook-admin-delete", ["id" => "ENTRY_ID", "token" => "TOKEN"]) }'.replace('ENTRY_ID', id).replace('TOKEN', token);
     }
 }
 
 function GuestbookDeleteReply(id, token) {
     if (confirm('{{ Lang.guestbook.delete-reply-confirm }}')) {
-        window.location.href = '{{ ROUTER.generate("guestbook-admin-delete-reply", ["id" => "ENTRY_ID", "token" => "TOKEN"]) }}'.replace('ENTRY_ID', id).replace('TOKEN', token);
+        window.location.href = '{ ROUTER.generate("guestbook-admin-delete-reply", ["id" => "ENTRY_ID", "token" => "TOKEN"]) }'.replace('ENTRY_ID', id).replace('TOKEN', token);
     }
 }
 </script>

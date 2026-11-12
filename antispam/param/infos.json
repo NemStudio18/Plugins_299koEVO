@@ -4,7 +4,7 @@
     "icon": "fa-solid fa-shield-virus",
     "description": "Protège vos formulaires des robots spammeurs",
     "authorEmail": "mx.koder@gmail.com",
-    "authorWebsite": "https://kodercloud.ovh",
+    "authorWebsite": "https://299ko.flexcb.fr",
     "version": "1.1.0",
     "homeAdminMethod": "AntispamAdminController#home"
 }

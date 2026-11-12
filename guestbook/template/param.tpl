@@ -1,7 +1,7 @@
 <section>
     <header>{{ Lang.guestbook-admin-params }}</header>
     
-    <form method="post" action="{{ ROUTER.generate("guestbook-admin-save-params") }}">
+    <form method="post" action="{ ROUTER.generate("guestbook-admin-save-params") }">
         {{ SHOW.tokenField }}
         
         <label for="pageTitle">{{ Lang.guestbook.pageTitle }}</label>

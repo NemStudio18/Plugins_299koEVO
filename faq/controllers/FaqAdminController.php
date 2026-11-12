@@ -1,11 +1,7 @@
 <?php
 
 use Core\Controllers\AdminController;
-use Core\Navigation\AccessPolicyEvaluator;
-use Core\Navigation\ConditionContext;
-use Core\Navigation\GenericResource;
 use Core\Responses\AdminResponse;
-use Core\Security\Csrf;
 use Utils\Show;
 use Core\Lang;
 use Utils\Util;
@@ -21,21 +17,14 @@ defined('ROOT') OR exit('No direct script access allowed');
 
 class FaqAdminController extends AdminController
 {
-    private function checkAdminAccess(): bool
-    {
-        $evaluator = AccessPolicyEvaluator::getInstance();
-        $ctx = new ConditionContext($this->user);
-        if (!$evaluator->canAccess(new GenericResource('faq:admin'), $ctx)) {
-            $this->core->error404();
-            return false;
-        }
-        return true;
-    }
-
     public function list()
     {
-        if (!$this->checkAdminAccess()) {
-            return null;
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('faq:admin'), $ctx)) {
+            Show::msg(Lang::get('core-not-authorized'), 'error');
+            $this->core->redirect($this->router->generate('admin-home'));
+            return;
         }
 
         $faqManager = new FaqManager();
@@ -77,8 +66,11 @@ class FaqAdminController extends AdminController
 
     public function edit($id = null)
     {
-        if (!$this->checkAdminAccess()) {
-            return null;
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('faq:admin'), $ctx)) {
+            Show::msg(Lang::get('core-not-authorized'), 'error');
+            return $this->list();
         }
         $faqManager = new FaqManager();
         $question = $id ? $faqManager->create($id) : new FaqQuestion();
@@ -113,12 +105,15 @@ class FaqAdminController extends AdminController
 
     public function save()
     {
-        if (!$this->checkAdminAccess()) {
-            return null;
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('faq:admin'), $ctx)) {
+            Show::msg(Lang::get('core-not-authorized'), 'error');
+            return $this->list();
         }
 
-        if ($this->user->token !== ($_POST['token'] ?? '') && !Csrf::validate($_POST['_csrf'] ?? null, false)) {
-            Show::msg(Lang::get('core-invalid-token') ?: 'Jeton invalide.', 'error');
+        if (!isset($_POST['token']) || $_POST['token'] !== $this->user->token) {
+            Show::msg(Lang::get('core-invalid-token'), 'error');
             return $this->list();
         }
 
@@ -154,12 +149,15 @@ class FaqAdminController extends AdminController
 
     public function delete($id)
     {
-        if (!$this->checkAdminAccess()) {
-            return null;
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('faq:admin'), $ctx)) {
+            Show::msg(Lang::get('core-not-authorized'), 'error');
+            return $this->list();
         }
 
-        if ($this->user->token !== ($_POST['token'] ?? '') && !Csrf::validate($_POST['_csrf'] ?? null, false)) {
-            Show::msg(Lang::get('core-invalid-token') ?: 'Jeton invalide.', 'error');
+        if (!isset($_POST['token']) || $_POST['token'] !== $this->user->token) {
+            Show::msg(Lang::get('core-invalid-token'), 'error');
             return $this->list();
         }
 

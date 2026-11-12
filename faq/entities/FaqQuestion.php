@@ -1,177 +1,141 @@
 <?php
 
-/**
- * @copyright (C) 2025, 299Ko
- * @license https://www.gnu.org/licenses/gpl-3.0.en.html GPLv3
- * @author Maxence Cauderlier <mx.koder@gmail.com>
- * 
- * @package 299Ko https://github.com/299Ko/299ko
- */
-defined('ROOT') OR exit('No direct script access allowed');
+namespace Faq\Entities;
 
-class FaqQuestion
+use Core\Storage\JsonActiveRecord;
+
+defined('ROOT') or exit('Access denied!');
+
+class FaqQuestion extends JsonActiveRecord
 {
-    private $id;
-    private $question;
-    private $answer;
-    private $category;
-    private $order;
-    private $votes;
-    private $fingerprints; // Hash de (User-Agent + IP) pour le vote
-    private $date;
-    private $active;
-    private $email; // Email de l'auteur de la question (pour contact)
+    protected static string $tableName = 'faq';
+    protected static string $filePath = DATA_PLUGIN . 'faq/faq.json';
+    protected static string $primaryKey = 'id';
 
-    public function __construct($val = array())
+    public function __construct(array $data = [])
     {
-        if (count($val) > 0) {
-            $this->id = $val['id'] ?? null;
-            $this->question = $val['question'] ?? '';
-            $this->answer = $val['answer'] ?? '';
-            $this->category = $val['category'] ?? '';
-            $this->order = $val['order'] ?? 0;
-            $this->votes = $val['votes'] ?? 0;
-            $this->fingerprints = $val['fingerprints'] ?? [];
-            $this->date = $val['date'] ?? date('Y-m-d H:i:s');
-            $this->active = $val['active'] ?? '1';
-            $this->email = $val['email'] ?? '';
-        } else {
-            $this->votes = 0;
-            $this->fingerprints = [];
-            $this->active = '1';
-            $this->order = 0;
-            $this->date = date('Y-m-d H:i:s');
-            $this->email = '';
-        }
+        parent::__construct($data);
     }
 
     public function setId($val)
     {
-        $this->id = intval($val);
+        $this->attributes['id'] = intval($val);
     }
 
     public function setQuestion($val)
     {
-        $this->question = trim(filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+        $this->attributes['question'] = trim(filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
     }
 
     public function setAnswer($val)
     {
-        $this->answer = trim($val);
+        $this->attributes['answer'] = trim($val);
     }
 
     public function setCategory($val)
     {
-        $this->category = trim(filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+        $this->attributes['category'] = trim(filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
     }
 
     public function setOrder($val)
     {
-        $this->order = intval($val);
+        $this->attributes['order'] = intval($val);
     }
 
     public function setVotes($val)
     {
-        $this->votes = intval($val);
+        $this->attributes['votes'] = intval($val);
     }
 
     public function setFingerprints($val)
     {
-        $this->fingerprints = is_array($val) ? $val : [];
+        $this->attributes['fingerprints'] = is_array($val) ? $val : [];
     }
 
     public function setDate($val)
     {
-        $this->date = $val;
+        $this->attributes['date'] = $val;
     }
 
     public function setActive($val)
     {
-        $this->active = $val ? '1' : '0';
+        $this->attributes['active'] = $val ? '1' : '0';
     }
 
     public function setEmail($val)
     {
-        $this->email = filter_var($val, FILTER_SANITIZE_EMAIL);
+        $this->attributes['email'] = filter_var($val, FILTER_SANITIZE_EMAIL);
     }
 
     public function getEmail()
     {
-        return $this->email;
+        return $this->attributes['email'] ?? '';
     }
 
     public function getId()
     {
-        return $this->id;
+        return isset($this->attributes['id']) ? (int)$this->attributes['id'] : null;
     }
 
     public function getQuestion()
     {
-        return $this->question;
+        return $this->attributes['question'] ?? '';
     }
 
     public function getAnswer()
     {
-        return $this->answer;
+        return $this->attributes['answer'] ?? '';
     }
 
     public function getCategory()
     {
-        return $this->category;
+        return $this->attributes['category'] ?? '';
     }
 
     public function getOrder()
     {
-        return $this->order;
+        return isset($this->attributes['order']) ? (int)$this->attributes['order'] : 0;
     }
 
     public function getVotes()
     {
-        return $this->votes;
+        return isset($this->attributes['votes']) ? (int)$this->attributes['votes'] : 0;
     }
 
     public function getFingerprints()
     {
-        return $this->fingerprints;
+        return $this->attributes['fingerprints'] ?? [];
     }
 
     public function getDate()
     {
-        return $this->date;
+        return $this->attributes['date'] ?? date('Y-m-d H:i:s');
     }
 
     public function isActive()
     {
-        return $this->active == '1';
+        return ($this->attributes['active'] ?? '1') == '1';
     }
 
     public function hasVoted($fingerprint)
     {
-        return in_array($fingerprint, $this->fingerprints);
+        return in_array($fingerprint, $this->getFingerprints());
     }
 
     public function addVote($fingerprint)
     {
         if (!$this->hasVoted($fingerprint)) {
-            $this->votes++;
-            $this->fingerprints[] = $fingerprint;
+            $votes = $this->getVotes();
+            $this->setVotes($votes + 1);
+            $fps = $this->getFingerprints();
+            $fps[] = $fingerprint;
+            $this->setFingerprints($fps);
         }
     }
 
-    public function toArray()
+    public function toArray(): array
     {
-        return [
-            'id' => $this->id,
-            'question' => $this->question,
-            'answer' => $this->answer,
-            'category' => $this->category,
-            'order' => $this->order,
-            'votes' => $this->votes,
-            'fingerprints' => $this->fingerprints,
-            'date' => $this->date,
-            'active' => $this->active,
-            'email' => $this->email
-        ];
+        return $this->attributes;
     }
 }
 

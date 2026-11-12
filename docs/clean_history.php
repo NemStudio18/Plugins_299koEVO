@@ -4,10 +4,7 @@
  * Supprime les doublons et corrige les numéros de version
  */
 
-if (PHP_SAPI !== 'cli') {
-    http_response_code(403);
-    exit('CLI only');
-}
+if (PHP_SAPI !== 'cli') { http_response_code(403); exit('CLI only'); }
 define('ROOT', dirname(__DIR__) . '/');
 
 require_once ROOT . 'common/common.php';

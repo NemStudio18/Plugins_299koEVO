@@ -1,14 +1,13 @@
 <?php
 
 use Core\Controllers\AdminController;
-use Core\Navigation\AccessPolicyEvaluator;
-use Core\Navigation\ConditionContext;
-use Core\Navigation\GenericResource;
 use Core\Responses\AdminResponse;
 use Utils\Show;
 use Core\Lang;
 use Utils\Util;
 use Core\Plugin\PluginsManager;
+use Guestbook\Entities\GuestbookManager;
+use Guestbook\Entities\GuestbookEntry;
 
 /**
  * @copyright (C) 2024, 299Ko
@@ -21,22 +20,8 @@ defined('ROOT') OR exit('No direct script access allowed');
 
 class GuestbookAdminController extends AdminController
 {
-    private function checkAdminAccess(): bool
-    {
-        $evaluator = AccessPolicyEvaluator::getInstance();
-        $ctx = new ConditionContext($this->user);
-        if (!$evaluator->canAccess(new GenericResource('guestbook:admin'), $ctx)) {
-            $this->core->error404();
-            return false;
-        }
-        return true;
-    }
-
     public function list()
     {
-        if (!$this->checkAdminAccess()) {
-            return null;
-        }
         $guestbookManager = new GuestbookManager();
 
         $this->runPlugin->setMainTitle(Lang::get('guestbook-admin-list'));
@@ -62,6 +47,7 @@ class GuestbookAdminController extends AdminController
         ];
         
         foreach ($items as $entry) {
+            /** @var GuestbookEntry $entry */
             $entryId = $entry->getId();
             $isApproved = $entry->isApproved();
             $entries[] = [
@@ -97,8 +83,9 @@ class GuestbookAdminController extends AdminController
 
     public function approve($id, $token)
     {
-        if (!$this->checkAdminAccess()) return null;
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('guestbook:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->list();
         }
@@ -109,6 +96,7 @@ class GuestbookAdminController extends AdminController
         }
 
         $guestbookManager = new GuestbookManager();
+        /** @var GuestbookEntry $entry */
         $entry = $guestbookManager->create($id);
 
         if ($entry) {
@@ -128,8 +116,9 @@ class GuestbookAdminController extends AdminController
 
     public function delete($id, $token)
     {
-        if (!$this->checkAdminAccess()) return null;
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('guestbook:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->list();
         }
@@ -140,6 +129,7 @@ class GuestbookAdminController extends AdminController
         }
 
         $guestbookManager = new GuestbookManager();
+        /** @var GuestbookEntry $entry */
         $entry = $guestbookManager->create($id);
 
         if ($entry && $guestbookManager->delEntry($entry)) {
@@ -154,8 +144,9 @@ class GuestbookAdminController extends AdminController
 
     public function reply($id, $token)
     {
-        if (!$this->checkAdminAccess()) return null;
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('guestbook:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->list();
         }
@@ -166,6 +157,7 @@ class GuestbookAdminController extends AdminController
         }
 
         $guestbookManager = new GuestbookManager();
+        /** @var GuestbookEntry $entry */
         $entry = $guestbookManager->create($id);
 
         if (!$entry) {
@@ -201,8 +193,9 @@ class GuestbookAdminController extends AdminController
 
     public function params()
     {
-        if (!$this->checkAdminAccess()) return null;
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('guestbook:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->list();
         }
@@ -222,8 +215,9 @@ class GuestbookAdminController extends AdminController
 
     public function saveParams()
     {
-        if (!$this->checkAdminAccess()) return null;
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('guestbook:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->params();
         }
@@ -257,8 +251,9 @@ class GuestbookAdminController extends AdminController
 
     public function deleteReply($id, $token)
     {
-        if (!$this->checkAdminAccess()) return null;
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('guestbook:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->list();
         }
@@ -269,6 +264,7 @@ class GuestbookAdminController extends AdminController
         }
 
         $guestbookManager = new GuestbookManager();
+        /** @var GuestbookEntry $entry */
         $entry = $guestbookManager->create($id);
 
         if (!$entry) {

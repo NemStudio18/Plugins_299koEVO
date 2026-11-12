@@ -3,9 +3,14 @@
         "logic": "OR",
         "conditions": [
             {
+                "provider": "role",
                 "type": "role",
-                "value": "admin"
+                "value": "ADM"
             }
         ]
+    },
+    "guestbook:post": {
+        "logic": "OR",
+        "conditions": []
     }
 }

@@ -1,49 +1,64 @@
-<section>
-    <header>{{ Lang.dons-admin.params-title }}</header>
+<form method="post" action="{ ROUTER.generate("dons-admin-save-params") }" class="admin-form">
+    <input type="hidden" name="token" value="{{ token }}" />
     
-    <form method="post" action="{{ ROUTER.generate("dons-admin-save-params") }}">
-        {{ SHOW.tokenField }}
-        
-        <label for="pageTitle">{{ Lang.dons-admin.pageTitle }}</label>
-        <input type="text" name="pageTitle" id="pageTitle" value="{{ runPlugin.getConfigVal("pageTitle") }}" />
-        
-        <label for="description">{{ Lang.dons-admin.description }}</label>
-        <textarea name="description" id="description" rows="3">{{ runPlugin.getConfigVal("description") }}</textarea>
-        
-        <label for="targetAmount">{{ Lang.dons-admin.targetAmount }}</label>
-        <input type="number" name="targetAmount" id="targetAmount" step="0.01" value="{{ runPlugin.getConfigVal("targetAmount") }}" />
-        
-        <h3>{{ Lang.dons-admin.paypal-config }}</h3>
-        
-        <label for="paypalClientId">{{ Lang.dons-admin.paypalClientId }}</label>
-        <input type="text" name="paypalClientId" id="paypalClientId" value="{{ runPlugin.getConfigVal("paypalClientId") }}" />
-        
-        <label for="paypalSecret">{{ Lang.dons-admin.paypalSecret }}</label>
-        <input type="password" name="paypalSecret" id="paypalSecret" value="{{ runPlugin.getConfigVal("paypalSecret") }}" />
-        
-        <label for="paypalMode">{{ Lang.dons-admin.paypalMode }}</label>
-        <select name="paypalMode" id="paypalMode">
-            <option value="sandbox"{% if runPlugin.getConfigVal("paypalMode") == "sandbox" %} selected{% endif %}>{{ Lang.dons-admin.sandbox }}</option>
-            <option value="live"{% if runPlugin.getConfigVal("paypalMode") == "live" %} selected{% endif %}>{{ Lang.dons-admin.live }}</option>
-        </select>
-        
-        <h3>{{ Lang.dons-admin.stripe-config }}</h3>
-        
-        <label for="stripePublishableKey">{{ Lang.dons-admin.stripePublishableKey }}</label>
-        <input type="text" name="stripePublishableKey" id="stripePublishableKey" value="{{ runPlugin.getConfigVal("stripePublishableKey") }}" />
-        
-        <label for="stripeSecretKey">{{ Lang.dons-admin.stripeSecretKey }}</label>
-        <input type="password" name="stripeSecretKey" id="stripeSecretKey" value="{{ runPlugin.getConfigVal("stripeSecretKey") }}" />
-        
-        <label for="stripeMode">{{ Lang.dons-admin.stripeMode }}</label>
-        <select name="stripeMode" id="stripeMode">
-            <option value="test"{% if runPlugin.getConfigVal("stripeMode") == "test" %} selected{% endif %}>{{ Lang.dons-admin.test }}</option>
-            <option value="live"{% if runPlugin.getConfigVal("stripeMode") == "live" %} selected{% endif %}>{{ Lang.dons-admin.live }}</option>
-        </select>
-        
-        <button type="submit" class="button">{{ Lang.save }}</button>
-    </form>
-</section>
+    <fieldset>
+        <legend>{{ Lang.dons-admin.public-page }}</legend>
+        <div class="form-group">
+            <label for="pageTitle">{{ Lang.dons-admin.page-title }}</label>
+            <input type="text" name="pageTitle" id="pageTitle" value="{{ pageTitle }}" required />
+        </div>
+        <div class="form-group">
+            <label for="description">{{ Lang.dons-admin.description }}</label>
+            <textarea name="description" id="description" rows="3">{{ description }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="targetAmount">{{ Lang.dons-admin.target-amount }}</label>
+            <input type="number" name="targetAmount" id="targetAmount" value="{{ targetAmount }}" step="0.01" />
+            <small>{{ Lang.dons-admin.target-help }}</small>
+        </div>
+    </fieldset>
 
+    <fieldset>
+        <legend>PayPal</legend>
+        <div class="form-group">
+            <label for="paypalClientId">Client ID</label>
+            <input type="text" name="paypalClientId" id="paypalClientId" value="{{ paypalClientId }}" />
+        </div>
+        <div class="form-group">
+            <label for="paypalSecret">Client Secret</label>
+            <input type="password" name="paypalSecret" id="paypalSecret" value="{{ paypalSecret }}" />
+        </div>
+        <div class="form-group">
+            <label for="paypalMode">{{ Lang.dons-admin.mode }}</label>
+            <select name="paypalMode" id="paypalMode">
+                <option value="sandbox" {% if paypalMode == "sandbox" %}selected{% endif %}>Sandbox (Test)</option>
+                <option value="live" {% if paypalMode == "live" %}selected{% endif %}>Live (Production)</option>
+            </select>
+        </div>
+    </fieldset>
 
+    <fieldset>
+        <legend>Stripe</legend>
+        <div class="form-group">
+            <label for="stripePublishableKey">Publishable Key</label>
+            <input type="text" name="stripePublishableKey" id="stripePublishableKey" value="{{ stripePublishableKey }}" />
+        </div>
+        <div class="form-group">
+            <label for="stripeSecretKey">Secret Key</label>
+            <input type="password" name="stripeSecretKey" id="stripeSecretKey" value="{{ stripeSecretKey }}" />
+        </div>
+        <div class="form-group">
+            <label for="stripeMode">{{ Lang.dons-admin.mode }}</label>
+            <select name="stripeMode" id="stripeMode">
+                <option value="test" {% if stripeMode == "test" %}selected{% endif %}>Test</option>
+                <option value="live" {% if stripeMode == "live" %}selected{% endif %}>Live</option>
+            </select>
+        </div>
+    </fieldset>
 
+    <div class="form-actions">
+        <button type="submit" class="button success">
+            <i class="fa-solid fa-floppy-disk"></i> {{ Lang.core-save }}
+        </button>
+    </div>
+</form>

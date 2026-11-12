@@ -26,7 +26,9 @@ class DocsAdminCategoriesController extends AdminController
 
     public function addCategory() {
         $response = new ApiResponse();
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('docs:admin'), $ctx)) {
             $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
             return $response;
         }
@@ -49,7 +51,9 @@ class DocsAdminCategoriesController extends AdminController
 
     public function deleteCategory() {
         $response = new ApiResponse();
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('docs:admin'), $ctx)) {
             $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
             return $response;
         }
@@ -74,7 +78,9 @@ class DocsAdminCategoriesController extends AdminController
 
     public function editCategory() {
         // Called By Fancybox
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('docs:admin'), $ctx)) {
             echo 'forbidden';
             die();
         }
@@ -96,7 +102,9 @@ class DocsAdminCategoriesController extends AdminController
 
     public function saveCategory($id) {
         $response = new ApiResponse();
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('docs:admin'), $ctx)) {
             $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
             return $response;
         }
@@ -125,7 +133,9 @@ class DocsAdminCategoriesController extends AdminController
     }
 
     public function getCategoriesList() {
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('docs:admin'), $ctx)) {
             $this->core->error404();
         }
         

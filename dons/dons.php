@@ -25,7 +25,45 @@ function donsInstall() {
     }
 }
 
-## Code relatif au plugin
+/**
+ * Hook: Injecte le CSS public
+ */
+function donsEndFrontHead()
+{
+    $uri = $_SERVER['REQUEST_URI'] ?? '';
+    if (strpos($uri, '/dons') === false) {
+        return '';
+    }
+    
+    $siteUrl = \Core\Core::getInstance()->getConfigVal('siteUrl');
+    $cssUrl = $siteUrl . '/plugin/dons/template/public.css';
+    
+    return '<link rel="stylesheet" href="' . $cssUrl . '?v=' . VERSION . '">';
+}
+
+/**
+ * Hook: Injecte le lien dans la navigation
+ */
+function donsNavigation($tree)
+{
+    $tree->addItem(\Core\Navigation\NavigationItem::fromArray([
+        'id' => 'plugin.dons.home',
+        'parentId' => null,
+        'label' => \Core\Lang::get('dons.name'),
+        'target' => \Core\Router\Router::getInstance()->generate('dons-home'),
+        'position' => 80,
+        'source' => 'plugin:dons'
+    ]));
+}
+
+
+// Hooks are now registered in hooks.json
+
+// Auto-injection de l'état actif pour le dashboard
+if (class_exists('\Core\Core') && class_exists('\Template\Template')) {
+    \Template\Template::addGlobal('isDonsActive', true);
+}
+
 
 
 

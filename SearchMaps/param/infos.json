@@ -5,7 +5,7 @@
     "description": "Cartographie OpenStreetMap et Leaflet pour intégration d'itinéraires et points géolocalisés.",
     "version": "1.0.0",
     "author": "299Ko Team",
-    "authorEmail": "mx.koder@gmail.com",
-    "authorWebsite": "https://299ko.ovh",
+    "authorEmail": "maximeblanc@flexcb.fr",
+    "authorWebsite": "https://www.flexcb.fr",
     "homeAdminMethod": "SearchMaps\\Controllers\\SearchMapsAdminController#home"
 }

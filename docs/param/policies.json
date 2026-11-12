@@ -1,5 +1,12 @@
 {
     "docs:admin": {
-        "allow": ["admin"]
+        "logic": "OR",
+        "conditions": [
+            {
+                "provider": "role",
+                "type": "role",
+                "value": "ADM"
+            }
+        ]
     }
 }

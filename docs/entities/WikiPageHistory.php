@@ -2,6 +2,8 @@
 
 namespace Docs\Entities;
 
+use Core\Storage\JsonActiveRecord;
+
 /**
  * @copyright (C) 2022, 299Ko, based on code (2010-2021) 99ko https://github.com/99kocms/
  * @license https://www.gnu.org/licenses/gpl-3.0.en.html GPLv3
@@ -15,111 +17,44 @@ namespace Docs\Entities;
  */
 defined('ROOT') or exit('Access denied!');
 
-class WikiPageHistory
+class WikiPageHistory extends JsonActiveRecord
 {
-    private $id;
-    private $pageId;
-    private $version;
-    private $name;
-    private $content;
-    private $intro;
-    private $seoDesc;
-    private $modifiedBy;
-    private $modifiedAt;
-    private $changeDescription;
+    protected static string $filePath = DATA_PLUGIN . 'docs/history.json';
+    protected static string $tableName = 'wiki_history';
+    protected static string $primaryKey = 'id';
 
     public function __construct($data = []) {
-        $this->id = $data['id'] ?? null;
-        $this->pageId = $data['pageId'] ?? null;
-        $this->version = $data['version'] ?? 1;
-        $this->name = $data['name'] ?? '';
-        $this->content = $data['content'] ?? '';
-        $this->intro = $data['intro'] ?? '';
-        $this->seoDesc = $data['seoDesc'] ?? '';
-        $this->modifiedBy = $data['modifiedBy'] ?? '';
-        $this->modifiedAt = $data['modifiedAt'] ?? date('Y-m-d H:i:s');
-        $this->changeDescription = $data['changeDescription'] ?? '';
+        parent::__construct($data);
+        if (empty($this->version)) {
+            $this->version = 1;
+        }
+        if (empty($this->modifiedAt)) {
+            $this->modifiedAt = date('Y-m-d H:i:s');
+        }
     }
 
-    // Getters
-    public function getId() {
-        return $this->id;
-    }
+    // Getters / Setters for attributes are handled by __get / __set in JsonActiveRecord
+    // but we can keep manual ones if needed for IDE completion or specific logic.
+    
+    public function getId() { return $this->id; }
+    public function getPageId() { return $this->pageId; }
+    public function getVersion() { return $this->version; }
+    public function getName() { return $this->name; }
+    public function getContent() { return $this->content; }
+    public function getIntro() { return $this->intro; }
+    public function getSEODesc() { return $this->seoDesc; }
+    public function getModifiedBy() { return $this->modifiedBy; }
+    public function getModifiedAt() { return $this->modifiedAt; }
+    public function getChangeDescription() { return $this->changeDescription; }
 
-    public function getPageId() {
-        return $this->pageId;
-    }
-
-    public function getVersion() {
-        return $this->version;
-    }
-
-    public function getName() {
-        return $this->name;
-    }
-
-    public function getContent() {
-        return $this->content;
-    }
-
-    public function getIntro() {
-        return $this->intro;
-    }
-
-    public function getSEODesc() {
-        return $this->seoDesc;
-    }
-
-    public function getModifiedBy() {
-        return $this->modifiedBy;
-    }
-
-    public function getModifiedAt() {
-        return $this->modifiedAt;
-    }
-
-    public function getChangeDescription() {
-        return $this->changeDescription;
-    }
-
-    // Setters
-    public function setId($id) {
-        $this->id = $id;
-    }
-
-    public function setPageId($pageId) {
-        $this->pageId = $pageId;
-    }
-
-    public function setVersion($version) {
-        $this->version = $version;
-    }
-
-    public function setName($name) {
-        $this->name = $name;
-    }
-
-    public function setContent($content) {
-        $this->content = $content;
-    }
-
-    public function setIntro($intro) {
-        $this->intro = $intro;
-    }
-
-    public function setSEODesc($seoDesc) {
-        $this->seoDesc = $seoDesc;
-    }
-
-    public function setModifiedBy($modifiedBy) {
-        $this->modifiedBy = $modifiedBy;
-    }
-
-    public function setModifiedAt($modifiedAt) {
-        $this->modifiedAt = $modifiedAt;
-    }
-
-    public function setChangeDescription($changeDescription) {
-        $this->changeDescription = $changeDescription;
-    }
-} 
+    public function setId($val) { $this->id = $val; }
+    public function setPageId($val) { $this->pageId = $val; }
+    public function setVersion($val) { $this->version = $val; }
+    public function setName($val) { $this->name = $val; }
+    public function setContent($val) { $this->content = $val; }
+    public function setIntro($val) { $this->intro = $val; }
+    public function setSEODesc($val) { $this->seoDesc = $val; }
+    public function setModifiedBy($val) { $this->modifiedBy = $val; }
+    public function setModifiedAt($val) { $this->modifiedAt = $val; }
+    public function setChangeDescription($val) { $this->changeDescription = $val; }
+}

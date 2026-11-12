@@ -4,7 +4,7 @@
     "icon": "fa-solid fa-highlighter",
     "description": "Coloration syntaxique du code avec Highlight.js",
     "authorEmail": "mx.koder@gmail.com",
-    "authorWebsite": "https://299ko.ovh",
+    "authorWebsite": "https://299ko.flexcb.fr",
     "version": "1.0.0",
     "homeAdminMethod": "Highlight\\Controllers\\HighlightAdminController#home"
 }

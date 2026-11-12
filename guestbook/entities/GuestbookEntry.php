@@ -1,4 +1,7 @@
 <?php
+namespace Guestbook\Entities;
+
+use Core\Storage\JsonActiveRecord;
 
 /**
  * @copyright (C) 2024, 299Ko
@@ -9,151 +12,65 @@
  */
 defined('ROOT') OR exit('No direct script access allowed');
 
-class GuestbookEntry
+class GuestbookEntry extends JsonActiveRecord
 {
-    private $id;
-    private $name;
-    private $email;
-    private $message;
-    public $approved;
-    private $date;
-    private $fingerprint; // Hash de (User-Agent + IP) au lieu de l'IP en clair
-    private $likes;
-    private $adminReply;
-    private $adminReplyDate;
-    private $adminReplyAuthor;
+    protected static string $table = 'guestbook';
+    protected static string $primaryKey = 'id';
+    
+    protected static array $attributeMapping = [
+        'admin_reply' => 'adminReply',
+        'admin_reply_date' => 'adminReplyDate',
+        'admin_reply_author' => 'adminReplyAuthor'
+    ];
 
-    public function __construct($val = array())
+    protected static array $casts = [
+        'likes' => 'array',
+        'approved' => 'integer'
+    ];
+
+    public function __construct(array $data = [])
     {
-        if (count($val) > 0) {
-            $this->id = $val['id'] ?? null;
-            $this->name = $val['name'] ?? '';
-            $this->email = $val['email'] ?? '';
-            $this->message = $val['message'] ?? '';
-            $this->approved = $val['approved'] ?? '0';
-            $this->date = $val['date'] ?? date('Y-m-d H:i:s');
-            $this->fingerprint = $val['fingerprint'] ?? ($val['ip'] ?? ''); // Migration: ancien système avec 'ip'
-            $this->likes = $val['likes'] ?? [];
-            $this->adminReply = $val['adminReply'] ?? '';
-            $this->adminReplyDate = $val['adminReplyDate'] ?? null;
-            $this->adminReplyAuthor = $val['adminReplyAuthor'] ?? '';
+        parent::__construct($data);
+        if (empty($this->attributes['date'])) {
+            $this->attributes['date'] = date('Y-m-d H:i:s');
         }
     }
 
-    public function setId($val)
-    {
-        $this->id = intval($val);
-    }
+    public function setId($val) { $this->attributes['id'] = intval($val); }
+    public function setName($val) { $this->attributes['name'] = trim(filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS)); }
+    public function setEmail($val) { $this->attributes['email'] = trim(filter_var($val, FILTER_SANITIZE_EMAIL)); }
+    public function setMessage($val) { $this->attributes['message'] = trim(filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS)); }
+    public function setApproved($val) { $this->attributes['approved'] = (int)$val; }
+    public function setDate($val) { $this->attributes['date'] = $val ?: date('Y-m-d H:i:s'); }
+    public function setFingerprint($val) { $this->attributes['fingerprint'] = trim($val); }
+    public function setLikes($val) { $this->attributes['likes'] = is_array($val) ? $val : []; }
+    public function setAdminReply($val) { $this->attributes['adminReply'] = trim(filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS)); }
+    public function setAdminReplyDate($val) { $this->attributes['adminReplyDate'] = $val ?: date('Y-m-d H:i:s'); }
+    public function setAdminReplyAuthor($val) { $this->attributes['adminReplyAuthor'] = trim(filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS)); }
 
-    public function setName($val)
-    {
-        $this->name = trim(filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
-    }
+    public function getId() { return isset($this->attributes['id']) ? (int)$this->attributes['id'] : null; }
+    public function getName() { return $this->attributes['name'] ?? ''; }
+    public function getEmail() { return $this->attributes['email'] ?? ''; }
+    public function getMessage() { return $this->attributes['message'] ?? ''; }
+    public function getApproved() { return $this->attributes['approved'] ?? 0; }
+    public function getDate() { return $this->attributes['date'] ?? ''; }
+    public function getFingerprint() { return $this->attributes['fingerprint'] ?? ''; }
+    public function getLikes() { return $this->attributes['likes'] ?? []; }
+    public function getAdminReply() { return $this->attributes['adminReply'] ?? ''; }
+    public function getAdminReplyDate() { return $this->attributes['adminReplyDate'] ?? null; }
+    public function getAdminReplyAuthor() { return $this->attributes['adminReplyAuthor'] ?? ''; }
 
-    public function setEmail($val)
-    {
-        $this->email = trim(filter_var($val, FILTER_SANITIZE_EMAIL));
-    }
-
-    public function setMessage($val)
-    {
-        $this->message = trim(filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
-    }
-
-    public function setApproved($val)
-    {
-        $this->approved = trim($val);
-    }
-
-    public function setDate($val)
-    {
-        if ($val === null || empty($val)) {
-            $val = date('Y-m-d H:i:s');
-        }
-        $this->date = trim($val);
-    }
-
-    public function setIp($val)
-    {
-        // Méthode dépréciée, utilisez setFingerprint() à la place
-        $this->fingerprint = trim($val);
-    }
-
-    public function setFingerprint($val)
-    {
-        $this->fingerprint = trim($val);
-    }
-
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    public function getEmail()
-    {
-        return $this->email;
-    }
-
-    public function getMessage()
-    {
-        return $this->message;
-    }
-
-    public function getApproved()
-    {
-        return $this->approved;
-    }
-
-    public function getDate()
-    {
-        return $this->date;
-    }
-
-    public function getIp()
-    {
-        // Méthode dépréciée pour compatibilité
-        return $this->fingerprint;
-    }
-
-    public function getFingerprint()
-    {
-        return $this->fingerprint;
-    }
-
-    public function isApproved()
-    {
-        return $this->approved == '1';
-    }
-
-    public function setLikes($val)
-    {
-        $this->likes = is_array($val) ? $val : [];
-    }
-
-    public function getLikes()
-    {
-        return $this->likes;
-    }
-
-    public function getLikesCount()
-    {
-        return count($this->likes);
-    }
-
-    public function hasLiked($fingerprint)
-    {
-        return in_array($fingerprint, $this->likes);
-    }
+    public function isApproved() { return (int)($this->attributes['approved'] ?? 0) === 1; }
+    public function getLikesCount() { return count($this->getLikes()); }
+    public function hasLiked($fingerprint) { return in_array($fingerprint, $this->getLikes()); }
+    public function hasAdminReply() { return !empty($this->attributes['adminReply']); }
 
     public function addLike($fingerprint)
     {
         if (!$this->hasLiked($fingerprint)) {
-            $this->likes[] = $fingerprint;
+            $likes = $this->getLikes();
+            $likes[] = $fingerprint;
+            $this->setLikes($likes);
             return true;
         }
         return false;
@@ -161,68 +78,18 @@ class GuestbookEntry
 
     public function removeLike($fingerprint)
     {
-        $key = array_search($fingerprint, $this->likes);
+        $likes = $this->getLikes();
+        $key = array_search($fingerprint, $likes);
         if ($key !== false) {
-            unset($this->likes[$key]);
-            $this->likes = array_values($this->likes);
+            unset($likes[$key]);
+            $this->setLikes(array_values($likes));
             return true;
         }
         return false;
     }
 
-    public function setAdminReply($val)
+    public function toArray(): array
     {
-        $this->adminReply = trim(filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
-    }
-
-    public function getAdminReply()
-    {
-        return $this->adminReply;
-    }
-
-    public function setAdminReplyDate($val)
-    {
-        if ($val === null || empty($val)) {
-            $val = date('Y-m-d H:i:s');
-        }
-        $this->adminReplyDate = trim($val);
-    }
-
-    public function getAdminReplyDate()
-    {
-        return $this->adminReplyDate;
-    }
-
-    public function setAdminReplyAuthor($val)
-    {
-        $this->adminReplyAuthor = trim(filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
-    }
-
-    public function getAdminReplyAuthor()
-    {
-        return $this->adminReplyAuthor;
-    }
-
-    public function hasAdminReply()
-    {
-        return !empty($this->adminReply);
-    }
-
-    public function toArray()
-    {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'message' => $this->message,
-            'approved' => $this->approved,
-            'date' => $this->date,
-            'fingerprint' => $this->fingerprint,
-            'ip' => $this->fingerprint, // Compatibilité avec ancien système
-            'likes' => $this->likes,
-            'adminReply' => $this->adminReply,
-            'adminReplyDate' => $this->adminReplyDate,
-            'adminReplyAuthor' => $this->adminReplyAuthor
-        ];
+        return $this->attributes;
     }
 }

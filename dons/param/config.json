@@ -9,6 +9,8 @@
     "paypalMode": "sandbox",
     "stripePublishableKey": "",
     "stripeSecretKey": "",
-    "stripeMode": "test"
+    "stripeMode": "test",
+    "showDonorsList": 0,
+    "continueAfterTarget": 1,
+    "showDonationGraph": 0
 }
-

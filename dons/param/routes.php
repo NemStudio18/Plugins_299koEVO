@@ -12,18 +12,18 @@ defined('ROOT') OR exit('No direct script access allowed');
 $router = \Core\Router\Router::getInstance();
 
 // Public
-$router->map('GET', '/dons[/?]', 'DonController#home', 'dons-home');
-$router->map('POST', '/dons/paypal/create', 'DonController#createPayPalPayment', 'dons-paypal-create');
-$router->map('POST', '/dons/paypal/capture', 'DonController#capturePayPalPayment', 'dons-paypal-capture');
-$router->map('POST', '/dons/stripe/create', 'DonController#createStripePayment', 'dons-stripe-create');
-$router->map('GET', '/dons/stripe/success', 'DonController#stripeSuccess', 'dons-stripe-success');
-$router->map('GET', '/dons/stripe/cancel', 'DonController#stripeCancel', 'dons-stripe-cancel');
+$router->map('GET', '/dons[/?]', 'Dons\Controllers\DonController#home', 'dons-home');
+$router->map('POST', '/dons/paypal/create', 'Dons\Controllers\DonController#createPayPalPayment', 'dons-paypal-create');
+$router->map('POST', '/dons/paypal/capture', 'Dons\Controllers\DonController#capturePayPalPayment', 'dons-paypal-capture');
+$router->map('POST', '/dons/stripe/create', 'Dons\Controllers\DonController#createStripePayment', 'dons-stripe-create');
+$router->map('GET', '/dons/stripe/success', 'Dons\Controllers\DonController#stripeSuccess', 'dons-stripe-success');
+$router->map('GET', '/dons/stripe/cancel', 'Dons\Controllers\DonController#stripeCancel', 'dons-stripe-cancel');
 
 // Admin
-$router->map('GET', '/admin/dons[/?]', 'DonAdminController#list', 'dons-admin-list');
-$router->map('GET', '/admin/dons/stats', 'DonAdminController#stats', 'dons-admin-stats');
-$router->map('GET', '/admin/dons/params', 'DonAdminController#params', 'dons-admin-params');
-$router->map('POST', '/admin/dons/save-params', 'DonAdminController#saveParams', 'dons-admin-save-params');
-
-
-
+$router->map('GET', '/admin/dons[/?]', 'Dons\Controllers\DonAdminController#list', 'dons-admin-list');
+$router->map('GET', '/admin/dons/edit', [\Dons\Controllers\DonAdminController::class, 'edit'], 'dons-admin-edit');
+$router->map('POST', '/admin/dons/save', [\Dons\Controllers\DonAdminController::class, 'save'], 'dons-admin-save');
+$router->map('GET', '/admin/dons/stats', 'Dons\Controllers\DonAdminController#stats', 'dons-admin-stats');
+$router->map('GET', '/admin/dons/chart-data', [\Dons\Controllers\DonAdminController::class, 'chartData'], 'dons-admin-chart-data');
+$router->map('GET', '/admin/dons/params', 'Dons\Controllers\DonAdminController#params', 'dons-admin-params');
+$router->map('POST', '/admin/dons/save-params', 'Dons\Controllers\DonAdminController#saveParams', 'dons-admin-save-params');

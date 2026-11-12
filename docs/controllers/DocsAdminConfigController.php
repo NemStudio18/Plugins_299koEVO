@@ -13,7 +13,9 @@ class DocsAdminConfigController extends AdminController
 
     public function saveConfig()
     {
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('docs:admin'), $ctx)) {
             $this->core->error404();
         }
         

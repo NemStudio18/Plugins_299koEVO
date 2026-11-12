@@ -1,15 +1,15 @@
 <?php
 
+namespace Dons\Controllers;
+
 use Core\Controllers\AdminController;
-use Core\Navigation\AccessPolicyEvaluator;
-use Core\Navigation\ConditionContext;
-use Core\Navigation\GenericResource;
 use Core\Responses\AdminResponse;
-use Core\Security\Csrf;
 use Utils\Show;
 use Core\Lang;
 use Utils\Util;
 use Core\Plugin\PluginsManager;
+use Dons\Entities\Don;
+use Dons\Entities\DonManager;
 
 /**
  * @copyright (C) 2025, 299Ko
@@ -22,12 +22,20 @@ defined('ROOT') OR exit('No direct script access allowed');
 
 class DonAdminController extends AdminController
 {
+    /**
+     * Checks if the current user has access to the 'dons:admin' resource.
+     * If not, displays an error message and redirects to the admin home.
+     *
+     * @return bool True if access is granted, false otherwise (and handles redirection).
+     */
     private function checkAdminAccess(): bool
     {
-        $evaluator = AccessPolicyEvaluator::getInstance();
-        $ctx = new ConditionContext($this->user);
-        if (!$evaluator->canAccess(new GenericResource('dons:admin'), $ctx)) {
-            $this->core->error404();
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('dons:admin'), $ctx)) {
+            Show::msg(Lang::get('core-not-authorized'), 'error');
+            $this->core->redirect($this->router->generate('admin-home'));
             return false;
         }
         return true;
@@ -35,7 +43,9 @@ class DonAdminController extends AdminController
 
     public function list()
     {
-        if (!$this->checkAdminAccess()) return null;
+        if (!$this->checkAdminAccess()) {
+            return;
+        }
 
         $donManager = new DonManager();
         $dons = $donManager->getDons();
@@ -52,8 +62,9 @@ class DonAdminController extends AdminController
                 'id' => $don->getId(),
                 'amount' => $don->getAmount(),
                 'amountFormatted' => number_format($don->getAmount(), 2, ',', ' '),
-                'firstName' => $don->isAnonymous() ? Lang::get('dons-admin.anonymous') : $don->getFirstName(),
-                'lastName' => $don->isAnonymous() ? '' : $don->getLastName(),
+                'firstName' => $don->getFirstName(),
+                'lastName' => $don->getLastName(),
+                'isAnonymous' => $don->isAnonymous(),
                 'email' => $don->getEmail(),
                 'message' => $don->getMessage(),
                 'gateway' => $don->getGateway(),
@@ -74,14 +85,27 @@ class DonAdminController extends AdminController
         $tpl->set('totalAmountFormatted', number_format($totalAmount, 2, ',', ' '));
         $tpl->set('token', $this->user->token);
         
+        // Config data for the "Configuration" tab
+        $tpl->set('pageTitle', $this->runPlugin->getConfigVal('pageTitle'));
+        $tpl->set('description', $this->runPlugin->getConfigVal('description'));
+        $tpl->set('targetAmount', $this->runPlugin->getConfigVal('targetAmount'));
+        $tpl->set('paypalClientId', $this->runPlugin->getConfigVal('paypalClientId'));
+        $tpl->set('paypalSecret', $this->runPlugin->getConfigVal('paypalSecret'));
+        $tpl->set('paypalMode', $this->runPlugin->getConfigVal('paypalMode'));
+        $tpl->set('stripePublishableKey', $this->runPlugin->getConfigVal('stripePublishableKey'));
+        $tpl->set('stripeSecretKey', $this->runPlugin->getConfigVal('stripeSecretKey'));
+        $tpl->set('stripeMode', $this->runPlugin->getConfigVal('stripeMode'));
+
         $response->addTemplate($tpl);
         return $response;
     }
 
     public function stats()
     {
-        if (!$this->checkAdminAccess()) return null;
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('dons:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->list();
         }
@@ -104,8 +128,10 @@ class DonAdminController extends AdminController
 
     public function params()
     {
-        if (!$this->checkAdminAccess()) return null;
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('dons:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->list();
         }
@@ -116,19 +142,35 @@ class DonAdminController extends AdminController
         $response = new AdminResponse();
         $tpl = $response->createPluginTemplate('dons', 'param');
         
+        $tpl->set('token', $this->user->token);
+        $tpl->set('pageTitle', $this->runPlugin->getConfigVal('pageTitle'));
+        $tpl->set('description', $this->runPlugin->getConfigVal('description'));
+        $tpl->set('targetAmount', $this->runPlugin->getConfigVal('targetAmount'));
+        $tpl->set('paypalClientId', $this->runPlugin->getConfigVal('paypalClientId'));
+        $tpl->set('paypalSecret', $this->runPlugin->getConfigVal('paypalSecret'));
+        $tpl->set('paypalMode', $this->runPlugin->getConfigVal('paypalMode'));
+        $tpl->set('stripePublishableKey', $this->runPlugin->getConfigVal('stripePublishableKey'));
+        $tpl->set('stripeSecretKey', $this->runPlugin->getConfigVal('stripeSecretKey'));
+        $tpl->set('stripeMode', $this->runPlugin->getConfigVal('stripeMode'));
+        $tpl->set('showDonorsList', $this->runPlugin->getConfigVal('showDonorsList'));
+        $tpl->set('continueAfterTarget', $this->runPlugin->getConfigVal('continueAfterTarget'));
+        $tpl->set('showDonationGraph', $this->runPlugin->getConfigVal('showDonationGraph'));
+
         $response->addTemplate($tpl);
         return $response;
     }
 
     public function saveParams()
     {
-        if (!$this->checkAdminAccess()) return null;
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('dons:admin'), $ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->params();
         }
 
-        if (!Csrf::validate($_POST['token'] ?? null)) {
+        if (!isset($_POST['token']) || $_POST['token'] !== $this->user->token) {
             Show::msg(Lang::get('core-invalid-token'), 'error');
             return $this->params();
         }
@@ -142,6 +184,7 @@ class DonAdminController extends AdminController
         $stripePublishableKey = trim(strip_tags((string)($_POST['stripePublishableKey'] ?? '')));
         $stripeSecretKey = trim(strip_tags((string)($_POST['stripeSecretKey'] ?? '')));
         $stripeMode = trim(strip_tags((string)($_POST['stripeMode'] ?? 'test')));
+        $showDonorsList = isset($_POST['showDonorsList']) ? 1 : 0;
 
         $this->runPlugin->setConfigVal('pageTitle', $pageTitle);
         $this->runPlugin->setConfigVal('description', $description);
@@ -152,6 +195,9 @@ class DonAdminController extends AdminController
         $this->runPlugin->setConfigVal('stripePublishableKey', $stripePublishableKey);
         $this->runPlugin->setConfigVal('stripeSecretKey', $stripeSecretKey);
         $this->runPlugin->setConfigVal('stripeMode', $stripeMode);
+        $this->runPlugin->setConfigVal('showDonorsList', $showDonorsList);
+        $this->runPlugin->setConfigVal('continueAfterTarget', isset($_POST['continueAfterTarget']) ? 1 : 0);
+        $this->runPlugin->setConfigVal('showDonationGraph', isset($_POST['showDonationGraph']) ? 1 : 0);
         
         $pluginsManager = PluginsManager::getInstance();
         if ($pluginsManager->savePluginConfig($this->runPlugin)) {
@@ -161,6 +207,15 @@ class DonAdminController extends AdminController
             Show::msg(Lang::get('core-changes-not-saved'), 'error');
             header('location:' . $this->router->generate('dons-admin-params'));
         }
+        die();
+    }
+
+    public function chartData()
+    {
+        header('Content-Type: application/json');
+        $donManager = new DonManager();
+        $dailyData = $donManager->getDailyDonations(30);
+        echo json_encode($dailyData);
         die();
     }
 }

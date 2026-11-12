@@ -79,7 +79,9 @@ class DocsAdminHistoryController extends AdminController
 
     public function restoreVersion()
     {
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('docs:admin'), $ctx)) {
             $response = new ApiResponse();
             $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
             return $response;
@@ -113,7 +115,7 @@ class DocsAdminHistoryController extends AdminController
         }
 
         $currentPage = $wikiPageManager->create($pageId);
-        if (!$currentPage) {
+        if ($currentPage === false) {
             $this->logger->log("Current page not found: PageID $pageId", "ERROR");
             $response = new ApiResponse();
             $response->status = ApiResponse::STATUS_NOT_FOUND;

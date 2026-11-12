@@ -1,12 +1,17 @@
 <?php
 
+namespace Dons\Controllers;
+
 use Core\Controllers\PublicController;
 use Core\Responses\PublicResponse;
 use Utils\Show;
 use Core\Lang;
 use Core\Router\Router;
 use Core\Core;
+use Utils\Util;
 use Core\Plugin\PluginsManager;
+use Dons\Entities\Don;
+use Dons\Entities\DonManager;
 
 /**
  * @copyright (C) 2025, 299Ko
@@ -27,10 +32,9 @@ class DonController extends PublicController
         $progress = $targetAmount > 0 ? ($totalAmount / $targetAmount) * 100 : 0;
         if ($progress > 100) $progress = 100;
 
-        $this->runPlugin->setMainTitle($this->runPlugin->getConfigVal('pageTitle') ?: Lang::get('dons.name'));
-        $this->runPlugin->setTitleTag($this->runPlugin->getMainTitle());
-
         $response = new PublicResponse();
+        $response->setTitle('<i class="fa-solid fa-hand-holding-heart"></i> ' . ($this->runPlugin->getConfigVal('pageTitle') ?: Lang::get('dons.name')));
+
         $tpl = $response->createPluginTemplate('dons', 'donate');
 
         $paypalClientId = $this->runPlugin->getConfigVal('paypalClientId');
@@ -53,6 +57,37 @@ class DonController extends PublicController
         $tpl->set('stripeCreateUrl', $this->router->generate('dons-stripe-create'));
         $tpl->set('stripeSuccessUrl', $this->router->generate('dons-stripe-success'));
         
+        // Public Donors List
+        $showDonorsList = $this->runPlugin->getConfigVal('showDonorsList');
+        $continueAfterTarget = $this->runPlugin->getConfigVal('continueAfterTarget');
+        $goalReached = ($targetAmount > 0 && $totalAmount >= $targetAmount);
+        $showDonationGraph = $this->runPlugin->getConfigVal('showDonationGraph');
+
+        $tpl->set('showDonorsList', $showDonorsList);
+        $tpl->set('continueAfterTarget', $continueAfterTarget);
+        $tpl->set('goalReached', $goalReached);
+        $tpl->set('showDonationGraph', $showDonationGraph);
+        if ($showDonorsList) {
+            $dons = $donManager->getDons();
+            $recentDonors = [];
+            foreach ($dons as $don) {
+                if ($don->getStatus() === 'completed' && !$don->isAnonymous()) {
+                    $recentDonors[] = [
+                        'firstName' => $don->getFirstName(),
+                        'lastName' => $don->getLastName(),
+                        'amount' => $don->getAmount(),
+                        'amountFormatted' => number_format($don->getAmount(), 2, ',', ' '),
+                        'date' => Util::FormatDate($don->getDate(), 'en', 'fr')
+                    ];
+                }
+            }
+            // Sort by date desc
+            usort($recentDonors, function($a, $b) {
+                return strtotime($b['date']) - strtotime($a['date']);
+            });
+            $tpl->set('recentDonors', array_slice($recentDonors, 0, 10));
+        }
+        
         $response->addTemplate($tpl);
         return $response;
     }
@@ -69,6 +104,18 @@ class DonController extends PublicController
         if ($amount < 1) {
             header('Content-Type: application/json');
             echo json_encode(['error' => Lang::get('dons.invalid-amount')]);
+            die();
+        }
+
+        // Check if target reached and continue forbidden
+        $donManager = new DonManager();
+        $totalAmount = $donManager->getTotalAmount();
+        $targetAmount = floatval($this->runPlugin->getConfigVal('targetAmount'));
+        $continueAfterTarget = $this->runPlugin->getConfigVal('continueAfterTarget');
+
+        if ($targetAmount > 0 && $totalAmount >= $targetAmount && !$continueAfterTarget) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => Lang::get('dons.goal-reached')]);
             die();
         }
 
@@ -209,7 +256,7 @@ class DonController extends PublicController
             
             // Mettre à jour le montant total dans la config
             $this->runPlugin->setConfigVal('currentAmount', $donManager->getTotalAmount());
-            $pluginsManager = PluginsManager::getInstance();
+            $pluginsManager = pluginsManager::getInstance();
             $pluginsManager->savePluginConfig($this->runPlugin);
             
             Show::msg(Lang::get('dons.donation-success'), 'success');
@@ -236,6 +283,18 @@ class DonController extends PublicController
         if ($amount < 100) {
             header('Content-Type: application/json');
             echo json_encode(['error' => Lang::get('dons.invalid-amount')]);
+            die();
+        }
+
+        // Check if target reached and continue forbidden
+        $donManager = new DonManager();
+        $totalAmount = $donManager->getTotalAmount();
+        $targetAmount = floatval($this->runPlugin->getConfigVal('targetAmount'));
+        $continueAfterTarget = $this->runPlugin->getConfigVal('continueAfterTarget');
+
+        if ($targetAmount > 0 && $totalAmount >= $targetAmount && !$continueAfterTarget) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => Lang::get('dons.goal-reached')]);
             die();
         }
 

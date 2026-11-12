@@ -3,7 +3,6 @@
 namespace Docs\Controllers;
 
 use Core\Controllers\AdminController;
-use Core\Auth\AccessPolicyEvaluator;
 use Core\Lang;
 use Core\Responses\AdminResponse;
 use Core\Responses\ApiResponse;
@@ -26,20 +25,6 @@ class DocsAdminPagesController extends AdminController
 
     public WikiPageManager $wikiPageManager;
 
-    private function checkAdminAccess(): bool
-    {
-        if (class_exists(AccessPolicyEvaluator::class)) {
-            $evaluator = AccessPolicyEvaluator::fromLoadedPlugins();
-            $decision = $evaluator->evaluate($this->user, 'docs:admin');
-            if (!$decision->allowed) {
-                Show::msg(Lang::get('core-not-authorized'), 'error');
-                $this->core->redirect($this->router->generate('admin-home'));
-                return false;
-            }
-        }
-        return true;
-    }
-
     public function __construct()
     {
         parent::__construct();
@@ -49,7 +34,6 @@ class DocsAdminPagesController extends AdminController
 
     public function list()
     {
-        if (!$this->checkAdminAccess()) return null;
         // Synchroniser automatiquement les catégories avec les pages
         $this->categoriesManager->syncWithWikiPages();
         
@@ -68,7 +52,9 @@ class DocsAdminPagesController extends AdminController
     public function deletePage()
     {
         $response = new ApiResponse();
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('docs:admin'), $ctx)) {
             $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
             return $response;
         }
@@ -124,6 +110,7 @@ class DocsAdminPagesController extends AdminController
             $wikiPage = new WikiPage();
             $wikiPage->setDate(date('Y-m-d'));
         } else {
+            /** @var WikiPage $wikiPage */
             $wikiPage = $this->wikiPageManager->create($id);
             if ($wikiPage === false) {
                 Show::msg(Lang::get('wiki-item-dont-exist'), 'error');
@@ -146,7 +133,9 @@ class DocsAdminPagesController extends AdminController
 
     public function savePage()
     {
-        if (!$this->user->isAuthorized()) {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('docs:admin'), $ctx)) {
             return $this->list();
         }
 
@@ -154,6 +143,7 @@ class DocsAdminPagesController extends AdminController
 
         $id = $this->request->post('id');
         if ($id) {
+            /** @var WikiPage $wikiPageOrig */
             $wikiPageOrig = $this->wikiPageManager->create($id);
             if (!$wikiPageOrig) {
                 Show::msg(Lang::get('wiki-item-dont-exist'), 'error');
@@ -192,19 +182,10 @@ class DocsAdminPagesController extends AdminController
         $changeDescription = $this->request->post('changeDescription') ?? '';
         $wikiPage->setModifiedBy($this->user->email);
         
-        // Gestion simple des versions
         if ($isNewPage) {
             $wikiPage->setVersion(1);
-            // Sauvegarder la création dans l'historique
-            $historyManager = new WikiHistoryManager();
-            $historyManager = new WikiHistoryManager();
-            $historyManager->addHistoryEntry($wikiPage, 'Création de la page');
         } else {
-            // Incrémenter la version
-            $wikiPage->setVersion($wikiPageOrig->getVersion() + 1);
-            // Sauvegarder l'ancienne version dans l'historique
-            $historyManager = new WikiHistoryManager();
-            $historyManager->addHistoryEntry($wikiPageOrig, $changeDescription);
+            // Le WikiPageManager s'occupera d'incrémenter la version et de sauvegarder l'historique
         }
         
         // Préparer les catégories avant la sauvegarde

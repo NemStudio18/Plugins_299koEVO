@@ -3,8 +3,6 @@
 namespace HomeBuilder\Controllers;
 
 use Core\Controllers\AdminController;
-use Core\Auth\AccessPolicyEvaluator;
-use Core\Lang;
 use Core\Responses\AdminResponse;
 use HomeBuilder\Entities\Block;
 use HomeBuilder\Entities\BlockManager;
@@ -20,23 +18,8 @@ class HomeBuilderAdminController extends AdminController
         parent::__construct();
     }
 
-    private function checkAdminAccess(): bool
-    {
-        if (class_exists(AccessPolicyEvaluator::class)) {
-            $evaluator = AccessPolicyEvaluator::fromLoadedPlugins();
-            $decision = $evaluator->evaluate($this->user, 'homebuilder:admin');
-            if (!$decision->allowed) {
-                Show::msg(Lang::get('core-not-authorized'), 'error');
-                $this->core->redirect($this->router->generate('admin-home'));
-                return false;
-            }
-        }
-        return true;
-    }
-
     public function index()
     {
-        if (!$this->checkAdminAccess()) return null;
         $BlockManager = new BlockManager();
         $blocks = $BlockManager->getAllBlocks();
         

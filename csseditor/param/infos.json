@@ -7,5 +7,7 @@
     "authorWebsite": "https://www.flexcb.fr",
     "version": "1.0.0",
     "homeAdminMethod": "CssEditor\\Controllers\\CssEditorAdminController#home",
-    "hooks": ["endFrontHead"]
+    "hooks": [
+        "endFrontHead"
+    ]
 }
