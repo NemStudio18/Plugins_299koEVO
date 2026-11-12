@@ -3,6 +3,7 @@
 namespace Docs\Controllers;
 
 use Core\Controllers\AdminController;
+use Core\Auth\AccessPolicyEvaluator;
 use Core\Lang;
 use Core\Responses\AdminResponse;
 use Core\Responses\ApiResponse;
@@ -25,6 +26,20 @@ class DocsAdminPagesController extends AdminController
 
     public WikiPageManager $wikiPageManager;
 
+    private function checkAdminAccess(): bool
+    {
+        if (class_exists(AccessPolicyEvaluator::class)) {
+            $evaluator = AccessPolicyEvaluator::fromLoadedPlugins();
+            $decision = $evaluator->evaluate($this->user, 'docs:admin');
+            if (!$decision->allowed) {
+                Show::msg(Lang::get('core-not-authorized'), 'error');
+                $this->core->redirect($this->router->generate('admin-home'));
+                return false;
+            }
+        }
+        return true;
+    }
+
     public function __construct()
     {
         parent::__construct();
@@ -34,6 +49,7 @@ class DocsAdminPagesController extends AdminController
 
     public function list()
     {
+        if (!$this->checkAdminAccess()) return null;
         // Synchroniser automatiquement les catégories avec les pages
         $this->categoriesManager->syncWithWikiPages();
         

@@ -4,6 +4,7 @@ namespace CssEditor\Controllers;
 
 use Core\Controllers\AdminController;
 use Core\Responses\AdminResponse;
+use Core\Auth\AccessPolicyEvaluator;
 use Core\Lang;
 use Utils\Show;
 
@@ -11,7 +12,21 @@ defined('ROOT') or exit('Access denied!');
 
 class CssEditorAdminController extends AdminController {
     
+    private function checkAdminAccess(): bool {
+        if (class_exists(AccessPolicyEvaluator::class)) {
+            $evaluator = AccessPolicyEvaluator::fromLoadedPlugins();
+            $decision = $evaluator->evaluate($this->user, 'csseditor:admin');
+            if (!$decision->allowed) {
+                Show::msg(Lang::get('core-not-authorized'), 'error');
+                $this->core->redirect($this->router->generate('admin-home'));
+                return false;
+            }
+        }
+        return true;
+    }
+
     public function home() {
+        if (!$this->checkAdminAccess()) return null;
         $response = new AdminResponse();
         $tpl = $response->createPluginTemplate('csseditor', 'admin');
 
@@ -49,6 +64,7 @@ class CssEditorAdminController extends AdminController {
     }
 
     public function save() {
+        if (!$this->checkAdminAccess()) return null;
         if (!$this->user->isAuthorized()) {
             return $this->home();
         }
@@ -104,7 +120,7 @@ class CssEditorAdminController extends AdminController {
      * Sauvegarde le CSS dans le fichier data/plugin/csseditor/custom.css
      */
     public function saveCss() {
-        if (!$this->user->isAuthorized()) {
+        if (!$this->checkAdminAccess() || !$this->user->isAuthorized()) {
             echo 'error:unauthorized';
             exit;
         }

@@ -1,7 +1,11 @@
 <?php
 
 use Core\Controllers\AdminController;
+use Core\Navigation\AccessPolicyEvaluator;
+use Core\Navigation\ConditionContext;
+use Core\Navigation\GenericResource;
 use Core\Responses\AdminResponse;
+use Core\Security\Csrf;
 use Utils\Show;
 use Core\Lang;
 use Utils\Util;
@@ -18,8 +22,20 @@ defined('ROOT') OR exit('No direct script access allowed');
 
 class DonAdminController extends AdminController
 {
+    private function checkAdminAccess(): bool
+    {
+        $evaluator = AccessPolicyEvaluator::getInstance();
+        $ctx = new ConditionContext($this->user);
+        if (!$evaluator->canAccess(new GenericResource('dons:admin'), $ctx)) {
+            $this->core->error404();
+            return false;
+        }
+        return true;
+    }
+
     public function list()
     {
+        if (!$this->checkAdminAccess()) return null;
 
         $donManager = new DonManager();
         $dons = $donManager->getDons();
@@ -64,6 +80,7 @@ class DonAdminController extends AdminController
 
     public function stats()
     {
+        if (!$this->checkAdminAccess()) return null;
         if (!$this->user->isAuthorized()) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->list();
@@ -87,6 +104,7 @@ class DonAdminController extends AdminController
 
     public function params()
     {
+        if (!$this->checkAdminAccess()) return null;
         if (!$this->user->isAuthorized()) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->list();
@@ -104,12 +122,13 @@ class DonAdminController extends AdminController
 
     public function saveParams()
     {
+        if (!$this->checkAdminAccess()) return null;
         if (!$this->user->isAuthorized()) {
-            show::msg(lang::get('core-not-authorized'), 'error');
+            Show::msg(Lang::get('core-not-authorized'), 'error');
             return $this->params();
         }
 
-        if (!isset($_POST['token']) || $_POST['token'] !== $this->user->token) {
+        if (!Csrf::validate($_POST['token'] ?? null)) {
             Show::msg(Lang::get('core-invalid-token'), 'error');
             return $this->params();
         }
@@ -117,12 +136,12 @@ class DonAdminController extends AdminController
         $pageTitle = filter_var($_POST['pageTitle'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $description = filter_var($_POST['description'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $targetAmount = floatval($_POST['targetAmount'] ?? 0);
-        $paypalClientId = filter_var($_POST['paypalClientId'] ?? '', FILTER_SANITIZE_STRING);
-        $paypalSecret = filter_var($_POST['paypalSecret'] ?? '', FILTER_SANITIZE_STRING);
-        $paypalMode = filter_var($_POST['paypalMode'] ?? 'sandbox', FILTER_SANITIZE_STRING);
-        $stripePublishableKey = filter_var($_POST['stripePublishableKey'] ?? '', FILTER_SANITIZE_STRING);
-        $stripeSecretKey = filter_var($_POST['stripeSecretKey'] ?? '', FILTER_SANITIZE_STRING);
-        $stripeMode = filter_var($_POST['stripeMode'] ?? 'test', FILTER_SANITIZE_STRING);
+        $paypalClientId = trim(strip_tags((string)($_POST['paypalClientId'] ?? '')));
+        $paypalSecret = trim(strip_tags((string)($_POST['paypalSecret'] ?? '')));
+        $paypalMode = trim(strip_tags((string)($_POST['paypalMode'] ?? 'sandbox')));
+        $stripePublishableKey = trim(strip_tags((string)($_POST['stripePublishableKey'] ?? '')));
+        $stripeSecretKey = trim(strip_tags((string)($_POST['stripeSecretKey'] ?? '')));
+        $stripeMode = trim(strip_tags((string)($_POST['stripeMode'] ?? 'test')));
 
         $this->runPlugin->setConfigVal('pageTitle', $pageTitle);
         $this->runPlugin->setConfigVal('description', $description);

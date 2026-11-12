@@ -69,12 +69,12 @@
     align-items: center;
     margin-bottom: 30px;
     padding-bottom: 20px;
-    border-bottom: 2px solid #eee;
+    border-bottom: 2px solid var(--evo-border, #eee);
 }
 
 .admin-header h1 {
     margin: 0;
-    color: #333;
+    color: var(--evo-text, #333);
 }
 
 .admin-actions {
@@ -87,9 +87,9 @@
 }
 
 .block-item {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    background: var(--evo-card-bg, #fff);
+    border: 1px solid var(--evo-border, #ddd);
+    border-radius: var(--evo-radius, 8px);
     margin-bottom: 15px;
     padding: 20px;
     cursor: move;
@@ -97,7 +97,7 @@
 }
 
 .block-item:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--evo-shadow, 0 4px 8px rgba(0,0,0,0.1));
     transform: translateY(-2px);
 }
 
@@ -115,13 +115,13 @@
 
 .block-info h3 {
     margin: 0 0 5px 0;
-    color: #333;
+    color: var(--evo-text, #333);
     font-size: 1.3em;
 }
 
 .block-type {
     display: inline-block;
-    background: #007bff;
+    background: var(--evo-accent, #007bff);
     color: white;
     padding: 2px 8px;
     border-radius: 12px;
@@ -130,7 +130,7 @@
 }
 
 .block-order {
-    color: #666;
+    color: var(--evo-text-muted, #666);
     font-size: 0.9em;
 }
 
@@ -158,29 +158,29 @@
 }
 
 .block-content {
-    background: #f8f9fa;
+    background: var(--evo-surface-2, #f8f9fa);
     padding: 15px;
     border-radius: 4px;
-    border-left: 4px solid #007bff;
+    border-left: 4px solid var(--evo-accent, #007bff);
 }
 
 .block-content p {
     margin: 0;
-    color: #666;
+    color: var(--evo-text-muted, #666);
     line-height: 1.5;
 }
 
 .no-blocks {
     text-align: center;
     padding: 40px;
-    background: #f8f9fa;
+    background: var(--evo-surface-2, #f8f9fa);
     border-radius: 8px;
-    border: 2px dashed #ddd;
+    border: 2px dashed var(--evo-border, #ddd);
 }
 
 .no-blocks p {
     margin: 0;
-    color: #666;
+    color: var(--evo-text-muted, #666);
     font-size: 1.1em;
 }
 

@@ -1,9 +1,10 @@
 {
+    "slug": "highlight",
     "name": "HighLight",
-    "icon" : "fa-solid fa-highlighter",
-    "description": "Coloration syntaxique du code",
+    "icon": "fa-solid fa-highlighter",
+    "description": "Coloration syntaxique du code avec Highlight.js",
     "authorEmail": "mx.koder@gmail.com",
-    "authorWebsite" : "https://299ko.ovh",
-    "version": "0.1.0b",
-  "homeAdminMethod" : "Highlight\\Controllers\\HighlightAdminController#home"
+    "authorWebsite": "https://299ko.ovh",
+    "version": "1.0.0",
+    "homeAdminMethod": "Highlight\\Controllers\\HighlightAdminController#home"
 }

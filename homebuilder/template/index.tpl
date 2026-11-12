@@ -24,15 +24,17 @@
 .homepage-block {
     margin-bottom: 30px;
     padding: 20px;
-    border-radius: 8px;
-    background: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: var(--evo-radius, 8px);
+    background: var(--evo-card-bg, var(--surface-primary, #fff));
+    border: 1px solid var(--evo-border, var(--border-color, transparent));
+    box-shadow: var(--evo-shadow, 0 2px 4px rgba(0,0,0,0.1));
+    color: var(--evo-text, var(--text-color, inherit));
 }
 
 .homepage-block h2 {
     margin-top: 0;
     margin-bottom: 15px;
-    color: #333;
+    color: var(--evo-text, var(--text-color, #333));
     font-size: 1.5em;
 }
 
@@ -73,11 +75,11 @@
 .homepage-block-table .table td {
     padding: 12px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--evo-border, #ddd);
 }
 
 .homepage-block-table .table th {
-    background-color: #f8f9fa;
+    background-color: var(--evo-surface-2, #f8f9fa);
     font-weight: bold;
 }
 
@@ -95,7 +97,9 @@
 .homepage-block-form textarea {
     width: 100%;
     padding: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--evo-border, #ddd);
+    background: var(--evo-surface-2, #fff);
+    color: var(--evo-text, inherit);
     border-radius: 4px;
     font-size: 1em;
 }
@@ -106,7 +110,7 @@
 }
 
 .homepage-block-form button {
-    background: #007bff;
+    background: var(--evo-accent, #007bff);
     color: white;
     padding: 10px 20px;
     border: none;
@@ -116,7 +120,7 @@
 }
 
 .homepage-block-form button:hover {
-    background: #0056b3;
+    background: var(--evo-accent-hover, #0056b3);
 }
 
 .homepage-block-image img {
@@ -129,11 +133,11 @@
 .homepage-empty {
     text-align: center;
     padding: 60px 20px;
-    color: #666;
+    color: var(--evo-text-muted, #666);
 }
 
 .homepage-empty h1 {
-    color: #333;
+    color: var(--evo-text, #333);
     margin-bottom: 20px;
 }
 
@@ -182,9 +186,9 @@
 }
 .latest-articles-list li,
 .latest-sondages-list li {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
+    background: var(--evo-card-bg, #fff);
+    border: 1px solid var(--evo-border, #e0e0e0);
+    border-radius: var(--evo-radius, 10px);
     padding: 1.2rem;
     transition: box-shadow 0.3s ease;
 }

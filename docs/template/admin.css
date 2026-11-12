@@ -120,10 +120,10 @@ div.list-item-list.hasChildren > div:first-of-type {
 }
 
 .form-section {
-    background: #f8f9fa;
+    background: var(--evo-surface-2, #f8f9fa);
     padding: 25px;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
+    border-radius: var(--evo-radius, 8px);
+    border: 1px solid var(--evo-border, #e9ecef);
     margin-top: 20px;
 }
 
@@ -137,7 +137,7 @@ div.list-item-list.hasChildren > div:first-of-type {
 
 /* Amélioration du bouton d'ajout */
 .form-section .button {
-    background: var(--primary-color);
+    background: var(--evo-accent, var(--primary-color));
     color: white;
     border: none;
     padding: 12px 24px;
@@ -149,7 +149,7 @@ div.list-item-list.hasChildren > div:first-of-type {
 }
 
 .form-section .button:hover {
-    background: var(--primary-hover-color);
+    background: var(--evo-accent-hover, var(--primary-hover-color));
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
@@ -160,10 +160,10 @@ div.list-item-list.hasChildren > div:first-of-type {
 
 /* Style pour la section parent category */
 #parent-category-section {
-    background: white;
+    background: var(--evo-card-bg, white);
     padding: 15px;
     border-radius: 6px;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--evo-border, #dee2e6);
     margin-top: 10px;
 }
 
@@ -260,17 +260,17 @@ div.list-item-list.hasChildren > div:first-of-type {
 .wiki-version-seo {
     margin-bottom: 30px;
     padding: 20px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--evo-border, #ddd);
     border-radius: 5px;
-    background-color: #f9f9f9;
+    background-color: var(--evo-surface-2, #f9f9f9);
 }
 
 .wiki-version-diff h2,
 .wiki-version-intro h3,
 .wiki-version-seo h3 {
-    color: #333;
+    color: var(--evo-text, #333);
     margin-bottom: 15px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--evo-border, #ddd);
     padding-bottom: 10px;
 }
 
@@ -278,7 +278,7 @@ div.list-item-list.hasChildren > div:first-of-type {
 .wiki-intro-display,
 .wiki-seo-display {
     line-height: 1.6;
-    color: #333;
+    color: var(--evo-text, #333);
 }
 
 .wiki-version-actions {

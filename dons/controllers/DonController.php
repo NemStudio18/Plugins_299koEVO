@@ -209,7 +209,7 @@ class DonController extends PublicController
             
             // Mettre à jour le montant total dans la config
             $this->runPlugin->setConfigVal('currentAmount', $donManager->getTotalAmount());
-            $pluginsManager = pluginsManager::getInstance();
+            $pluginsManager = PluginsManager::getInstance();
             $pluginsManager->savePluginConfig($this->runPlugin);
             
             Show::msg(Lang::get('dons.donation-success'), 'success');

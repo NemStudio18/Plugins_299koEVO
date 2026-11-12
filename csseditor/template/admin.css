@@ -9,14 +9,15 @@
 
 .csseditor-panel {
     flex: 0 0 400px;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    background: var(--evo-card-bg, #fff);
+    border: 1px solid var(--evo-border, #ddd);
+    border-radius: var(--evo-radius, 8px);
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: var(--evo-shadow, 0 2px 4px rgba(0,0,0,0.1));
     display: flex;
     flex-direction: column;
     max-height: 100%;
+    color: var(--evo-text, inherit);
 }
 
 .csseditor-panel h3 {
@@ -33,14 +34,15 @@
 
 .csseditor-preview {
     flex: 1;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    background: var(--evo-card-bg, #fff);
+    border: 1px solid var(--evo-border, #ddd);
+    border-radius: var(--evo-radius, 8px);
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: var(--evo-shadow, 0 2px 4px rgba(0,0,0,0.1));
     display: flex;
     flex-direction: column;
     max-height: 100%;
+    color: var(--evo-text, inherit);
 }
 
 .csseditor-preview h3 {
@@ -151,12 +153,13 @@
 .config-table td {
     padding: 12px 8px;
     text-align: left;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--evo-border, #eee);
     vertical-align: top;
 }
 
 .config-table th {
-    background: #f8f9fa;
+    background: var(--evo-surface-2, #f8f9fa);
+    color: var(--evo-text, inherit);
     font-weight: 600;
     position: sticky;
     top: 0;
@@ -169,7 +172,7 @@
 .var-label {
     display: block;
     font-weight: 500;
-    color: #333;
+    color: var(--evo-text, #333);
     margin-bottom: 2px;
     line-height: 1.2;
 }
@@ -177,9 +180,9 @@
 .var-name {
     display: block;
     font-size: 0.8em;
-    color: #666;
+    color: var(--evo-text-muted, #666);
     font-family: 'Courier New', monospace;
-    background: #f5f5f5;
+    background: var(--evo-surface-2, #f5f5f5);
     padding: 2px 4px;
     border-radius: 3px;
     word-break: break-all;
@@ -269,17 +272,17 @@
 
 /* Hover sur les lignes */
 .config-table tbody tr:hover {
-    background-color: #f8f9fa;
+    background-color: var(--evo-surface-2, #f8f9fa);
 }
 
 /* Indicateur de modification */
 .config-table tbody tr.modified {
-    background-color: #fff3cd;
+    background-color: rgba(255, 193, 7, 0.12);
     border-left: 3px solid #ffc107;
 }
 
 .config-table tbody tr.modified .var-label {
-    color: #856404;
+    color: var(--evo-text, #856404);
 }
 
 /* Boutons d'action principaux (hors du bloc scrollable) */
@@ -287,12 +290,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    background: var(--evo-surface-2, #f8f9fa);
+    border: 1px solid var(--evo-border, #ddd);
+    border-radius: var(--evo-radius, 8px);
     padding: 15px 20px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: var(--evo-shadow, 0 2px 4px rgba(0,0,0,0.1));
 }
 
 .action-group {
@@ -356,12 +359,13 @@
 
 /* Informations sur le thème */
 .theme-info {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    background: var(--evo-card-bg, #fff);
+    border: 1px solid var(--evo-border, #ddd);
+    border-radius: var(--evo-radius, 8px);
     padding: 20px;
     margin-top: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: var(--evo-shadow, 0 2px 4px rgba(0,0,0,0.1));
+    color: var(--evo-text, inherit);
 }
 
 .manual-css-editor {
@@ -373,7 +377,9 @@
     font-family: 'Courier New', monospace;
     font-size: 0.9em;
     line-height: 1.4;
-    border: 1px solid #ddd;
+    border: 1px solid var(--evo-border, #ddd);
+    background: var(--evo-surface-2, #fff);
+    color: var(--evo-text, inherit);
     border-radius: 4px;
     padding: 10px;
     resize: vertical;

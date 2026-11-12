@@ -1,10 +1,10 @@
-/* Guestbook Styles */
+/* Guestbook Styles - Unifiés 299koEVO */
 
 .guestbook-tabs {
     display: flex;
     gap: 1rem;
     margin-bottom: 2rem;
-    border-bottom: 2px solid #e0e0e0;
+    border-bottom: 2px solid var(--evo-border);
 }
 
 .guestbook-tabs .tab-button {
@@ -14,18 +14,18 @@
     border-bottom: 3px solid transparent;
     cursor: pointer;
     font-size: 1rem;
-    color: #666;
-    transition: all 0.3s;
+    color: var(--evo-text-muted);
+    transition: all 0.25s ease;
 }
 
 .guestbook-tabs .tab-button:hover {
-    color: #333;
+    color: var(--evo-text);
 }
 
 .guestbook-tabs .tab-button.active {
-    color: #000;
-    border-bottom-color: #007bff;
-    font-weight: bold;
+    color: var(--evo-accent);
+    border-bottom-color: var(--evo-accent);
+    font-weight: 700;
 }
 
 .tab-content {
@@ -43,9 +43,12 @@
 .guestbook-entry {
     margin-bottom: 2rem;
     padding: 1.5rem;
-    background: #f9f9f9;
-    border-left: 4px solid #007bff;
-    border-radius: 4px;
+    background: var(--evo-card-bg);
+    border: 1px solid var(--evo-border);
+    border-left: 4px solid var(--evo-accent);
+    border-radius: var(--evo-radius-md);
+    box-shadow: var(--evo-shadow-sm);
+    color: var(--evo-text);
 }
 
 .guestbook-entry .entry-header {
@@ -54,22 +57,22 @@
     align-items: center;
     margin-bottom: 0.75rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--evo-border);
 }
 
 .guestbook-entry .entry-header strong {
-    font-size: 1.1rem;
-    color: #333;
+    font-size: 1.05rem;
+    color: var(--evo-text);
 }
 
 .guestbook-entry .entry-date {
-    font-size: 0.9rem;
-    color: #666;
+    font-size: 0.85rem;
+    color: var(--evo-text-muted);
 }
 
 .guestbook-entry .entry-message {
-    line-height: 1.6;
-    color: #555;
+    line-height: 1.65;
+    color: var(--evo-text);
 }
 
 .guestbook-entry .entry-message p {
@@ -79,43 +82,37 @@
 .guestbook-entry .entry-footer {
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid var(--evo-border);
 }
 
 .like-button {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: #f5f5f5;
-    border: 1px solid #1a3a5f;
-    border-radius: 20px;
+    padding: 0.45rem 0.95rem;
+    background: var(--evo-surface-alt);
+    border: 1px solid var(--evo-border);
+    border-radius: 999px;
     text-decoration: none;
-    color: #1a3a5f;
-    transition: all 0.3s ease;
+    color: var(--evo-text);
+    transition: all 0.2s ease;
     cursor: pointer;
-    font-weight: 500;
-    font-size: 0.9rem;
+    font-weight: 600;
+    font-size: 0.88rem;
 }
 
 .like-button:hover {
-    background: #1a3a5f;
-    color: #ffffff;
-    border-color: #1a3a5f;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(26, 58, 95, 0.2);
+    background: var(--evo-accent);
+    color: var(--evo-accent-text);
+    border-color: var(--evo-accent);
+    transform: translateY(-1px);
+    box-shadow: var(--evo-shadow-sm);
 }
 
 .like-button.liked {
-    background: linear-gradient(135deg, #6b3fa0 0%, #8b5fc0 100%);
-    border-color: #6b3fa0;
-    color: #ffffff;
-}
-
-.like-button.liked:hover {
-    background: linear-gradient(135deg, #8b5fc0 0%, #6b3fa0 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(107, 63, 160, 0.3);
+    background: var(--evo-accent);
+    border-color: var(--evo-accent);
+    color: var(--evo-accent-text);
 }
 
 .like-button i {
@@ -124,10 +121,11 @@
 
 .admin-reply {
     margin-top: 1.5rem;
-    padding: 1rem;
-    background: #f5f5f5;
-    border-left: 4px solid #6b3fa0;
-    border-radius: 4px;
+    padding: 1.1rem;
+    background: var(--evo-surface-alt);
+    border-left: 4px solid var(--evo-accent);
+    border-radius: var(--evo-radius-sm);
+    color: var(--evo-text);
 }
 
 .admin-reply-header {
@@ -136,38 +134,40 @@
     align-items: center;
     margin-bottom: 0.75rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--evo-border);
 }
 
 .admin-reply-header strong {
-    color: #6b3fa0;
+    color: var(--evo-accent);
     font-size: 0.95rem;
 }
 
 .admin-reply-date {
     font-size: 0.85rem;
-    color: #666;
+    color: var(--evo-text-muted);
 }
 
 .admin-reply-message {
-    color: #333;
+    color: var(--evo-text);
     line-height: 1.6;
 }
 
 .messages-tab-intro {
     margin-bottom: 2rem;
     padding: 1rem;
-    background: #f9f9f9;
-    border-left: 4px solid #007bff;
-    border-radius: 4px;
+    background: var(--evo-surface);
+    border-left: 4px solid var(--evo-accent);
+    border-radius: var(--evo-radius-sm);
+    color: var(--evo-text);
 }
 
 .rgpd-checkbox {
     margin: 1.5rem 0;
     padding: 1rem;
-    background: #f9f9f9;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
+    background: var(--evo-surface);
+    border: 1px solid var(--evo-border);
+    border-radius: var(--evo-radius-sm);
+    color: var(--evo-text);
 }
 
 .rgpd-checkbox label {
@@ -189,7 +189,7 @@
     margin-left: 1.75rem;
     font-size: 0.85rem;
     line-height: 1.5;
-    color: #555;
+    color: var(--evo-text-muted);
 }
 
 .form-submit-row {
@@ -214,7 +214,6 @@
         flex-direction: column;
         align-items: stretch;
     }
-    
     .form-submit-row .antispam-field {
         width: 100%;
     }

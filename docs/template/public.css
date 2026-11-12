@@ -96,13 +96,13 @@
 .wiki-toc-empty {
     text-align: center;
     padding: 30px 20px;
-    color: #666;
+    color: var(--evo-text-muted, var(--text-muted, #666));
 }
 
 .wiki-toc-empty h3 {
     margin: 0 0 15px 0;
     font-size: 1.2em;
-    color: #333;
+    color: var(--evo-text, var(--text-color, #333));
 }
 
 .wiki-toc-empty p {
