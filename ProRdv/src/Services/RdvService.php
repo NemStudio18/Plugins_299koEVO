@@ -357,10 +357,10 @@ class RdvService
 
         // Si l'utilisateur possède un POI revendiqué ayant un commerce RDV
         $activeSqlPoi = $activeOnly ? " AND c.is_active = 1" : "";
-        $stmt = $this->pdo->prepare("SELECT c.* FROM `lbp_rdv_commerces` c 
-            JOIN `poi_public` p ON p.id = c.poi_id 
-            WHERE p.claimed_by = ?{$activeSqlPoi} LIMIT 1");
         try {
+            $stmt = $this->pdo->prepare("SELECT c.* FROM `lbp_rdv_commerces` c 
+                JOIN `poi_public` p ON p.id = c.poi_id 
+                WHERE p.claimed_by = ?{$activeSqlPoi} LIMIT 1");
             $stmt->execute([$userId]);
             $res = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $res ?: null;
@@ -595,9 +595,13 @@ class RdvService
             $poi = null;
         }
         if (!$poi) {
-            $stmt = $this->pdo->prepare("SELECT id, name, slug, email, phone FROM poi WHERE id = ? LIMIT 1");
-            $stmt->execute([$poiId]);
-            $poi = $stmt->fetch(\PDO::FETCH_ASSOC);
+            try {
+                $stmt = $this->pdo->prepare("SELECT id, name, slug, email, phone FROM poi WHERE id = ? LIMIT 1");
+                $stmt->execute([$poiId]);
+                $poi = $stmt->fetch(\PDO::FETCH_ASSOC);
+            } catch (\Throwable $e) {
+                $poi = null;
+            }
         }
         if (!$poi) {
             return null;

@@ -25,7 +25,7 @@ function tinymceInstall() {
 function tinymceGetEditorHeadHtml(bool $isAdmin = false): string {
     $user = \Core\Auth\UsersManager::getCurrentUser();
     $token = $user ? ($user->token ?? '') : '';
-    $uploadUrl = ($token && IS_ADMIN) ? \Core\Router\Router::getInstance()->generate('filemanager-upload-api', ['token' => $token]) : '';
+    $uploadUrl = ($token && ($isAdmin || (defined('ADMIN_MODE') && ADMIN_MODE) || (defined('IS_ADMIN') && IS_ADMIN))) ? \Core\Router\Router::getInstance()->generate('filemanager-upload-api', ['token' => $token]) : '';
 
     $url = \Utils\Util::urlBuild(PLUGINS . 'tinymce/lib/tinymce/tinymce.min.js');
     $baseUrl = dirname($url);

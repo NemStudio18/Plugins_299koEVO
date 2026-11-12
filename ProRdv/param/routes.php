@@ -5,6 +5,7 @@ $router = \Core\Router\Router::getInstance();
 
 // --- Routes Publiques Visiteurs / Clients ---
 $router->map("GET|HEAD", "/rdv[/?]", "ProRdv\\Controllers\\PublicRdvController#defaultIndex", "rdv-public-home");
+$router->map("GET|HEAD", "/ProRdv[/?]", "ProRdv\\Controllers\\PublicRdvController#defaultIndex", "ProRdv");
 $router->map("GET|HEAD", "/rdv/creneaux", "ProRdv\\Controllers\\PublicRdvController#slotsJson", "rdv-public-slots");
 $router->map("POST", "/rdv/reserver", "ProRdv\\Controllers\\PublicRdvController#postReserve", "rdv-public-post-reserve");
 $router->map("GET|HEAD", "/rdv/confirmer/[*:token]", "ProRdv\\Controllers\\PublicRdvController#confirm", "rdv-public-confirm");
@@ -19,6 +20,7 @@ $router->map("POST", "/pro/rdv/action", "ProRdv\\Controllers\\ProRdvController#a
 $router->map("GET|POST", "/pro/rdv/config", "ProRdv\\Controllers\\ProRdvController#config", "rdv-pro-config");
 
 // --- Routes Administration Globale ---
-$router->map("GET|HEAD", "/admin/prordv[/?]", "ProRdv\\Controllers\\AdminRdvController#index", "rdv-admin-index");
+$router->map("GET|POST", "/admin/prordv[/?]", "ProRdv\\Controllers\\AdminRdvController#index", "rdv-admin-index");
 $router->map("GET|POST", "/admin/prordv/commerce/[i:id]", "ProRdv\\Controllers\\AdminRdvController#viewCommerce", "rdv-admin-commerce");
 $router->map("POST", "/admin/prordv/toggle/[i:id]", "ProRdv\\Controllers\\AdminRdvController#toggleCommerce", "rdv-admin-toggle");
+$router->map("POST", "/admin/prordv/delete/[i:id]", "ProRdv\\Controllers\\AdminRdvController#deleteCommerce", "rdv-admin-delete");

@@ -256,16 +256,18 @@ class AgendaController extends PublicController
 
         // Balises Open Graph pour le partage Facebook
         $core = \Core\Core::getInstance();
-        $eventUrl = 'https://vivre-bourges.fr/agenda/event/' . $id;
-        $eventDesc = trim(strip_tags(html_entity_decode($event->getDescription() ?? 'Événement à Bourges', ENT_QUOTES | ENT_HTML5, 'UTF-8')));
-        $eventImg = $event->getImageUrl() ?: '/theme/halloween/logo.png';
+        $siteUrl = rtrim($core->getConfigVal('siteUrl') ?: '', '/');
+        $eventUrl = $siteUrl . '/agenda/event/' . $id;
+        $eventDesc = trim(strip_tags(html_entity_decode($event->getDescription() ?? 'Événement', ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+        $eventImg = $event->getImageUrl() ?: '/theme/' . ($core->getConfigVal('theme') ?: 'default') . '/logo.png';
         if (!preg_match('#^https?://#i', $eventImg)) {
-            $eventImg = 'https://vivre-bourges.fr' . (str_starts_with($eventImg, '/') ? '' : '/') . $eventImg;
+            $eventImg = $siteUrl . (str_starts_with($eventImg, '/') ? '' : '/') . $eventImg;
         }
+        $siteName = $core->getConfigVal('siteName') ?: '299koEVO';
         $core->addMeta('<link rel="canonical" href="' . htmlspecialchars($eventUrl, ENT_QUOTES, 'UTF-8') . '">');
         $core->addMeta('<meta property="og:type" content="article">');
-        $core->addMeta('<meta property="og:site_name" content="Vivre Bourges">');
-        $core->addMeta('<meta property="og:title" content="' . htmlspecialchars($eventTitle . ' | Agenda Vivre-Bourges', ENT_QUOTES, 'UTF-8') . '">');
+        $core->addMeta('<meta property="og:site_name" content="' . htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8') . '">');
+        $core->addMeta('<meta property="og:title" content="' . htmlspecialchars($eventTitle . ' | Agenda ' . $siteName, ENT_QUOTES, 'UTF-8') . '">');
         $core->addMeta('<meta property="og:description" content="' . htmlspecialchars(mb_substr($eventDesc, 0, 200), ENT_QUOTES, 'UTF-8') . '">');
         $core->addMeta('<meta property="og:url" content="' . htmlspecialchars($eventUrl, ENT_QUOTES, 'UTF-8') . '">');
         $core->addMeta('<meta property="og:image" content="' . htmlspecialchars($eventImg, ENT_QUOTES, 'UTF-8') . '">');
@@ -290,7 +292,7 @@ class AgendaController extends PublicController
                     $lat = (float)$poiCoord['lat'];
                     $lon = (float)$poiCoord['lon'];
                 }
-            } catch (\Exception $e) {}
+            } catch (\Throwable $e) {}
         }
 
         $mapHtml = '';
@@ -337,7 +339,7 @@ class AgendaController extends PublicController
                 $linkedOffers = \Offers\Entities\Offer::query()
                     ->where('event_id', '=', $id)
                     ->get();
-            } catch (\Exception $e) {}
+            } catch (\Throwable $e) {}
         }
         $tpl->set('linkedOffers', $linkedOffers);
 

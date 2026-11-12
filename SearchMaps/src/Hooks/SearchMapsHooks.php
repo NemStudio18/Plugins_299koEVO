@@ -129,7 +129,7 @@ class SearchMapsHooks
         $output .= '<link rel="stylesheet" href="' . Util::urlBuild('plugin/SearchMaps/assets/css/search-maps.css?v=11') . '">' . "\n";
         
         // Inject Global Geolocation (only on front)
-        if (!defined('IS_ADMIN') || !IS_ADMIN) {
+        if ((!defined('ADMIN_MODE') || !ADMIN_MODE) && (!defined('IS_ADMIN') || !IS_ADMIN)) {
             $output .= '<script src="' . Util::urlBuild('plugin/SearchMaps/js/geolocation.js?v=12') . '" defer></script>' . "\n";
         }
 

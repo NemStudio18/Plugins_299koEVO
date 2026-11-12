@@ -1,22 +1,31 @@
-<div class="admin-content">
-    <h1>{{ Lang.ecommerce.shop }}</h1>
-    
-    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">
-        <div class="stat-card" style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h3>{{ Lang.ecommerce.orders }}</h3>
-            <p style="font-size: 2em; font-weight: bold; color: #2c3e50;">{{ stats.total_orders }}</p>
-            <small style="color: #7f8c8d;">{{ stats.pending_orders }} en attente</small>
+<section class="overflow-auto">
+    <header><i class="fa-solid fa-store"></i> {{ Lang.ecommerce.shop }}</header>
+
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+        <a href="{{ ROUTER.generate('admin-ecommerce-products-list') }}" class="button">
+            <i class="fa-solid fa-box-open"></i> {{ Lang.ecommerce.products }}
+        </a>
+        <a href="{{ ROUTER.generate('admin-ecommerce-orders-list') }}" class="button secondary">
+            <i class="fa-solid fa-receipt"></i> {{ Lang.ecommerce.orders }}
+        </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div style="background: var(--evo-card-bg,#fff); border: 1px solid var(--adm-border); border-radius: 10px; padding: 20px; text-align: center;">
+            <strong style="font-size: 2rem; color: var(--adm-text-strong);">{{ stats.total_orders }}</strong><br>
+            <span style="color: var(--adm-text-muted); font-size: 0.85rem; text-transform: uppercase; font-weight: 600;">{{ Lang.ecommerce.orders }}</span><br>
+            <small style="color: var(--adm-text-muted);">{{ stats.pending_orders }} en attente</small>
         </div>
-        <div class="stat-card" style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h3>{{ Lang.ecommerce.products }}</h3>
-            <p style="font-size: 2em; font-weight: bold; color: #2c3e50;">{{ stats.total_products }}</p>
-            <small style="color: #7f8c8d;">{{ stats.active_products }} actifs</small>
+        <div style="background: var(--evo-card-bg,#fff); border: 1px solid var(--adm-border); border-radius: 10px; padding: 20px; text-align: center;">
+            <strong style="font-size: 2rem; color: var(--adm-text-strong);">{{ stats.total_products }}</strong><br>
+            <span style="color: var(--adm-text-muted); font-size: 0.85rem; text-transform: uppercase; font-weight: 600;">{{ Lang.ecommerce.products }}</span><br>
+            <small style="color: var(--adm-text-muted);">{{ stats.active_products }} actifs</small>
         </div>
     </div>
-    
-    <h2>Commandes récentes</h2>
+
+    <h3>Commandes récentes</h3>
     {% IF recentOrders %}
-    <table class="table">
+    <table>
         <thead>
             <tr>
                 <th>{{ Lang.ecommerce.order-number }}</th>
@@ -31,7 +40,7 @@
             <tr>
                 <td>{{ order.getOrderNumber() }}</td>
                 <td>{{ order.getCustomerName() }}</td>
-                <td>{{ order.getTotal() }}€</td>
+                <td><strong>{{ order.getTotal() }} €</strong></td>
                 <td>{{ order.getStatus() }}</td>
                 <td>{{ order.getCreatedAt() }}</td>
             </tr>
@@ -39,7 +48,6 @@
         </tbody>
     </table>
     {% ELSE %}
-    <p>Aucune commande récente</p>
+    <p style="color: var(--adm-text-muted);">Aucune commande pour le moment.</p>
     {% ENDIF %}
-</div>
-
+</section>

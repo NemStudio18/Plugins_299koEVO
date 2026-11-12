@@ -129,7 +129,11 @@ class ProRdvHooks
         }
 
         // Si l'utilisateur est admin ou possède un commerce avec RDV activé
-        $isAdmin = (defined('IS_ADMIN') && IS_ADMIN) || (method_exists($currentUser, 'can_access') && $currentUser->can_access('system:admin-access'));
+        $isAdmin = (defined('ADMIN_MODE') && ADMIN_MODE)
+            || (defined('IS_ADMIN') && IS_ADMIN)
+            || (method_exists($currentUser, 'hasRole') && $currentUser->hasRole('admin'))
+            || (method_exists($currentUser, 'can_access') && $currentUser->can_access('system:admin-access'))
+            || ((int)($currentUser->attributes['group_id'] ?? 0) === 1);
         
         $hasActiveCommerce = false;
         $service = RdvService::getInstance();

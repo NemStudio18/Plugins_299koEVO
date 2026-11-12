@@ -21,12 +21,26 @@ class ProRdvController extends Controller
     }
 
     /**
+     * Vérifie si l'utilisateur courant est administrateur 299koEVO
+     */
+    private function isAdminUser($user): bool
+    {
+        if (defined('ADMIN_MODE') && ADMIN_MODE) return true;
+        if (defined('IS_ADMIN') && IS_ADMIN) return true;
+        if (!$user || !$user->isLogged()) return false;
+        if (method_exists($user, 'hasRole') && $user->hasRole('admin')) return true;
+        if (method_exists($user, 'can_access') && $user->can_access('system:admin-access')) return true;
+        if ((int)($user->attributes['group_id'] ?? 0) === 1) return true;
+        return false;
+    }
+
+    /**
      * Vérifie les droits d'accès et résout le commerce associé
      */
     private function resolveCommerce(): ?array
     {
         $user = CurrentUser::get();
-        $isAdmin = defined('IS_ADMIN') && IS_ADMIN;
+        $isAdmin = $this->isAdminUser($user);
 
         // 1. Si admin avec un paramètre poi_id ou commerce_id
         if ($isAdmin) {
@@ -82,9 +96,9 @@ class ProRdvController extends Controller
     public function index()
     {
         $user = CurrentUser::get();
-        $isLogged = ($user && $user->isLogged()) || (defined('IS_LOGGED') && IS_LOGGED) || (defined('IS_ADMIN') && IS_ADMIN);
+        $isLogged = ($user && $user->isLogged()) || $this->isAdminUser($user);
         if (!$isLogged) {
-            header('Location: /users/login?return_url=' . urlencode('/pro/rdv'));
+            header('Location: /login');
             exit;
         }
 
@@ -178,16 +192,16 @@ class ProRdvController extends Controller
     public function activate()
     {
         $user = CurrentUser::get();
-        $isLogged = ($user && $user->isLogged()) || (defined('IS_LOGGED') && IS_LOGGED) || (defined('IS_ADMIN') && IS_ADMIN);
+        $isLogged = ($user && $user->isLogged()) || $this->isAdminUser($user);
         if (!$isLogged) {
-            header('Location: /users/login?return_url=' . urlencode('/pro/rdv'));
+            header('Location: /login');
             exit;
         }
 
         $userId = ($user && method_exists($user, 'id')) ? (int)$user->id() : (isset($user->id) ? (int)$user->id : 0);
         $poiId = (int)($_REQUEST['poi_id'] ?? 0);
         $standaloneNom = trim($_POST['standalone_nom'] ?? '');
-        $isAdmin = defined('IS_ADMIN') && IS_ADMIN;
+        $isAdmin = $this->isAdminUser($user);
 
         if ($poiId <= 0 && $standaloneNom !== '') {
             $presetKey = trim($_POST['standalone_preset'] ?? 'beaute');

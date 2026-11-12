@@ -98,7 +98,7 @@
     <div style="margin: 0 0 1rem; padding: 0.85rem 1rem; background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #f59e0b; border-radius: 10px; font-size: 0.84rem; color: #92400e; line-height: 1.55;">
         <i class="fa-solid fa-triangle-exclamation"></i>
         <strong>Mode CNIL sans bandeau actif (zéro cookie déposé) :</strong> aucun bandeau n'est affiché aux visiteurs et aucun cookie (<code>vb_sid</code> / <code>vb_vid</code>) n'est créé.
-        <strong>Impact sur la fiabilité :</strong> sans identifiant persistant, un visiteur revenant d'un jour à l'autre ou changeant de réseau est compté comme un nouveau visiteur, et les visites avec JavaScript bloqué restent non certifiées (sur l'expérience <em>Vivre-Bourges</em>, le croisement entre hits HTTP bruts et suivi JS soumis au consentement/bloqueurs montrait déjà des écarts significatifs d'un mode à l'autre).
+        <strong>Impact sur la fiabilité :</strong> sans identifiant persistant, un visiteur revenant d'un jour à l'autre ou changeant de réseau est compté comme un nouveau visiteur, et les visites avec JavaScript bloqué restent non certifiées (sur l'expérience <em>299koEVO</em>, le croisement entre hits HTTP bruts et suivi JS soumis au consentement/bloqueurs montrait déjà des écarts significatifs d'un mode à l'autre).
     </div>
     {% ENDIF %}
 

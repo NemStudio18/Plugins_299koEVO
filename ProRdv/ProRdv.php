@@ -50,4 +50,25 @@ namespace {
     {
         return \ProRdv\ProRdv::install();
     }
+
+    /**
+     * Hook navigation:catalog pour déclarer la page publique /rdv dans le gestionnaire de menus
+     */
+    function ProRdvNavigationCatalog(array $catalog): array
+    {
+        $plugin = \Core\Plugin\PluginsManager::getInstance()->getPlugin('ProRdv');
+        if (!$plugin || !$plugin->getConfigVal('activate')) {
+            return $catalog;
+        }
+
+        $catalog[] = [
+            'plugin'      => 'ProRdv',
+            'key'         => 'ProRdv:rdv-public-home',
+            'route'       => 'rdv-public-home',
+            'label'       => 'Rendez-vous',
+            'icon'        => 'fa-solid fa-calendar-check',
+            'description' => 'Prise de rendez-vous en ligne',
+        ];
+        return $catalog;
+    }
 }
