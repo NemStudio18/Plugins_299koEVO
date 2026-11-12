@@ -6,6 +6,6 @@
     "version": "1.0.0",
     "author": "299Ko",
     "authorEmail": "maximeblanc@flexcb.fr",
-    "authorWebsite": "https://www.flexcb.fr",
+    "authorWebsite": "https://299ko.flexcb.fr",
     "homeAdminMethod": "PublicStats\\Controllers\\PublicStatsAdminController#index"
 }
