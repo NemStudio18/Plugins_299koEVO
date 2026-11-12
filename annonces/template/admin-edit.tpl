@@ -97,11 +97,47 @@
             </p>
         </div>
 
-        <p style="margin-top: 14px;">
-            <label for="ann_image">Image (URL ou chemin, ou téléversez un fichier ci-dessous)</label><br>
-            <input type="text" id="ann_image" name="image" value="{{annonce.image}}" maxlength="255" placeholder="/data/upload/annonces/..." />
-            <input type="file" name="image_file" accept="image/jpeg,image/png,image/gif,image/webp" style="margin-top: 8px;" />
-        </p>
+        <div class="ann-photos-manager" style="margin-top: 18px; padding: 16px; background: var(--section-head-bg-color, rgba(148, 163, 184, 0.08)); border: 1px solid var(--border-color, #cbd5e1); border-radius: 10px;">
+            <label style="font-weight: 700; font-size: 1.02rem; display: block; margin-bottom: 6px;">
+                <i class="fa-solid fa-camera"></i> Photos de l'annonce (Multi-photos)
+            </label>
+            <p style="margin: 0 0 12px; font-size: 0.88rem; color: var(--text-color-muted, #64748b);">
+                Vous pouvez ajouter plusieurs photos. La première photo servira de couverture principale dans la liste.
+            </p>
+
+            <div id="ann_existing_gallery" class="ann-thumbs-grid">
+                {% if count(annonce.images) > 0 %}
+                    {% for img in annonce.images %}
+                        <div class="ann-thumb-card" data-path="{{img}}">
+                            <input type="hidden" name="existing_images[]" value="{{img}}" />
+                            <div class="ann-thumb-crop">
+                                <img src="{{img}}" alt="Photo" />
+                            </div>
+                            <div class="ann-thumb-bar">
+                                <span class="ann-main-badge"><i class="fa-solid fa-star"></i> Principale</span>
+                                <div class="ann-thumb-actions">
+                                    <button type="button" class="ann-btn-set-main" title="Définir comme photo principale"><i class="fa-solid fa-star"></i></button>
+                                    <button type="button" class="ann-btn-del-photo" title="Supprimer cette photo"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="ann-upload-box" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                <label for="ann_image_files" style="font-weight: 600; font-size: 0.9rem;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Téléverser une ou plusieurs nouvelles photos :
+                </label>
+                <input type="file" id="ann_image_files" name="image_files[]" multiple accept="image/jpeg,image/png,image/gif,image/webp" />
+                <div id="ann_upload_preview" class="ann-thumbs-grid" style="margin-top: 6px;"></div>
+
+                <div style="margin-top: 6px;">
+                    <label for="ann_image_url" style="font-size: 0.85rem; color: var(--text-color-muted, #64748b);">Ou ajouter une URL / chemin média direct :</label>
+                    <input type="text" id="ann_image_url" name="image" value="" maxlength="255" placeholder="/data/upload/annonces/..." style="width: 100%; box-sizing: border-box; margin-top: 4px;" />
+                </div>
+            </div>
+        </div>
 
         <p>
             <label for="ann_desc">Description complète</label><br>
@@ -173,6 +209,83 @@
 .ann-chip:hover {
     border-color: var(--primary-color, #2563eb);
 }
+
+/* Multi-photos manager */
+.ann-thumbs-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.ann-thumb-card {
+    position: relative;
+    width: 140px;
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.ann-thumb-crop {
+    width: 140px;
+    height: 105px;
+    background: #0f172a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.ann-thumb-crop img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.ann-thumb-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 6px;
+    background: var(--section-head-bg-color, #f1f5f9);
+    min-height: 28px;
+}
+.ann-main-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #eab308;
+    display: none;
+}
+.ann-thumbs-grid .ann-thumb-card:first-child .ann-main-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+.ann-thumbs-grid .ann-thumb-card:first-child .ann-btn-set-main {
+    display: none;
+}
+.ann-thumb-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+}
+.ann-thumb-actions button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: var(--text-color, #334155);
+}
+.ann-thumb-actions button:hover {
+    background: rgba(0,0,0,0.08);
+}
+.ann-thumb-actions .ann-btn-del-photo:hover {
+    color: #dc2626;
+}
+.ann-thumb-actions .ann-btn-set-main:hover {
+    color: #eab308;
+}
 </style>
 
 <script>
@@ -243,6 +356,57 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', () => {
                 priceInput.value = btn.dataset.price || '';
                 syncRangeFromText();
+            });
+        });
+    }
+
+    // 4. Gestion des photos multiples
+    const gallery = document.getElementById('ann_existing_gallery');
+    if (gallery) {
+        gallery.addEventListener('click', (e) => {
+            const btnDel = e.target.closest('.ann-btn-del-photo');
+            if (btnDel) {
+                const card = btnDel.closest('.ann-thumb-card');
+                if (card) {
+                    card.remove();
+                }
+                return;
+            }
+            const btnMain = e.target.closest('.ann-btn-set-main');
+            if (btnMain) {
+                const card = btnMain.closest('.ann-thumb-card');
+                if (card && gallery.firstElementChild !== card) {
+                    gallery.prepend(card);
+                }
+            }
+        });
+    }
+
+    // Prévisualisation des nouveaux fichiers sélectionnés
+    const fileInput = document.getElementById('ann_image_files');
+    const previewBox = document.getElementById('ann_upload_preview');
+    if (fileInput && previewBox) {
+        fileInput.addEventListener('change', () => {
+            previewBox.innerHTML = '';
+            const files = Array.from(fileInput.files || []);
+            files.forEach(f => {
+                if (!f.type.startsWith('image/')) return;
+                const r = new FileReader();
+                r.onload = (ev) => {
+                    const wrap = document.createElement('div');
+                    wrap.className = 'ann-thumb-card';
+                    wrap.style.opacity = '0.9';
+                    wrap.innerHTML = `
+                        <div class="ann-thumb-crop">
+                            <img src="${ev.target.result}" alt="Nouveau fichier" />
+                        </div>
+                        <div class="ann-thumb-bar">
+                            <span style="font-size: 0.68rem; color: #16a34a; font-weight: 600;"><i class="fa-solid fa-plus"></i> Nouveau</span>
+                        </div>
+                    `;
+                    previewBox.appendChild(wrap);
+                };
+                r.readAsDataURL(f);
             });
         });
     }
