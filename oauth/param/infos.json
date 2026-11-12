@@ -1,0 +1,12 @@
+{
+    "slug": "oauth",
+    "name": "OAuth Connect",
+    "icon": "fa-solid fa-key",
+    "description": "Connexion et inscription sociale via Google et Facebook OAuth 2.0, avec champs personnalisés et conditions d'inscription.",
+    "version": "1.0.0",
+    "author": "299Ko Team",
+    "authorEmail": "mx.koder@gmail.com",
+    "authorWebsite": "https://299ko.ovh",
+    "license": "GPLv3",
+    "homeAdminMethod": "OAuth\\Controllers\\OAuthAdminController#index"
+}
