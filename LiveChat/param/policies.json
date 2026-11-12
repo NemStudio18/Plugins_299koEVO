@@ -1,0 +1,11 @@
+{
+    "livechat:admin": {
+        "logic": "OR",
+        "conditions": [
+            {
+                "type": "role",
+                "value": "admin"
+            }
+        ]
+    }
+}
