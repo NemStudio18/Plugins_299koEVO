@@ -21,9 +21,9 @@ $router->map('GET', '/dons/stripe/cancel', 'Dons\Controllers\DonController#strip
 
 // Admin
 $router->map('GET', '/admin/dons[/?]', 'Dons\Controllers\DonAdminController#list', 'dons-admin-list');
-$router->map('GET', '/admin/dons/edit', [\Dons\Controllers\DonAdminController::class, 'edit'], 'dons-admin-edit');
-$router->map('POST', '/admin/dons/save', [\Dons\Controllers\DonAdminController::class, 'save'], 'dons-admin-save');
+$router->map('GET', '/admin/dons/edit', 'Dons\Controllers\DonAdminController#edit', 'dons-admin-edit');
+$router->map('POST', '/admin/dons/save', 'Dons\Controllers\DonAdminController#save', 'dons-admin-save');
 $router->map('GET', '/admin/dons/stats', 'Dons\Controllers\DonAdminController#stats', 'dons-admin-stats');
-$router->map('GET', '/admin/dons/chart-data', [\Dons\Controllers\DonAdminController::class, 'chartData'], 'dons-admin-chart-data');
+$router->map('GET', '/admin/dons/chart-data', 'Dons\Controllers\DonAdminController#chartData', 'dons-admin-chart-data');
 $router->map('GET', '/admin/dons/params', 'Dons\Controllers\DonAdminController#params', 'dons-admin-params');
 $router->map('POST', '/admin/dons/save-params', 'Dons\Controllers\DonAdminController#saveParams', 'dons-admin-save-params');

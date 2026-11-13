@@ -376,12 +376,17 @@ class AnnoncesAdminController extends AdminController
                 @mkdir($targetDir, 0755, true);
             }
             $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            $hasOversized = false;
 
             foreach ($names as $idx => $rawName) {
                 if (($errors[$idx] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+                    if (($errors[$idx] ?? 0) === UPLOAD_ERR_INI_SIZE || ($errors[$idx] ?? 0) === UPLOAD_ERR_FORM_SIZE) {
+                        $hasOversized = true;
+                    }
                     continue;
                 }
                 if (($sizes[$idx] ?? 0) > 8 * 1024 * 1024) {
+                    $hasOversized = true;
                     continue;
                 }
                 $ext = strtolower(pathinfo((string) $rawName, PATHINFO_EXTENSION));
@@ -396,6 +401,10 @@ class AnnoncesAdminController extends AdminController
                 if (move_uploaded_file($tmp, $targetDir . $filename)) {
                     $uploadedPaths[] = '/data/upload/annonces/' . $filename;
                 }
+            }
+
+            if ($hasOversized) {
+                Show::msg('Certaines photos dépassaient la limite autorisée (8 Mo max par photo) et n\'ont pas pu être ajoutées.', 'warning');
             }
         }
 

@@ -130,6 +130,12 @@
                     <i class="fa-solid fa-cloud-arrow-up"></i> Téléverser une ou plusieurs nouvelles photos :
                 </label>
                 <input type="file" id="ann_image_files" name="image_files[]" multiple accept="image/jpeg,image/png,image/gif,image/webp" />
+                <div id="ann_upload_size_warning" style="display: none; padding: 8px 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #dc2626; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> <span id="ann_upload_size_msg"></span>
+                </div>
+                <small style="color: var(--text-color-muted, #64748b); font-size: 0.8rem;">
+                    Limite recommandée : max 8 Mo par photo et 25 Mo au total par envoi (JPEG, PNG, GIF, WebP).
+                </small>
                 <div id="ann_upload_preview" class="ann-thumbs-grid" style="margin-top: 6px;"></div>
 
                 <div style="margin-top: 6px;">
@@ -382,13 +388,53 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Prévisualisation des nouveaux fichiers sélectionnés
+    // Prévisualisation des nouveaux fichiers sélectionnés avec validation de taille
     const fileInput = document.getElementById('ann_image_files');
     const previewBox = document.getElementById('ann_upload_preview');
+    const warnBox = document.getElementById('ann_upload_size_warning');
+    const warnMsg = document.getElementById('ann_upload_size_msg');
+    const submitBtn = document.querySelector('form[action="{{saveUrl}}"] button[type="submit"]');
+
     if (fileInput && previewBox) {
         fileInput.addEventListener('change', () => {
             previewBox.innerHTML = '';
+            if (warnBox) warnBox.style.display = 'none';
+            if (submitBtn) submitBtn.disabled = false;
+
             const files = Array.from(fileInput.files || []);
+            const MAX_SINGLE_SIZE = 8 * 1024 * 1024; // 8 Mo
+            const MAX_TOTAL_SIZE = 25 * 1024 * 1024; // 25 Mo
+
+            let totalSize = 0;
+            let oversizedFiles = [];
+
+            files.forEach(f => {
+                totalSize += f.size;
+                if (f.size > MAX_SINGLE_SIZE) {
+                    oversizedFiles.push(`${f.name} (${(f.size / (1024 * 1024)).toFixed(1)} Mo)`);
+                }
+            });
+
+            if (oversizedFiles.length > 0) {
+                if (warnBox && warnMsg) {
+                    warnMsg.textContent = `Fichier(s) trop lourd(s) (max 8 Mo par photo) : ${oversizedFiles.join(', ')}`;
+                    warnBox.style.display = 'block';
+                }
+                if (submitBtn) submitBtn.disabled = true;
+                fileInput.value = '';
+                return;
+            }
+
+            if (totalSize > MAX_TOTAL_SIZE) {
+                if (warnBox && warnMsg) {
+                    warnMsg.textContent = `Poids total trop lourd : ${(totalSize / (1024 * 1024)).toFixed(1)} Mo sélectionnés (limite fixée à 25 Mo par envoi). Veuillez réduire le nombre de photos ou les compresser.`;
+                    warnBox.style.display = 'block';
+                }
+                if (submitBtn) submitBtn.disabled = true;
+                fileInput.value = '';
+                return;
+            }
+
             files.forEach(f => {
                 if (!f.type.startsWith('image/')) return;
                 const r = new FileReader();
@@ -401,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <img src="${ev.target.result}" alt="Nouveau fichier" />
                         </div>
                         <div class="ann-thumb-bar">
-                            <span style="font-size: 0.68rem; color: #16a34a; font-weight: 600;"><i class="fa-solid fa-plus"></i> Nouveau</span>
+                            <span style="font-size: 0.68rem; color: #16a34a; font-weight: 600;"><i class="fa-solid fa-plus"></i> Nouveau (${(f.size / (1024 * 1024)).toFixed(1)} Mo)</span>
                         </div>
                     `;
                     previewBox.appendChild(wrap);

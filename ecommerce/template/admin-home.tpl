@@ -2,10 +2,10 @@
     <header><i class="fa-solid fa-store"></i> {{ Lang.ecommerce.shop }}</header>
 
     <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
-        <a href="{{ ROUTER.generate('admin-ecommerce-products-list') }}" class="button">
+        <a href="{{ ROUTER.generate('admin-ecommerce-products') }}" class="button">
             <i class="fa-solid fa-box-open"></i> {{ Lang.ecommerce.products }}
         </a>
-        <a href="{{ ROUTER.generate('admin-ecommerce-orders-list') }}" class="button secondary">
+        <a href="{{ ROUTER.generate('admin-ecommerce-orders') }}" class="button secondary">
             <i class="fa-solid fa-receipt"></i> {{ Lang.ecommerce.orders }}
         </a>
     </div>
