@@ -80,7 +80,7 @@ a.blog-cat-pill.active:visited,
 a.blog-cat-pill.active:hover,
 a.blog-cat-pill.active:focus {
     background: var(--evo-accent);
-    color: var(--evo-accent-text, #ffffff);
+    color: var(--evo-accent-text, #ffffff) !important;
     border-color: var(--evo-accent);
     font-weight: 600;
     box-shadow: var(--evo-shadow-sm);
@@ -101,7 +101,7 @@ a.blog-cat-pill.active:focus {
 }
 a.blog-cat-pill.active .cat-pill-count {
     background: rgba(255, 255, 255, 0.25);
-    color: var(--evo-accent-text, #ffffff);
+    color: var(--evo-accent-text, #ffffff) !important;
 }
 
 /* Comments */
