@@ -403,7 +403,7 @@ function injectCssIntoIframe() {
     try {
         let cssContent = '';
         
-        // Générer le CSS à partir des variables personnalisées modifiées avec !important pour la priorité
+        // Générer le CSS à partir des variables personnalisées modifiées avec pour la priorité
         Object.keys(cssVars).forEach(varName => {
             if (cssVars[varName] && cssVars[varName] !== '') {
                 // Vérifier si la valeur a été modifiée par rapport à l'original
@@ -415,13 +415,13 @@ function injectCssIntoIframe() {
                     // Ne traiter que si la valeur a changé
                     if (currentValue !== originalValue) {
                         if (varName.startsWith('--')) {
-                            // Variable CSS native - appliquée au document avec !important
-                            cssContent += `:root {\n    ${varName}: ${currentValue} !important;\n}\n\n`;
+                            // Variable CSS native - appliquée au document avec
+                            cssContent += `:root {\n    ${varName}: ${currentValue};\n}\n\n`;
                         } else {
                             // Sélecteur CSS classique
                             const parts = varName.split(':');
                             if (parts.length === 2) {
-                                cssContent += `${parts[0]} {\n    ${parts[1]}: ${currentValue} !important;\n}\n\n`;
+                                cssContent += `${parts[0]} {\n    ${parts[1]}: ${currentValue};\n}\n\n`;
                             }
                         }
                     }

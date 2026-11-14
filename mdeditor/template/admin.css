@@ -22,7 +22,7 @@
 
 .editor-toolbar.fullscreen,
 .CodeMirror-wrap.CodeMirror-fullscreen {
-    z-index: 996 !important;
+    z-index: 996;
 }
 
 @media only screen and (max-width: 960px) {
