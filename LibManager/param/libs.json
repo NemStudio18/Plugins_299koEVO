@@ -25,14 +25,5 @@
         "asset_pattern": "{version}.tar.gz",
         "type": "php",
         "description": "Parseur Markdown léger et performant"
-    },
-    "pell": {
-        "name": "Pell WYSIWYG",
-        "github": "jaredreich/pell",
-        "install_path": "plugin/PellEditor/assets/pell/",
-        "current_version": "1.0.6",
-        "asset_pattern": "v{version}.tar.gz",
-        "type": "js",
-        "description": "Éditeur de texte riche épuré et minimaliste"
     }
 }
