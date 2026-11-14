@@ -1,8 +1,10 @@
-﻿<style>
+<style>
 /* ANIMATED WEATHER ICONS (Injected via Widget) */
 .weather-icon-container {
-    width: 60px; /* Smaller for widget */
-    height: 60px; /* Smaller for widget */
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
     border-radius: 40%;
     position: relative;
     display: flex;
@@ -11,7 +13,9 @@
     margin: 0 auto;
     overflow: visible;
     z-index: 10;
-    transform: scale(0.6); /* Scale down for compact widget */
+    transform: scale(0.5);
+    transform-origin: center center;
+    flex-shrink: 0;
 }
 
 /* 1. HOT / SUNNY */
