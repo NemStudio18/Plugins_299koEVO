@@ -83,8 +83,11 @@
                 <rect x="760" y="185" width="10" height="30" class="ws-spire-tower"/>
                 <rect x="772" y="195" width="22" height="20" class="ws-house"/>
                 <polygon points="770,195 783,185 796,195" class="ws-roof"/>
+                <rect x="777" y="201" width="4" height="4" class="ws-window-glow"/>
+                <rect x="785" y="201" width="4" height="4" class="ws-window-glow"/>
                 <rect x="740" y="198" width="18" height="17" class="ws-house"/>
                 <polygon points="738,198 749,188 760,198" class="ws-roof"/>
+                <rect x="745" y="203" width="3" height="3" class="ws-window-glow"/>
                 
                 <circle cx="820" cy="212" r="13" class="ws-tree-crown"/>
                 <rect x="818" y="212" width="4" height="15" class="ws-tree-trunk"/>
@@ -138,7 +141,7 @@
         </g>
     </svg>
 
-    <!-- Superposition Carte Météo Frosted Glass Compacte (Positionnée à DROITE pour dégager Soleil et Lune) -->
+    <!-- Carte météo compacte et discrète en haut à droite (dégage complètement soleil, lune et village) -->
     <div class="ws-overlay-card">
         <div class="ws-card-header">
             <div class="ws-card-badge">
@@ -175,7 +178,5 @@
                 <span class="ws-metric-val" data-role="ws-pressure">-- hPa</span>
             </div>
         </div>
-
-        {{adminPickerHtml}}
     </div>
 </div>

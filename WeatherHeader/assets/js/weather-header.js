@@ -39,13 +39,21 @@ document.addEventListener("DOMContentLoaded", function () {
     var savedGeo = null;
     try {
         var stored = localStorage.getItem("wh_user_geo");
-        if (stored) savedGeo = JSON.parse(stored);
+        if (stored) {
+            savedGeo = JSON.parse(stored);
+            if (savedGeo && savedGeo.city && (savedGeo.city.toLowerCase().indexOf("position") !== -1 || savedGeo.city === "Ma position")) {
+                savedGeo = null;
+                localStorage.removeItem("wh_user_geo");
+            }
+        }
     } catch (e) {}
 
     if (savedGeo && savedGeo.lat && savedGeo.lon) {
         lat = savedGeo.lat;
         lon = savedGeo.lon;
-        defaultCity = savedGeo.city || defaultCity;
+        if (savedGeo.city && savedGeo.city.toLowerCase().indexOf("position") === -1) {
+            defaultCity = savedGeo.city;
+        }
     }
 
     var tempEl = scene.querySelector('[data-role="ws-temp"]');
@@ -57,8 +65,6 @@ document.addEventListener("DOMContentLoaded", function () {
     var humEl = scene.querySelector('[data-role="ws-humidity"]');
     var precipEl = scene.querySelector('[data-role="ws-precip"]');
     var pressEl = scene.querySelector('[data-role="ws-pressure"]');
-    var pickerBtns = scene.querySelectorAll(".ws-pick-btn");
-    var timeBtn = document.getElementById("ws_time_toggle");
 
     var currentDayNight = "day";
     var currentWeatherType = "sunny";
@@ -104,11 +110,6 @@ document.addEventListener("DOMContentLoaded", function () {
             scene.classList.add(isDay ? "weather-state-sunny" : "weather-state-night");
         } else {
             scene.classList.add("weather-state-" + type);
-        }
-
-        if (timeBtn) {
-            timeBtn.innerHTML = isDay ? "🌙 Nuit" : "☀️ Jour";
-            timeBtn.title = isDay ? "Passer en mode nuit" : "Passer en mode jour";
         }
     }
 
@@ -237,6 +238,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function reverseGeocodeAndFetch(uLat, uLon) {
         function saveAndApply(cityName) {
+            if (!cityName || cityName.toLowerCase().indexOf("position") !== -1) {
+                cityName = defaultCity;
+            }
             try {
                 localStorage.setItem("wh_user_geo", JSON.stringify({ lat: uLat, lon: uLon, city: cityName }));
             } catch (e) {}
@@ -252,7 +256,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (data) {
                     detectedCity = data.city || data.locality || data.town || data.village;
                 }
-                if (detectedCity) {
+                if (detectedCity && detectedCity.toLowerCase().indexOf("position") === -1) {
                     saveAndApply(detectedCity);
                 } else {
                     // Fallback Nominatim
@@ -303,64 +307,5 @@ document.addEventListener("DOMContentLoaded", function () {
                 { timeout: 8000, maximumAge: 3600000 }
             );
         }
-    }
-
-    // 5. Panneau de contrôle interactif (Admin uniquement)
-    if (pickerBtns.length > 0) {
-        pickerBtns.forEach(function (btn) {
-            btn.addEventListener("click", function () {
-                pickerBtns.forEach(function (b) { b.classList.remove("is-active"); });
-                btn.classList.add("is-active");
-
-                var target = btn.getAttribute("data-scene");
-                if (target === "auto") {
-                    if (tempEl) tempEl.textContent = realState.temp;
-                    if (condEl) condEl.textContent = realState.cond;
-                    if (cityEl) cityEl.textContent = realState.city;
-                    if (subEl) subEl.textContent = realState.isDay ? "Observations du jour" : "Observations nocturnes";
-                    if (windEl) windEl.textContent = realState.windSpeed + " km/h " + getWindCardinal(realState.windDir);
-                    if (windArrowEl) windArrowEl.style.transform = "rotate(" + (realState.windDir + 180) + "deg)";
-                    if (humEl) humEl.textContent = (realState.humidity || 60) + "%";
-                    if (precipEl) precipEl.textContent = (realState.precip || 0) + "%";
-                    if (pressEl) pressEl.textContent = (realState.pressure || 1015) + " hPa";
-                    applyScene(realState.type, realState.isDay);
-                    return;
-                }
-
-                var previews = {
-                    sunny: { temp: 22, cond: "Soleil radieux", dayOnly: true, wind: 8, dir: 180, hum: 45, precip: 0, press: 1022 },
-                    cloudy: { temp: 15, cond: "Ciel très nuageux", wind: 16, dir: 240, hum: 70, precip: 15, press: 1015 },
-                    rain: { temp: 12, cond: "Pluie battante", wind: 24, dir: 270, hum: 92, precip: 85, press: 1004 },
-                    storm: { temp: 18, cond: "Orage violent", wind: 45, dir: 315, hum: 88, precip: 95, press: 998 },
-                    snow: { temp: -1, cond: "Neige abondante", wind: 12, dir: 45, hum: 80, precip: 75, press: 1012 },
-                    fog: { temp: 8, cond: "Brouillard épais", wind: 3, dir: 90, hum: 98, precip: 10, press: 1020 }
-                };
-
-                var data = previews[target];
-                if (data) {
-                    var isDay = (currentDayNight === "day");
-                    if (data.dayOnly) isDay = true;
-                    if (tempEl) tempEl.textContent = data.temp;
-                    if (condEl) condEl.textContent = data.cond;
-                    if (subEl) subEl.textContent = "Simulation d'ambiance";
-                    if (windEl) windEl.textContent = data.wind + " km/h " + getWindCardinal(data.dir);
-                    if (windArrowEl) windArrowEl.style.transform = "rotate(" + (data.dir + 180) + "deg)";
-                    if (humEl) humEl.textContent = data.hum + "%";
-                    if (precipEl) precipEl.textContent = data.precip + "%";
-                    if (pressEl) pressEl.textContent = data.press + " hPa";
-                    applyScene(target, isDay);
-                }
-            });
-        });
-    }
-
-    if (timeBtn) {
-        timeBtn.addEventListener("click", function () {
-            var newIsDay = (currentDayNight !== "day");
-            applyScene(currentWeatherType, newIsDay);
-            if (pickerBtns[0] && pickerBtns[0].classList.contains("is-active")) {
-                if (condEl) condEl.textContent = getWeatherDesc(realState.type === "sunny" ? 0 : 3, newIsDay);
-            }
-        });
     }
 });

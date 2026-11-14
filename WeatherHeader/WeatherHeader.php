@@ -116,46 +116,12 @@ function weatherHeaderRenderBanner($param = ''): string
         $lon = 2.3988;
     }
 
-    // 2. Vérification STRICTE des droits Administrateur
-    $isAdmin = false;
-    if (class_exists(CurrentUser::class)) {
-        $user = UsersManager::getCurrentUser();
-        if ($user) {
-            $role = isset($user->role) ? $user->role : (method_exists($user, 'getRole') ? $user->getRole() : '');
-            if ($role === 'admin' || $role === 'administrator') {
-                $isAdmin = true;
-            } elseif (CurrentUser::get()->can_access('system:admin-access')) {
-                $isAdmin = true;
-            }
-        }
-    }
-
-    // 3. Sélecteur de simulation : STRICTEMENT RÉSERVÉ À L'ADMIN CONNECTÉ
-    // Les visiteurs non-admins ne reçoivent JAMAIS ce bloc HTML
-    $adminPickerHtml = '';
-    if ($isAdmin) {
-        $adminPickerHtml = '
-        <div class="ws-scene-picker" title="Simulation météo (Réservé à l\'administrateur)">
-            <button type="button" class="ws-pick-btn is-active" data-scene="auto" title="Météo réelle en direct">⚡ Réel</button>
-            <span class="ws-pick-sep"></span>
-            <button type="button" class="ws-pick-btn" data-scene="sunny" title="Ciel clair / Soleil">☀️</button>
-            <button type="button" class="ws-pick-btn" data-scene="cloudy" title="Nuageux">⛅</button>
-            <button type="button" class="ws-pick-btn" data-scene="rain" title="Pluie">🌧️</button>
-            <button type="button" class="ws-pick-btn" data-scene="storm" title="Orage">⛈️</button>
-            <button type="button" class="ws-pick-btn" data-scene="snow" title="Neige">❄️</button>
-            <button type="button" class="ws-pick-btn" data-scene="fog" title="Brume / Brouillard">🌫️</button>
-            <span class="ws-pick-sep"></span>
-            <button type="button" class="ws-pick-time-btn" id="ws_time_toggle" title="Basculer entre Jour et Nuit">🌙 Nuit</button>
-        </div>';
-    }
-
     $tpl = new Template($tplPath);
     $tpl->set('defaultCity', htmlspecialchars($city, ENT_QUOTES, 'UTF-8'));
     $tpl->set('defaultCountry', htmlspecialchars($country, ENT_QUOTES, 'UTF-8'));
     $tpl->set('latitude', $lat);
     $tpl->set('longitude', $lon);
     $tpl->set('autoGeolocate', $autoGeolocate);
-    $tpl->set('adminPickerHtml', $adminPickerHtml);
 
     return (string)$param . $tpl->output();
 }
