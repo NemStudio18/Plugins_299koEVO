@@ -5,64 +5,64 @@
 .lightstats-dashboard .button,
 .lightstats-dashboard input[type="button"],
 .lightstats-dashboard input[type="submit"] {
-    clear: none !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: auto !important;
-    margin: 0 !important;
-    text-align: center !important;
-    box-sizing: border-box !important;
+    clear: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    margin: 0;
+    text-align: center;
+    box-sizing: border-box;
 }
 .lightstats-dashboard .ls-tabs-nav {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    width: 100% !important;
-    gap: 0.5rem !important;
-    padding-bottom: 6px !important;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    gap: 0.5rem;
+    padding-bottom: 6px;
 }
 .lightstats-dashboard .ls-tab-button {
-    display: inline-flex !important;
-    flex: 0 0 auto !important;
-    width: auto !important;
-    white-space: nowrap !important;
-    background: #ffffff !important;
-    color: var(--ls-slate-600) !important;
-    border: 1px solid var(--ls-slate-200) !important;
-    border-radius: 10px !important;
-    padding: 0.65rem 1rem !important;
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: auto;
+    white-space: nowrap;
+    background: #ffffff;
+    color: var(--ls-slate-600);
+    border: 1px solid var(--ls-slate-200);
+    border-radius: 10px;
+    padding: 0.65rem 1rem;
 }
 .lightstats-dashboard .ls-tab-button.active {
-    background: var(--ls-primary, #6366f1) !important;
-    color: #ffffff !important;
-    border-color: var(--ls-primary, #6366f1) !important;
+    background: var(--ls-primary, #6366f1);
+    color: #ffffff;
+    border-color: var(--ls-primary, #6366f1);
 }
 .lightstats-dashboard .ls-preset-btn {
-    display: inline-flex !important;
-    width: auto !important;
-    background: var(--ls-slate-50, #f8fafc) !important;
-    border: 1px solid var(--ls-slate-200, #e2e8f0) !important;
-    color: var(--ls-slate-600, #475569) !important;
-    border-radius: 8px !important;
-    padding: 0.45rem 0.85rem !important;
+    display: inline-flex;
+    width: auto;
+    background: var(--ls-slate-50, #f8fafc);
+    border: 1px solid var(--ls-slate-200, #e2e8f0);
+    color: var(--ls-slate-600, #475569);
+    border-radius: 8px;
+    padding: 0.45rem 0.85rem;
 }
 .lightstats-dashboard .ls-preset-btn.active {
-    background: var(--ls-primary, #6366f1) !important;
-    color: #ffffff !important;
-    border-color: var(--ls-primary, #6366f1) !important;
+    background: var(--ls-primary, #6366f1);
+    color: #ffffff;
+    border-color: var(--ls-primary, #6366f1);
 }
 @media (max-width: 640px) {
     .lightstats-dashboard .ls-filter-bar {
-        flex-direction: column !important;
-        align-items: stretch !important;
+        flex-direction: column;
+        align-items: stretch;
     }
     .lightstats-dashboard .ls-kpi-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr;
     }
     .lightstats-dashboard .ls-submit-btn {
-        width: 100% !important;
+        width: 100%;
     }
 }
 </style>
