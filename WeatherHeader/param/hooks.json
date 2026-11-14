@@ -1,0 +1,6 @@
+{
+    "endFrontHead": "weatherHeaderEndFrontHead",
+    "endFrontBody": "weatherHeaderEndFrontBody",
+    "weatherHeaderRenderBanner": "weatherHeaderRenderBanner",
+    "headerBanner": "weatherHeaderRenderBanner"
+}

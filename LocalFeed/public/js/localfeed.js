@@ -1,5 +1,5 @@
 /**
- * LocalFeed UI & Interactions (Vivre-Bourges)
+ * LocalFeed UI & Interactions
  */
 const LocalFeedUI = {
     /**
@@ -110,7 +110,7 @@ const LocalFeedUI = {
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: `${title} sur Vivre-Bourges`,
+                    title: `${title}`,
                     text: snippet,
                     url: postUrl
                 });

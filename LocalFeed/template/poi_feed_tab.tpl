@@ -103,7 +103,7 @@
                         </button>
 
                         <button type="button" class="feed-action-btn btn-copy-link" 
-                                onclick="vbCopyLink('https://vivre-bourges.fr/localfeed/feed#feed-post-<?= $post['id'] ?>', this)"
+                                onclick="vbCopyLink(window.location.origin + '/localfeed/feed#feed-post-<?= $post['id'] ?>', this)"
                                 title="Copier le lien direct de cette publication">
                             <i class="fa-solid fa-link"></i>
                             <span>Copier</span>

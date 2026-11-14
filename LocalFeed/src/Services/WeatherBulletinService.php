@@ -2,7 +2,7 @@
 namespace LocalFeed\Services;
 
 /**
- * Bulletins météo du Mur de Bourges.
+ * Bulletins météo du fil d'actualités.
  *
  * Deux bulletins par jour (06h00 et 20h00) présentant les prévisions des 24 heures suivantes.
  * Chaque bulletin est figé (snapshot) dans un fichier JSON afin d'apparaître dans le flux
@@ -200,9 +200,11 @@ class WeatherBulletinService {
             $iconText = '⛅';
         }
 
+        $siteName = class_exists('\Core\Core') ? \Core\Core::getInstance()->getConfigVal('siteName') : '';
+        $greetName = !empty($siteName) ? " - {$siteName}" : "";
         $title = $isMorning
-            ? 'Bonjour Bourges ! La météo de votre journée'
-            : 'Bonsoir Bourges ! La météo de la nuit et de demain';
+            ? "Bonjour ! La météo de votre journée{$greetName}"
+            : "Bonsoir ! La météo de la nuit et de demain{$greetName}";
         $summary = sprintf(
             '%s %s, températures entre %d°C et %d°C sur les prochaines 24 heures.',
             $iconText,
@@ -232,7 +234,7 @@ class WeatherBulletinService {
     }
 
     /**
-     * Sélectionne What (la mascotte) adaptée au temps du jour à Bourges.
+     * Sélectionne la mascotte adaptée au temps du jour.
      */
     public function mascotImage(int $mainCode, int $tmin, int $popMax, float $rainTotal): array {
         // 1. Froid / Neige (tmin <= 3°C ou codes neige)

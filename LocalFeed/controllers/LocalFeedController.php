@@ -23,13 +23,20 @@ class LocalFeedController {
         $timeline = $feedTimeline;
         $isFeedActive = true;
 
+        $siteName = \Core\Core::getInstance()->getConfigVal('siteName') ?: 'Fil d\'actualités';
         $response = new \Core\Responses\PublicResponse();
-        $response->setTitle('Le Mur de Bourges');
+        $response->setTitle('Le Fil d\'Actualités - ' . $siteName);
         $response->hidePageTitle(true);
         \Template\Template::addGlobal('HIDE_PAGE_TITLE', true);
         
-        // Template autonome contenant le flux
-        $tpl = new \Template\Template(ROOT . 'theme/halloween/template/localfeed_home.tpl');
+        // Template autonome contenant le flux (thème ou fallback plugin)
+        $theme = \Core\Core::getInstance()->getConfigVal('theme');
+        $themeTpl = THEMES . $theme . '/template/localfeed_home.tpl';
+        $pluginTpl = __DIR__ . '/../template/localfeed_home.tpl';
+        $tplPath = file_exists($themeTpl) ? $themeTpl : $pluginTpl;
+
+        $tpl = new \Template\Template($tplPath);
+        $tpl->set('siteName', $siteName);
         $tpl->set('feedTimeline', $feedTimeline);
         $tpl->set('timeline', $timeline);
         $tpl->set('isFeedActive', true);

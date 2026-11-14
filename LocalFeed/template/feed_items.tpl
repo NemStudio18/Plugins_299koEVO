@@ -1,8 +1,15 @@
+<?php
+$siteUrl = rtrim(\Core\Core::getInstance()->getConfigVal('siteUrl') ?: '', '/');
+if (empty($siteUrl) && isset($_SERVER['HTTP_HOST'])) {
+    $proto = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $siteUrl = $proto . '://' . $_SERVER['HTTP_HOST'];
+}
+?>
 <?php if (empty($timeline['items'])): ?>
     <div class="localfeed-empty-state">
         <div class="empty-icon"><i class="fa-solid fa-newspaper"></i></div>
         <h3>Aucune actualité pour le moment</h3>
-        <p>Les commerçants de Bourges publieront bientôt leurs dernières nouvelles et offres exclusives ici !</p>
+        <p>Les commerçants et acteurs locaux publieront bientôt leurs dernières nouvelles ici !</p>
     </div>
 <?php else: ?>
     <?php foreach ($timeline['items'] as $item): ?>
@@ -64,13 +71,13 @@
                         </button>
 
                         <button type="button" class="feed-action-btn btn-copy-link" 
-                                onclick="vbCopyLink('https://vivre-bourges.fr/localfeed/feed#feed-post-<?= $item['id'] ?>', this)"
+                                onclick="vbCopyLink('<?= $siteUrl ?>/localfeed/feed#feed-post-<?= $item['id'] ?>', this)"
                                 title="Copier le lien direct de cette publication">
                             <i class="fa-solid fa-link"></i>
                             <span>Copier</span>
                         </button>
 
-                        <?php $postFbUrl = 'https://vivre-bourges.fr/p-' . $item['poi_id']; ?>
+                        <?php $postFbUrl = $siteUrl . '/p-' . $item['poi_id']; ?>
                         <a href="https://www.facebook.com/sharer/sharer.php?u=<?= rawurlencode($postFbUrl) ?>" 
                            target="_blank" 
                            rel="noopener noreferrer" 
@@ -93,7 +100,7 @@
             <article class="feed-card event-card <?= !empty($item['is_cgr']) ? 'cgr-feed-card' : '' ?>" id="feed-event-<?= $item['id'] ?>">
                 <div class="feed-card-badge event-badge <?= !empty($item['is_cgr']) ? 'is-cgr' : '' ?>">
                     <i class="fa-solid <?= !empty($item['is_cgr']) ? 'fa-film' : 'fa-calendar-check' ?>"></i> 
-                    <?= !empty($item['is_cgr']) ? 'À l\'Affiche • Méga CGR Bourges' : 'Sortie & Événement Ville de Bourges' ?>
+                    <?= !empty($item['is_cgr']) ? 'À l\'Affiche • Cinéma' : 'Sortie & Événement' ?>
                 </div>
                 <div class="feed-card-header">
                     <div class="feed-author-avatar event-avatar <?= !empty($item['is_cgr']) ? 'is-cgr' : '' ?>">
@@ -162,7 +169,7 @@
                         <a href="/agenda/event/<?= $item['id'] ?>" class="feed-action-btn btn-visit" aria-label="Voir dans l'Agenda : <?= htmlspecialchars($item['title']) ?>">
                             <i class="fa-solid fa-calendar-day"></i> Voir dans l'Agenda
                         </a>
-                        <?php $eventFbUrl = 'https://vivre-bourges.fr/agenda/event/' . $item['id']; ?>
+                        <?php $eventFbUrl = $siteUrl . '/agenda/event/' . $item['id']; ?>
                         <a href="https://www.facebook.com/sharer/sharer.php?u=<?= rawurlencode($eventFbUrl) ?>" 
                            target="_blank" 
                            rel="noopener noreferrer" 
@@ -174,7 +181,7 @@
                         </a>
 
                         <button type="button" class="feed-action-btn btn-copy-link" 
-                                onclick="vbCopyLink('https://vivre-bourges.fr/agenda/event/<?= $item['id'] ?>', this)"
+                                onclick="vbCopyLink('<?= $siteUrl ?>/agenda/event/<?= $item['id'] ?>', this)"
                                 title="Copier le lien de cet événement">
                             <i class="fa-solid fa-link"></i>
                             <span>Copier</span>
@@ -206,7 +213,7 @@
                     <a href="/p-<?= $item['poi_id'] ?>" class="feed-action-btn btn-offer">
                         <i class="fa-solid fa-gift"></i> Découvrir l'offre
                     </a>
-                    <?php $offerFbUrl = 'https://vivre-bourges.fr/p-' . $item['poi_id']; ?>
+                    <?php $offerFbUrl = $siteUrl . '/p-' . $item['poi_id']; ?>
                     <a href="https://www.facebook.com/sharer/sharer.php?u=<?= rawurlencode($offerFbUrl) ?>" 
                        target="_blank" 
                        rel="noopener noreferrer" 
@@ -218,7 +225,7 @@
                     </a>
 
                     <button type="button" class="feed-action-btn btn-copy-link" 
-                            onclick="vbCopyLink('https://vivre-bourges.fr/p-<?= $item['poi_id'] ?>', this)"
+                            onclick="vbCopyLink('<?= $siteUrl ?>/p-<?= $item['poi_id'] ?>', this)"
                             title="Copier le lien de ce bon plan">
                         <i class="fa-solid fa-link"></i>
                         <span>Copier</span>
@@ -229,7 +236,7 @@
         <?php elseif ($item['type'] === 'blog'): ?>
             <article class="feed-card blog-card" id="feed-blog-<?= $item['id'] ?>">
                 <div class="feed-card-badge blog-badge">
-                    <i class="fa-solid fa-newspaper"></i> Le Journal de Vivre-Bourges
+                    <i class="fa-solid fa-newspaper"></i> Le Journal d'Actualités
                 </div>
                 <div class="feed-card-header">
                     <div class="feed-author-avatar blog-avatar">
@@ -243,7 +250,7 @@
                         </h3>
                         <span class="feed-post-time">
                             <i class="fa-regular fa-clock"></i> <?= htmlspecialchars($item['time_ago']) ?>
-                            • Rédaction Vivre-Bourges
+                            • Rédaction
                         </span>
                     </div>
                 </div>
@@ -276,7 +283,7 @@
                             <span class="like-count count-val">(<?= (int)($item['reactions']['like'] ?? $item['likes_count'] ?? 0) ?>)</span>
                         </button>
                     </div>
-                    <?php $blogFullUrl = 'https://vivre-bourges.fr' . $item['url']; ?>
+                    <?php $blogFullUrl = $siteUrl . $item['url']; ?>
                     <a href="https://www.facebook.com/sharer/sharer.php?u=<?= rawurlencode($blogFullUrl) ?>" 
                        target="_blank" 
                        rel="noopener noreferrer" 
@@ -374,7 +381,7 @@
         <?php if ($timeline['has_more']): ?>
             <div class="feed-load-more" data-next="/localfeed/feed?page=<?= (int)$timeline['page'] + 1 ?>&amp;filter=<?= urlencode($filter ?? 'all') ?>">
                 <div class="feed-spinner">
-                    <i class="fa-solid fa-circle-notch fa-spin"></i> Chargement des actualités de Bourges...
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Chargement des actualités...
                 </div>
             </div>
         <?php else: ?>

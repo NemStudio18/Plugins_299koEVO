@@ -1,16 +1,15 @@
 {
     "slug": "LocalFeed",
-    "name": "Local Feed - Le Mur de Bourges",
+    "name": "LocalFeed - Fil d'Actualités Local",
     "icon": "fa-solid fa-newspaper",
-    "description": "Flux d'actualités local hyper-connecté combinant publications des commerçants, événements et offres de proximité.",
-    "version": "1.0",
-    "author": "Vivre-Bourges",
-    "website": "https://vivre-bourges.fr",
-    "email": "contact@vivre-bourges.fr",
+    "description": "Flux d'actualités local dynamique combinant publications, événements de l'agenda, offres et articles.",
+    "version": "1.1.0",
+    "author": "299Ko Team",
+    "website": "https://299ko.flexcb.fr",
+    "email": "contact@flexcb.fr",
     "require": [
         "core",
-        "auth",
-        "PoiManager"
+        "auth"
     ],
     "category": "social",
     "authorWebsite": "https://299ko.flexcb.fr"

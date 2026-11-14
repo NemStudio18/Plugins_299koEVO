@@ -1,5 +1,5 @@
 /* ========================================================
-   LOCALFEED - LE MUR DE BOURGES & SOCIAL PRO
+   LOCALFEED - LE MUR D'ACTUALITÉS & SOCIAL PRO
    ======================================================== */
 
 .localfeed-container {
@@ -731,7 +731,7 @@
 /* ========================================================
    SECTION APERÇU SUR LA LANDING PAGE
    ======================================================== */
-.bourges-live-section {
+.bourges-live-section, .localfeed-live-section {
     background: var(--evo-surface);
     border-top: 1px solid var(--evo-border);
     border-bottom: 1px solid var(--evo-border);
@@ -739,17 +739,17 @@
     margin: 40px 0;
 }
 
-.bourges-live-container {
+.bourges-live-container, .localfeed-live-container {
     max-width: 840px;
     margin: 0 auto;
 }
 
-.bourges-live-header {
+.bourges-live-header, .localfeed-live-header {
     text-align: center;
     margin-bottom: 35px;
 }
 
-.bourges-live-badge {
+.bourges-live-badge, .localfeed-live-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -764,7 +764,7 @@
     box-shadow: var(--evo-shadow-sm);
 }
 
-.bourges-live-title {
+.bourges-live-title, .localfeed-live-title {
     font-size: 2rem;
     font-weight: 800;
     color: var(--evo-text);
@@ -772,7 +772,7 @@
     letter-spacing: -0.02em;
 }
 
-.bourges-live-subtitle {
+.bourges-live-subtitle, .localfeed-live-subtitle {
     font-size: 1.05rem;
     color: var(--evo-text-muted);
     max-width: 620px;
@@ -780,19 +780,19 @@
     line-height: 1.5;
 }
 
-.bourges-live-grid {
+.bourges-live-grid, .localfeed-live-grid {
     display: flex;
     flex-direction: column;
     gap: 20px;
     margin-bottom: 30px;
 }
 
-.bourges-live-footer {
+.bourges-live-footer, .localfeed-live-footer {
     text-align: center;
     margin-top: 30px;
 }
 
-.bourges-live-all-btn {
+.bourges-live-all-btn, .localfeed-live-all-btn {
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -807,7 +807,7 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.bourges-live-all-btn:hover {
+.bourges-live-all-btn:hover, .localfeed-live-all-btn:hover {
     background: var(--evo-accent-hover);
     transform: translateY(-2px);
 }

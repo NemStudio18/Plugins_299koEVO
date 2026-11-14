@@ -4,7 +4,7 @@
             <i class="fa-solid fa-bullhorn text-gold"></i>
             <h3>Quoi de neuf dans votre établissement aujourd'hui ?</h3>
         </div>
-        <span class="publish-subtitle">Votre publication sera diffusée instantanément sur le Mur de Bourges et sur votre fiche.</span>
+        <span class="publish-subtitle">Votre publication sera diffusée instantanément sur le fil d'actualités et sur votre fiche.</span>
     </div>
 
     <form id="pro-feed-publish-form" action="/localfeed/poi/<?= $poi['id'] ?>/publish" method="POST" class="pro-publish-form" onsubmit="if (typeof tinymce !== 'undefined') { tinymce.triggerSave(); }">
@@ -36,7 +36,7 @@
         </div>
 
         <div class="publish-input-group">
-            <textarea id="pro-feed-content" name="content" class="publish-content-textarea editor" rows="3" required placeholder="Partagez un nouvel arrivage, un plat du jour, une actualité avec les Berruyers..."></textarea>
+            <textarea id="pro-feed-content" name="content" class="publish-content-textarea editor" rows="3" required placeholder="Partagez un nouvel arrivage, un plat du jour ou une actualité avec vos abonnés..."></textarea>
         </div>
 
         <div class="publish-input-group publish-media-row">
@@ -53,7 +53,7 @@
         <div class="publish-actions">
             <button type="submit" class="btn-publish-submit">
                 <i class="fa-solid fa-paper-plane"></i>
-                <span>Publier sur le Mur de Bourges</span>
+                <span>Publier sur le fil d'actualités</span>
             </button>
         </div>
     </form>

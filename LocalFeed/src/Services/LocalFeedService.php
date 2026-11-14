@@ -96,7 +96,7 @@ class LocalFeedService {
                     'poi_id' => $poiId,
                     'poi_name' => $pArr['poi_name'],
                     'poi_slug' => $pArr['poi_slug'] ?? ('p-' . $poiId),
-                    'poi_location' => trim(($pArr['poi_street'] ?? '') . ' ' . ($pArr['poi_city'] ?? 'Bourges')),
+                    'poi_location' => trim(($pArr['poi_street'] ?? '') . ' ' . ($pArr['poi_city'] ?? '')),
                     'is_favorite_poi' => $isFav,
                     'title' => $pArr['title'],
                     'content' => $pArr['content'],
@@ -173,7 +173,7 @@ class LocalFeedService {
                         }
                     }
 
-                    $isCgrEvent = ($eArr['id'] === 'cgr_master_bourges' || stripos($eArr['title'] ?? '', 'cgr') !== false);
+                    $isCgrEvent = (stripos($eArr['id'] ?? '', 'cgr') !== false || stripos($eArr['title'] ?? '', 'cgr') !== false);
                     if ($isCgrEvent) {
                         $hasCgrInList = true;
                         $score += 90;
@@ -185,7 +185,7 @@ class LocalFeedService {
                         'title' => $eArr['title'],
                         'content' => $eArr['description'],
                         'media_url' => $mediaUrl,
-                        'location' => $eArr['location'] ?? 'Bourges',
+                        'location' => $eArr['location'] ?? '',
                         'start_date' => $eArr['start_date'],
                         'end_date' => $eArr['end_date'],
                         'poi_id' => !empty($eArr['poi_id']) ? (int)$eArr['poi_id'] : null,
@@ -203,11 +203,11 @@ class LocalFeedService {
                     $movieCount = count($cgrMovies);
                     $items[] = [
                         'type' => 'event',
-                        'id' => 'cgr_master_bourges',
-                        'title' => "À l'affiche au Méga CGR de Bourges ({$movieCount} films)",
-                        'content' => "Découvrez les séances du moment au Méga CGR : programmation complète, versions VF/VOST/ICE et réservation directe de vos e-billets.",
+                        'id' => 'cgr_master_movies',
+                        'title' => "À l'affiche au cinéma ({$movieCount} films)",
+                        'content' => "Découvrez les séances du moment au cinéma : programmation complète et réservation de vos billets.",
                         'media_url' => $firstMovie['image'] ?? null,
-                        'location' => "Méga CGR Bourges, ZAC du Prado",
+                        'location' => $eArr['location'] ?? "Cinéma",
                         'start_date' => date('Y-m-d'),
                         'end_date' => date('Y-m-d', strtotime('+14 days')),
                         'poi_id' => 925,
@@ -245,7 +245,7 @@ class LocalFeedService {
                         'type' => 'offer',
                         'id' => (int)$dArr['id'],
                         'poi_id' => $poiId,
-                        'poi_name' => $dArr['poi_name'] ?? 'Commerce de Bourges',
+                        'poi_name' => $dArr['poi_name'] ?? 'Commerce local',
                         'poi_slug' => $dArr['poi_slug'] ?? ('p-' . $poiId),
                         'title' => $dArr['title'],
                         'content' => $dArr['description'] . (!empty($dArr['discounted_price']) ? (' • Prix exclusif : ' . $dArr['discounted_price'] . ' €') : ''),
@@ -294,7 +294,7 @@ class LocalFeedService {
             }
         }
 
-        // 4. Articles du Blog Vivre-Bourges
+        // 4. Articles du Blog
         if ($filter === null || $filter === 'blog' || $filter === 'all') {
             try {
                 $blogFile = (defined('DATA') ? DATA : __DIR__ . '/../../../../data/') . 'plugin/blog/blog.json';
@@ -554,7 +554,7 @@ class LocalFeedService {
         $comments = [];
         foreach ($rows as $row) {
             $r = (array)$row;
-            $name = !empty($r['author_name']) ? $r['author_name'] : (!empty($r['username']) ? $r['username'] : 'Citoyen de Bourges');
+            $name = !empty($r['author_name']) ? $r['author_name'] : (!empty($r['username']) ? $r['username'] : 'Contributeur local');
             $r['display_name'] = $name;
             $r['time_ago'] = $this->timeElapsedString($r['created_at']);
             $comments[] = $r;
