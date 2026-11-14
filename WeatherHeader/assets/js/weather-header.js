@@ -6,6 +6,12 @@ document.addEventListener("DOMContentLoaded", function () {
     var scene = document.getElementById("meteo_living_scene");
     if (!scene) return;
 
+    // Masquage automatique des bannières par défaut du thème actif pour un remplacement propre
+    var defaultBanners = document.querySelectorAll("#banner:not(#meteo_living_scene), .declic-banner:not(#meteo_living_scene)");
+    defaultBanners.forEach(function (b) {
+        b.style.display = "none";
+    });
+
     var defaultCity = scene.getAttribute("data-city") || "Paris";
     var lat = parseFloat(scene.getAttribute("data-lat")) || 48.8566;
     var lon = parseFloat(scene.getAttribute("data-lon")) || 2.3522;
@@ -187,3 +193,4 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+

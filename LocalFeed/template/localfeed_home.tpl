@@ -45,3 +45,4 @@
 
 <link rel="stylesheet" href="/plugin/LocalFeed/public/css/localfeed.css?v=1.1.0" />
 <script src="/plugin/LocalFeed/public/js/localfeed.js?v=1.1.0"></script>
+
