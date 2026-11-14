@@ -57,8 +57,8 @@ class AntispamFlexyBotCaptcha extends AntispamAbstractCaptcha
 </div>
 <noscript>
 <style>
-#{$id} .fb-widget-row { display: none !important; }
-#{$id} .fb-challenge-panel { display: block !important; border-top: none !important; margin-top: 0 !important; padding-top: 0 !important; }
+#{$id} .fb-widget-row { display: none; }
+#{$id} .fb-challenge-panel { display: block; border-top: none; margin-top: 0; padding-top: 0; }
 </style>
 </noscript>
 {$this->getGenericHtml()}

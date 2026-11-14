@@ -71,7 +71,7 @@
 .pell-button i { font-size: 16px; }
 .pell-button:hover { background: var(--pell-hover); color: var(--pell-primary); }
 .pell-button-selected { background: #dbeafe; color: var(--pell-primary); font-weight: 600; }
-.pell-button-format { min-width: 130px !important; padding: 0 12px !important; }
+.pell-button-format { min-width: 130px; padding: 0 12px; }
 .pell-button-format .pell-btn-text { white-space: nowrap; margin: 0 4px; }
 
 /* Dropdowns */
@@ -117,9 +117,9 @@
 }
 
 /* Critical Fix for Lists */
-.pell-content ol { list-style-type: decimal !important; padding-left: 45px !important; margin: 1.2em 0 !important; }
-.pell-content ul { list-style-type: disc !important; padding-left: 45px !important; margin: 1.2em 0 !important; }
-.pell-content li { display: list-item !important; margin-bottom: 0.6em; }
+.pell-content ol { list-style-type: decimal; padding-left: 45px; margin: 1.2em 0; }
+.pell-content ul { list-style-type: disc; padding-left: 45px; margin: 1.2em 0; }
+.pell-content li { display: list-item; margin-bottom: 0.6em; }
 
 /* Action Trigger (Floating Button) */
 .pell-action-trigger {
@@ -194,7 +194,7 @@
 .pell-content table { border-collapse: collapse; width: 100%; margin: 20px 0; border: 1px solid #e2e8f0; }
 .pell-content td, .pell-content th { border: 1px solid #e2e8f0; padding: 12px; min-width: 50px; }
 .pell-content img { max-width: 100%; height: auto; border-radius: 8px; transition: 0.3s; cursor: pointer; }
-.pell-content img:hover { outline: 3px solid var(--pell-primary) !important; }
+.pell-content img:hover { outline: 3px solid var(--pell-primary); }
 
 /* Status Bar (Word Count) */
 .pell-status {
@@ -215,7 +215,7 @@
 
 /* Fullscreen */
 .pelleditor-wrapper.full-screen {
-    position: fixed; top: 0; left: 0; width: 100% !important; height: 100% !important;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 999999; border-radius: 0; margin: 0;
 }
 .pelleditor-wrapper.full-screen .pell-content { height: calc(100vh - 90px); }
@@ -238,6 +238,6 @@
     body * { visibility: hidden; }
     .pelleditor-wrapper, .pelleditor-wrapper * { visibility: visible; }
     .pelleditor-wrapper { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; }
-    .pell-actionbar, .pell-status, .pell-action-trigger, .pell-context-toolbar { display: none !important; }
+    .pell-actionbar, .pell-status, .pell-action-trigger, .pell-context-toolbar { display: none; }
     .pell-content { padding: 0; }
 }

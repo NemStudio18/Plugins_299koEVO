@@ -172,7 +172,7 @@ namespace {
                             events.forEach(ev => {
                                 if (ev.color && !seenColors.has(ev.color)) {
                                     const safeColor = ev.color.replace("#", "");
-                                    css += `.vc-event-${safeColor} { background-color: ${ev.color} !important; color: #fff !important; border-radius: 4px; }`;
+                                    css += `.vc-event-${safeColor} { background-color: ${ev.color}; color: #fff; border-radius: 4px; }`;
                                     seenColors.add(ev.color);
                                 }
                             });

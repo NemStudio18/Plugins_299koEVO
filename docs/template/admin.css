@@ -82,7 +82,7 @@ div.list-item-list i.list-item-toggle {
 
 /* Animation de rotation pour les icônes */
 .rotate-180 {
-    transform: translateY(-50%) rotate(180deg) !important;
+    transform: translateY(-50%) rotate(180deg);
     transition: transform 0.4s ease;
 }
 
@@ -314,20 +314,20 @@ div.list-item-list.hasChildren > div:first-of-type {
 /* Style pour les catégories enfants */
 .list-item-list.hasChildren {
     position: relative;
-    background-color: #f8f9fa !important;
+    background-color: #f8f9fa;
 }
 
 /* Fond gris clair pour les catégories enfants */
 .list-item-list.hasChildren {
-    background-color: #f8f9fa !important;
+    background-color: #f8f9fa;
 }
 
 /* Style pour les enfants directs */
 .toggle .list-item-list {
-    background-color: #f1f3f4 !important;
+    background-color: #f1f3f4;
 }
 
 /* Style pour les petits-enfants */
 .toggle .toggle .list-item-list {
-    background-color: #e8eaed !important;
+    background-color: #e8eaed;
 }

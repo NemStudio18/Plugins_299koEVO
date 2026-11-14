@@ -135,7 +135,7 @@
 <style>
 @media (max-width: 768px) {
     .gamification-details {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr;
     }
 }
 </style>

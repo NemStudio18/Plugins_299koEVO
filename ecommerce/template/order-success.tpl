@@ -113,9 +113,9 @@
 .receipt-table th, .receipt-table td { padding: 10px 12px; border-bottom: 1px solid var(--evo-border, #e2e8f0); font-size: 0.9rem; }
 .receipt-actions { display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; }
 @media print {
-    .no-print, #header, #navigation, #footer, .site-header { display: none !important; }
-    .order-receipt-card { border: none !important; box-shadow: none !important; padding: 0 !important; }
-    body { background: #fff !important; color: #000 !important; }
+    .no-print, #header, #navigation, #footer, .site-header { display: none; }
+    .order-receipt-card { border: none; box-shadow: none; padding: 0; }
+    body { background: #fff; color: #000; }
 }
 </style>
 

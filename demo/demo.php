@@ -38,10 +38,10 @@ namespace Demo {
              if ($testMode->isActive()) {
                 // Admin-specific Banner
                 echo '<style>
-                    #admin-test-mode-bar { display: none !important; }
+                    #admin-test-mode-bar { display: none; }
                     .demo-banner-admin {
                         background: #ff9800; 
-                        color: white !important; 
+                        color: white; 
                         text-align: center; 
                         padding: 10px; 
                         font-weight: bold; 
@@ -75,9 +75,9 @@ namespace Demo {
                 // Frontend Banner (unchanged logic)
                  echo '<style>
                     #banner { 
-                        padding-top: 60px !important; 
+                        padding-top: 60px; 
                     } 
-                    #admin-test-mode-bar { display: none !important; }
+                    #admin-test-mode-bar { display: none; }
                     .demo-banner {
                         background: #ff9800; 
                         color: white; 

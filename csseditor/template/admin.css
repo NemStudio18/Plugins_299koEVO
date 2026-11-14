@@ -242,8 +242,8 @@
 }
 
 .reset-btn {
-    padding: 6px 8px !important;
-    min-width: auto !important;
+    padding: 6px 8px;
+    min-width: auto;
     width: 32px;
     height: 32px;
     display: flex;

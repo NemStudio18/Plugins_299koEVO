@@ -43,7 +43,7 @@
         <form action="/rdv/reserver" method="post" id="prordv-form">
             <input type="hidden" name="commerce_id" value="{{ commerce.id }}">
             <!-- Honeypot anti-bot -->
-            <input type="text" name="website_hp" style="display:none!important;" tabindex="-1" autocomplete="off">
+            <input type="text" name="website_hp" style="display:none;" tabindex="-1" autocomplete="off">
 
             <!-- Étape 1 : Choix de la Prestation -->
             <div style="margin-bottom:24px;">
@@ -193,9 +193,9 @@
 
 <style>
 .slot-pill.selected {
-    background: #10b981 !important;
-    color: #ffffff !important;
-    border-color: #059669 !important;
+    background: #10b981;
+    color: #ffffff;
+    border-color: #059669;
     box-shadow: 0 2px 6px rgba(16,185,129,0.4);
 }
 .slot-pill:hover:not(.selected) {
