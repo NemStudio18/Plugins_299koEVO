@@ -52,14 +52,14 @@
     transition: all 0.3s ease;
 }
 
-.homepage-block-button .btn-primary { background: #007bff; color: white; }
-.homepage-block-button .btn-secondary { background: #6c757d; color: white; }
-.homepage-block-button .btn-success { background: #28a745; color: white; }
-.homepage-block-button .btn-danger { background: #dc3545; color: white; }
-.homepage-block-button .btn-warning { background: #ffc107; color: black; }
-.homepage-block-button .btn-info { background: #17a2b8; color: white; }
-.homepage-block-button .btn-light { background: #f8f9fa; color: black; }
-.homepage-block-button .btn-dark { background: #343a40; color: white; }
+.homepage-block-button .btn-primary { background: var(--evo-primary, #0284c7); color: #ffffff; }
+.homepage-block-button .btn-secondary { background: var(--evo-surface-alt, #64748b); color: #ffffff; }
+.homepage-block-button .btn-success { background: var(--evo-success, #16a34a); color: #ffffff; }
+.homepage-block-button .btn-danger { background: var(--evo-danger, #dc2626); color: #ffffff; }
+.homepage-block-button .btn-warning { background: var(--evo-warning, #d97706); color: #ffffff; }
+.homepage-block-button .btn-info { background: var(--evo-accent, #0ea5e9); color: #ffffff; }
+.homepage-block-button .btn-light { background: var(--evo-surface-alt, #f1f5f9); color: var(--evo-text, #0f172a); }
+.homepage-block-button .btn-dark { background: var(--evo-surface-dark, #0f172a); color: #ffffff; }
 
 .homepage-block-button .btn-small { padding: 5px 10px; font-size: 0.875em; }
 .homepage-block-button .btn-medium { padding: 10px 20px; font-size: 1em; }

@@ -3,7 +3,7 @@
     "name": "E-commerce",
     "icon": "fa-solid fa-cart-shopping",
     "description": "Plugin de boutique en ligne avec gestion de produits, catégories, commandes et panier.",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "Maxime Blanc",
     "authorEmail": "maximeblanc@flexcb.fr",
     "authorWebsite": "https://299ko.flexcb.fr",

@@ -48,17 +48,47 @@ class DocsReadController extends PublicController
             }
         }
 
+        // Navigation Précédent / Suivant
+        $allPages = $wikiPageManager->getItems();
+        $prevPage = null;
+        $nextPage = null;
+        $currentIndex = null;
+        foreach ($allPages as $idx => $p) {
+            if ($p->getId() == $item->getId()) {
+                $currentIndex = $idx;
+                break;
+            }
+        }
+        if ($currentIndex !== null) {
+            if ($currentIndex > 0) {
+                $prevObj = $allPages[$currentIndex - 1];
+                $prevPage = [
+                    'name' => $prevObj->getName(),
+                    'url' => $this->router->generate('docs-read', ['name' => Util::strToUrl($prevObj->getName()), 'id' => $prevObj->getId()])
+                ];
+            }
+            if ($currentIndex < count($allPages) - 1) {
+                $nextObj = $allPages[$currentIndex + 1];
+                $nextPage = [
+                    'name' => $nextObj->getName(),
+                    'url' => $this->router->generate('docs-read', ['name' => Util::strToUrl($nextObj->getName()), 'id' => $nextObj->getId()])
+                ];
+            }
+        }
+
+        $allCategories = $categoriesManager->getCategories();
+
         $response = new PublicResponse();
         $tpl = $response->createPluginTemplate('docs', 'read');
-
-        Show::addSidebarPublicModule('Catégories de la documentation', $this->generateCategoriesSidebar());
-
-
 
         $tpl->set('item', $item);
         $tpl->set('generatedHtml', $generatedHTML);
         $tpl->set('TOC', $toc);
         $tpl->set('categories', $categories);
+        $tpl->set('allCategories', $allCategories);
+        $tpl->set('allPages', $allPages);
+        $tpl->set('prevPage', $prevPage);
+        $tpl->set('nextPage', $nextPage);
         $tpl->set('wikiPageManager', $wikiPageManager);
 
 

@@ -49,6 +49,21 @@ function homebuilderBeforeRunPlugin(): void
 }
 
 /**
+ * Hook pour intercepter l'affichage de la racine /
+ */
+function homebuilderRenderHome($param)
+{
+    $pluginManager = \Core\Plugin\PluginsManager::getInstance();
+    $plugin = $pluginManager->getPlugin('homebuilder');
+    if (!$plugin || !$plugin->getConfigVal('activate') || empty($plugin->getConfigVal('is_homepage'))) {
+        return $param;
+    }
+
+    $controller = new \HomeBuilder\Controllers\HomeBuilderController();
+    return $controller->home();
+}
+
+/**
  * Désinstallation : suppression des données générées.
  */
 function homebuilderUninstall(): void
