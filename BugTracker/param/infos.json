@@ -3,7 +3,7 @@
     "name": "Bug Tracker",
     "icon": "fa-solid fa-bug",
     "description": "Système de suivi des bugs et rapports d'erreurs.",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "Maxime Blanc",
     "authorEmail": "maximeblanc@flexcb.fr",
     "authorWebsite": "https://299ko.flexcb.fr",

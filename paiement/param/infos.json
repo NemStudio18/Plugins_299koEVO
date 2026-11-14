@@ -6,7 +6,7 @@
     "author": "299Ko Team",
     "authorEmail": "maximeblanc@flexcb.fr",
     "authorWebsite": "https://299ko.flexcb.fr",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "homePublicMethod": "CheckoutController#home",
     "homeAdminMethod": "PaiementAdminController#home"
 }
