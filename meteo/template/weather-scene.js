@@ -1,6 +1,6 @@
 /**
  * weather-scene.js — Contrôleur de Scène Météo Vectorielle Vivante
- * Gère la météo en temps réel et les transitions fluides entre ambiances.
+ * Gère la météo en temps réel et les transitions fluides entre ambiances Jour & Nuit.
  */
 document.addEventListener("DOMContentLoaded", function () {
     var scene = document.getElementById("meteo_living_scene");
@@ -15,85 +15,85 @@ document.addEventListener("DOMContentLoaded", function () {
     var cityEl = scene.querySelector('[data-role="ws-city"]');
     var subEl = scene.querySelector('[data-role="ws-sub"]');
     var pickerBtns = scene.querySelectorAll(".ws-pick-btn");
+    var timeBtn = document.getElementById("ws_time_toggle");
 
-    var realWeatherState = "weather-state-sunny";
+    var currentDayNight = "day"; // "day" ou "night"
+    var currentWeatherType = "sunny"; // sunny, cloudy, rain, storm, snow, fog
+    var realState = { type: "sunny", isDay: true, temp: 16, cond: "Ensoleillé", city: defaultCity };
 
-    function setSceneState(stateClass) {
-        var states = [
+    function applyScene(type, isDay) {
+        currentWeatherType = type;
+        currentDayNight = isDay ? "day" : "night";
+
+        // Nettoyage des classes d'état
+        var allStates = [
             "weather-state-sunny",
             "weather-state-night",
+            "weather-state-clear",
             "weather-state-cloudy",
             "weather-state-rain",
             "weather-state-storm",
             "weather-state-snow",
             "weather-state-fog"
         ];
-        states.forEach(function (st) {
-            scene.classList.remove(st);
-        });
-        scene.classList.add(stateClass);
+        allStates.forEach(function (st) { scene.classList.remove(st); });
+        scene.classList.remove("ws-time-day", "ws-time-night");
+
+        // Application du modificateur jour/nuit
+        scene.classList.add(isDay ? "ws-time-day" : "ws-time-night");
+
+        // Application du phénomène météo
+        if (type === "sunny") {
+            scene.classList.add(isDay ? "weather-state-sunny" : "weather-state-night");
+        } else {
+            scene.classList.add("weather-state-" + type);
+        }
+
+        // Mise à jour du bouton d'inversion jour/nuit
+        if (timeBtn) {
+            timeBtn.innerHTML = isDay ? "🌙 Nuit" : "☀️ Jour";
+            timeBtn.title = isDay ? "Passer en mode nuit" : "Passer en mode jour";
+        }
     }
 
-    function determineState(weatherCode, isDay) {
-        // Nuit claire
-        if (!isDay && (weatherCode === 0 || weatherCode === 1)) {
-            return "weather-state-night";
-        }
-        // Soleil
-        if (weatherCode === 0 || weatherCode === 1) {
-            return "weather-state-sunny";
-        }
-        // Nuageux
-        if (weatherCode === 2 || weatherCode === 3) {
-            return isDay ? "weather-state-cloudy" : "weather-state-night";
-        }
-        // Brouillard
-        if (weatherCode >= 45 && weatherCode <= 48) {
-            return "weather-state-fog";
-        }
-        // Pluie & Bruine
-        if ((weatherCode >= 51 && weatherCode <= 67) || (weatherCode >= 80 && weatherCode <= 82)) {
-            return "weather-state-rain";
-        }
-        // Neige
-        if ((weatherCode >= 71 && weatherCode <= 77) || (weatherCode >= 85 && weatherCode <= 86)) {
-            return "weather-state-snow";
-        }
-        // Orage
-        if (weatherCode >= 95 && weatherCode <= 99) {
-            return "weather-state-storm";
-        }
-        return isDay ? "weather-state-sunny" : "weather-state-night";
+    function determineWeatherType(weatherCode) {
+        if (weatherCode === 0 || weatherCode === 1) return "sunny";
+        if (weatherCode === 2 || weatherCode === 3) return "cloudy";
+        if (weatherCode >= 45 && weatherCode <= 48) return "fog";
+        if ((weatherCode >= 51 && weatherCode <= 67) || (weatherCode >= 80 && weatherCode <= 82)) return "rain";
+        if ((weatherCode >= 71 && weatherCode <= 77) || (weatherCode >= 85 && weatherCode <= 86)) return "snow";
+        if (weatherCode >= 95 && weatherCode <= 99) return "storm";
+        return "sunny";
     }
 
     function getWeatherDesc(weatherCode, isDay) {
         var map = {
-            0: isDay ? "Ensoleillé" : "Nuit claire",
+            0: isDay ? "Ensoleillé" : "Nuit claire étoilée",
             1: isDay ? "Peu nuageux" : "Nuit dégagée",
-            2: "Partiellement nuageux",
-            3: "Couvert",
-            45: "Brouillard",
-            48: "Brouillard givrant",
-            51: "Bruine légère",
-            53: "Bruine modérée",
-            55: "Bruine dense",
-            61: "Pluie faible",
-            63: "Pluie modérée",
-            65: "Forte pluie",
-            71: "Chute de neige faible",
-            73: "Chute de neige modérée",
-            75: "Forte chute de neige",
-            80: "Averses de pluie",
-            81: "Fortes averses",
-            82: "Averses violentes",
-            95: "Orage modéré",
-            96: "Orage violent",
-            99: "Orage avec grêle"
+            2: isDay ? "Partiellement nuageux" : "Nuit partiellement nuageuse",
+            3: isDay ? "Ciel couvert" : "Nuit couverte",
+            45: isDay ? "Brouillard" : "Brouillard de nuit",
+            48: isDay ? "Brouillard givrant" : "Brume givrante nocturne",
+            51: isDay ? "Bruine légère" : "Bruine de nuit",
+            53: isDay ? "Bruine modérée" : "Pluie fine nocturne",
+            55: isDay ? "Bruine dense" : "Pluie dense nocturne",
+            61: isDay ? "Pluie faible" : "Pluie de nuit",
+            63: isDay ? "Pluie modérée" : "Pluie de nuit battante",
+            65: isDay ? "Forte pluie" : "Averse de nuit",
+            71: isDay ? "Chute de neige" : "Neige de nuit",
+            73: isDay ? "Chute de neige modérée" : "Neige nocturne",
+            75: isDay ? "Forte chute de neige" : "Tempête de neige nocturne",
+            80: isDay ? "Averses de pluie" : "Averses de nuit",
+            81: isDay ? "Fortes averses" : "Fortes averses de nuit",
+            82: isDay ? "Averses violentes" : "Pluie torrentielle de nuit",
+            95: isDay ? "Orage d'été" : "Orage de nuit",
+            96: isDay ? "Orage violent" : "Orage de nuit violent",
+            99: isDay ? "Orage avec grêle" : "Orage de nuit avec grêle"
         };
-        return map[weatherCode] || "Ciel variable";
+        return map[weatherCode] || (isDay ? "Ciel variable" : "Nuit variable");
     }
 
-    // Chargement des données météo réelles
+    // Chargement météo Open-Meteo
     fetch(apiUrl + "?city=" + encodeURIComponent(defaultCity) + "&country=" + encodeURIComponent(defaultCountry))
         .then(function (res) { return res.ok ? res.json() : null; })
         .then(function (payload) {
@@ -102,17 +102,23 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
             var d = payload.data;
-            var temp = Math.round(d.temperature);
             var isDay = (typeof d.is_day !== "undefined") ? Boolean(d.is_day) : ((typeof d.isDay !== "undefined") ? Boolean(d.isDay) : true);
             var code = (typeof d.weather_code !== "undefined") ? parseInt(d.weather_code, 10) : ((typeof d.weatherCode !== "undefined") ? parseInt(d.weatherCode, 10) : 0);
 
-            if (tempEl) tempEl.textContent = temp;
-            if (condEl) condEl.textContent = getWeatherDesc(code, isDay);
-            if (cityEl) cityEl.textContent = d.city || defaultCity;
+            realState = {
+                type: determineWeatherType(code),
+                isDay: isDay,
+                temp: Math.round(d.temperature),
+                cond: getWeatherDesc(code, isDay),
+                city: d.city || defaultCity
+            };
+
+            if (tempEl) tempEl.textContent = realState.temp;
+            if (condEl) condEl.textContent = realState.cond;
+            if (cityEl) cityEl.textContent = realState.city;
             if (subEl) subEl.textContent = isDay ? "Observations du jour" : "Observations nocturnes";
 
-            realWeatherState = determineState(code, isDay);
-            setSceneState(realWeatherState);
+            applyScene(realState.type, realState.isDay);
         })
         .catch(function () {
             fallbackDefault();
@@ -121,35 +127,64 @@ document.addEventListener("DOMContentLoaded", function () {
     function fallbackDefault() {
         var hour = new Date().getHours();
         var isDay = hour >= 7 && hour < 20;
-        if (tempEl) tempEl.textContent = isDay ? "16" : "11";
-        if (condEl) condEl.textContent = isDay ? "Ensoleillé" : "Nuit claire";
-        if (subEl) subEl.textContent = "Prévisions estimées";
-        realWeatherState = isDay ? "weather-state-sunny" : "weather-state-night";
-        setSceneState(realWeatherState);
+        realState = {
+            type: "sunny",
+            isDay: isDay,
+            temp: isDay ? 16 : 11,
+            cond: isDay ? "Ensoleillé" : "Nuit claire étoilée",
+            city: defaultCity
+        };
+        if (tempEl) tempEl.textContent = realState.temp;
+        if (condEl) condEl.textContent = realState.cond;
+        if (subEl) subEl.textContent = isDay ? "Journée estimée" : "Nuit estimée";
+        applyScene(realState.type, realState.isDay);
     }
 
-    // Gestion du sélecteur d'ambiances manuel
+    // Sélecteur météo
     pickerBtns.forEach(function (btn) {
         btn.addEventListener("click", function () {
             pickerBtns.forEach(function (b) { b.classList.remove("is-active"); });
             btn.classList.add("is-active");
 
-            var targetScene = btn.getAttribute("data-scene");
-            if (targetScene === "auto") {
-                setSceneState(realWeatherState);
-            } else if (targetScene === "sunny") {
-                setSceneState("weather-state-sunny");
-            } else if (targetScene === "night") {
-                setSceneState("weather-state-night");
-            } else if (targetScene === "rain") {
-                setSceneState("weather-state-rain");
-            } else if (targetScene === "storm") {
-                setSceneState("weather-state-storm");
-            } else if (targetScene === "snow") {
-                setSceneState("weather-state-snow");
-            } else if (targetScene === "fog") {
-                setSceneState("weather-state-fog");
+            var target = btn.getAttribute("data-scene");
+            if (target === "auto") {
+                if (tempEl) tempEl.textContent = realState.temp;
+                if (condEl) condEl.textContent = realState.cond;
+                if (subEl) subEl.textContent = realState.isDay ? "Observations du jour" : "Observations nocturnes";
+                applyScene(realState.type, realState.isDay);
+            } else {
+                var isDay = (currentDayNight === "day");
+                var descMap = {
+                    sunny: isDay ? "Plein soleil" : "Nuit claire étoilée",
+                    cloudy: isDay ? "Ciel couvert" : "Nuit couverte",
+                    rain: isDay ? "Pluie battante" : "Pluie de nuit",
+                    storm: isDay ? "Orage grondant" : "Orage de nuit",
+                    snow: isDay ? "Chute de neige" : "Neige de nuit",
+                    fog: isDay ? "Brouillard épais" : "Brume de nuit"
+                };
+                if (condEl) condEl.textContent = descMap[target] || target;
+                if (subEl) subEl.textContent = "Aperçu interactif";
+                applyScene(target, isDay);
             }
         });
     });
+
+    // Bascule Jour / Nuit
+    if (timeBtn) {
+        timeBtn.addEventListener("click", function () {
+            var newIsDay = (currentDayNight !== "day");
+            applyScene(currentWeatherType, newIsDay);
+
+            var descMap = {
+                sunny: newIsDay ? "Plein soleil" : "Nuit claire étoilée",
+                cloudy: newIsDay ? "Ciel couvert" : "Nuit couverte",
+                rain: newIsDay ? "Pluie battante" : "Pluie de nuit",
+                storm: newIsDay ? "Orage grondant" : "Orage de nuit",
+                snow: newIsDay ? "Chute de neige" : "Neige de nuit",
+                fog: newIsDay ? "Brouillard épais" : "Brume de nuit"
+            };
+            if (condEl) condEl.textContent = descMap[currentWeatherType] || currentWeatherType;
+            if (subEl) subEl.textContent = newIsDay ? "Ambiance Jour" : "Ambiance Nuit";
+        });
+    }
 });

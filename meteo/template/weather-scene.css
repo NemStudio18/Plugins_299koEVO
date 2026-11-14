@@ -3,6 +3,7 @@
 /* ==========================================================================
    SCÈNE MÉTÉO VIVANTE UNIFIÉE (VECTOR LIVING WEATHER SCENE)
    Zéro vidéo MP4, Zéro photo fixe — 100% Vectoriel SVG animé à 60 fps
+   Support complet Jour & Nuit pour TOUS les types de météo (Pluie, Orage, Neige, Brume...)
    ========================================================================== */
 
 .weather-living-scene {
@@ -85,12 +86,12 @@
 
 /* Lune & Étoiles */
 .ws-moon-group {
-    transition: opacity 1.2s ease, transform 1.2s ease;
+    transition: opacity 1.2s ease, transform 1.2s ease, filter 1.2s ease;
     transform-origin: 220px 90px;
 }
 
 .ws-moon-crescent {
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.85));
 }
 
 .ws-stars-group {
@@ -142,7 +143,7 @@
 }
 
 .ws-drop {
-    stroke: rgba(186, 230, 253, 0.75);
+    stroke: var(--ws-rain-color, rgba(186, 230, 253, 0.75));
     stroke-width: 2.5;
     stroke-linecap: round;
     animation: wsRainFall 0.8s linear infinite;
@@ -165,14 +166,19 @@
 }
 
 @keyframes wsLightningBolt {
-    0%, 92%, 96%, 100% { opacity: 0; }
-    93%, 95% { opacity: 1; filter: drop-shadow(0 0 16px #ffffff); }
-    94% { opacity: 0.3; }
+    0%, 91%, 95%, 100% { opacity: 0; }
+    92%, 94% { opacity: 1; filter: drop-shadow(0 0 18px #ffffff); }
+    93% { opacity: 0.4; }
 }
 
-@keyframes wsLightningFlash {
-    0%, 92%, 96%, 100% { filter: brightness(1); }
-    93%, 95% { filter: brightness(2.2); }
+@keyframes wsLightningFlashDay {
+    0%, 91%, 95%, 100% { filter: brightness(1); }
+    92%, 94% { filter: brightness(2.2); }
+}
+
+@keyframes wsLightningFlashNight {
+    0%, 91%, 95%, 100% { filter: brightness(1); }
+    92%, 94% { filter: brightness(3.5) contrast(1.3); }
 }
 
 /* Neige */
@@ -182,7 +188,7 @@
 
 .ws-flake {
     fill: #ffffff;
-    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.9));
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.9));
     animation: wsSnowFall 5s ease-in-out infinite;
 }
 
@@ -205,7 +211,7 @@
 }
 
 .ws-mist-wave {
-    fill: rgba(226, 232, 240, 0.45);
+    fill: var(--ws-mist-color, rgba(226, 232, 240, 0.45));
     animation: wsMistShift 12s ease-in-out infinite alternate;
 }
 
@@ -220,14 +226,19 @@
 }
 
 /* ==========================================================================
-   LES DIFFÉRENTS ÉTATS MÉTÉO SUR LA MÊME SCÈNE
+   LES DIFFÉRENTS ÉTATS MÉTÉO — VARIATIONS JOUR ET NUIT
    ========================================================================== */
 
-/* 1. BEAU TEMPS / SOLEIL */
-.weather-state-sunny .ws-sky-layer {
+/* --------------------------------------------------------------------------
+   1. PLEIN SOLEIL / NUIT CLAIRE
+   -------------------------------------------------------------------------- */
+/* Jour */
+.ws-time-day.weather-state-sunny .ws-sky-layer,
+.weather-state-sunny:not(.ws-time-night) .ws-sky-layer {
     background: linear-gradient(180deg, #0284c7 0%, #38bdf8 35%, #7dd3fc 70%, #fef08a 100%);
 }
-.weather-state-sunny {
+.ws-time-day.weather-state-sunny,
+.weather-state-sunny:not(.ws-time-night) {
     --ws-hill-back: #1d4ed8;
     --ws-hill-front: #16a34a;
     --ws-tree-color: #14532d;
@@ -235,20 +246,33 @@
     --ws-roof-color: #b45309;
     --ws-cloud-color: rgba(255, 255, 255, 0.75);
 }
-.weather-state-sunny .ws-sun-group { opacity: 1; transform: scale(1); }
-.weather-state-sunny .ws-moon-group { opacity: 0; transform: scale(0.6); }
-.weather-state-sunny .ws-stars-group { opacity: 0; }
-.weather-state-sunny .ws-rain-drops { opacity: 0; }
-.weather-state-sunny .ws-storm-lightning { opacity: 0; }
-.weather-state-sunny .ws-snow-flakes { opacity: 0; }
-.weather-state-sunny .ws-mist-group { opacity: 0; }
-.weather-state-sunny .ws-clouds-front { opacity: 0.35; }
-.weather-state-sunny .ws-clouds-back { opacity: 0.25; }
+.ws-time-day.weather-state-sunny .ws-sun-group,
+.weather-state-sunny:not(.ws-time-night) .ws-sun-group { opacity: 1; transform: scale(1); }
+.ws-time-day.weather-state-sunny .ws-moon-group,
+.weather-state-sunny:not(.ws-time-night) .ws-moon-group { opacity: 0; transform: scale(0.6); }
+.ws-time-day.weather-state-sunny .ws-stars-group,
+.weather-state-sunny:not(.ws-time-night) .ws-stars-group { opacity: 0; }
+.ws-time-day.weather-state-sunny .ws-rain-drops,
+.weather-state-sunny:not(.ws-time-night) .ws-rain-drops { opacity: 0; }
+.ws-time-day.weather-state-sunny .ws-storm-lightning,
+.weather-state-sunny:not(.ws-time-night) .ws-storm-lightning { opacity: 0; }
+.ws-time-day.weather-state-sunny .ws-snow-flakes,
+.weather-state-sunny:not(.ws-time-night) .ws-snow-flakes { opacity: 0; }
+.ws-time-day.weather-state-sunny .ws-mist-group,
+.weather-state-sunny:not(.ws-time-night) .ws-mist-group { opacity: 0; }
+.ws-time-day.weather-state-sunny .ws-clouds-front,
+.weather-state-sunny:not(.ws-time-night) .ws-clouds-front { opacity: 0.35; }
+.ws-time-day.weather-state-sunny .ws-clouds-back,
+.weather-state-sunny:not(.ws-time-night) .ws-clouds-back { opacity: 0.25; }
 
-/* 2. NUIT CLAIRE ÉTOILÉE */
+/* Nuit claire étoilée */
+.ws-time-night.weather-state-sunny .ws-sky-layer,
+.ws-time-night.weather-state-clear .ws-sky-layer,
 .weather-state-night .ws-sky-layer {
-    background: linear-gradient(180deg, #090d16 0%, #0f172a 40%, #1e1b4b 75%, #312e81 100%);
+    background: linear-gradient(180deg, #050811 0%, #0c1222 40%, #1e1b4b 75%, #312e81 100%);
 }
+.ws-time-night.weather-state-sunny,
+.ws-time-night.weather-state-clear,
 .weather-state-night {
     --ws-hill-back: #1e1b4b;
     --ws-hill-front: #0f172a;
@@ -257,19 +281,38 @@
     --ws-roof-color: #1e293b;
     --ws-cloud-color: rgba(148, 163, 184, 0.2);
 }
+.ws-time-night.weather-state-sunny .ws-sun-group,
+.ws-time-night.weather-state-clear .ws-sun-group,
 .weather-state-night .ws-sun-group { opacity: 0; transform: scale(0.6); }
+.ws-time-night.weather-state-sunny .ws-moon-group,
+.ws-time-night.weather-state-clear .ws-moon-group,
 .weather-state-night .ws-moon-group { opacity: 1; transform: scale(1); }
+.ws-time-night.weather-state-sunny .ws-stars-group,
+.ws-time-night.weather-state-clear .ws-stars-group,
 .weather-state-night .ws-stars-group { opacity: 1; }
+.ws-time-night.weather-state-sunny .ws-rain-drops,
 .weather-state-night .ws-rain-drops { opacity: 0; }
+.ws-time-night.weather-state-sunny .ws-storm-lightning,
 .weather-state-night .ws-storm-lightning { opacity: 0; }
+.ws-time-night.weather-state-sunny .ws-snow-flakes,
 .weather-state-night .ws-snow-flakes { opacity: 0; }
-.weather-state-night .ws-mist-group { opacity: 0.2; }
+.ws-time-night.weather-state-sunny .ws-mist-group,
+.weather-state-night .ws-mist-group { opacity: 0.15; }
+.ws-time-night.weather-state-sunny .ws-clouds-front,
+.weather-state-night .ws-clouds-front { opacity: 0.2; }
+.ws-time-night.weather-state-sunny .ws-clouds-back,
+.weather-state-night .ws-clouds-back { opacity: 0.15; }
 
-/* 3. NUAGEUX / COUVERT */
-.weather-state-cloudy .ws-sky-layer {
+/* --------------------------------------------------------------------------
+   2. NUAGEUX / COUVERT
+   -------------------------------------------------------------------------- */
+/* Jour */
+.ws-time-day.weather-state-cloudy .ws-sky-layer,
+.weather-state-cloudy:not(.ws-time-night) .ws-sky-layer {
     background: linear-gradient(180deg, #475569 0%, #64748b 45%, #94a3b8 80%, #cbd5e1 100%);
 }
-.weather-state-cloudy {
+.ws-time-day.weather-state-cloudy,
+.weather-state-cloudy:not(.ws-time-night) {
     --ws-hill-back: #334155;
     --ws-hill-front: #2e4a38;
     --ws-tree-color: #1a3325;
@@ -277,66 +320,156 @@
     --ws-roof-color: #475569;
     --ws-cloud-color: rgba(241, 245, 249, 0.85);
 }
-.weather-state-cloudy .ws-sun-group { opacity: 0.35; transform: scale(0.9); }
-.weather-state-cloudy .ws-moon-group { opacity: 0; }
-.weather-state-cloudy .ws-stars-group { opacity: 0; }
-.weather-state-cloudy .ws-rain-drops { opacity: 0; }
-.weather-state-cloudy .ws-storm-lightning { opacity: 0; }
-.weather-state-cloudy .ws-snow-flakes { opacity: 0; }
-.weather-state-cloudy .ws-mist-group { opacity: 0.3; }
-.weather-state-cloudy .ws-clouds-front { opacity: 0.9; }
-.weather-state-cloudy .ws-clouds-back { opacity: 0.8; }
+.ws-time-day.weather-state-cloudy .ws-sun-group,
+.weather-state-cloudy:not(.ws-time-night) .ws-sun-group { opacity: 0.35; transform: scale(0.9); }
+.ws-time-day.weather-state-cloudy .ws-moon-group,
+.weather-state-cloudy:not(.ws-time-night) .ws-moon-group { opacity: 0; }
+.ws-time-day.weather-state-cloudy .ws-stars-group,
+.weather-state-cloudy:not(.ws-time-night) .ws-stars-group { opacity: 0; }
+.ws-time-day.weather-state-cloudy .ws-clouds-front,
+.weather-state-cloudy:not(.ws-time-night) .ws-clouds-front { opacity: 0.9; }
+.ws-time-day.weather-state-cloudy .ws-clouds-back,
+.weather-state-cloudy:not(.ws-time-night) .ws-clouds-back { opacity: 0.8; }
+.ws-time-day.weather-state-cloudy .ws-rain-drops,
+.weather-state-cloudy:not(.ws-time-night) .ws-rain-drops { opacity: 0; }
+.ws-time-day.weather-state-cloudy .ws-mist-group,
+.weather-state-cloudy:not(.ws-time-night) .ws-mist-group { opacity: 0.3; }
 
-/* 4. PLUIE */
-.weather-state-rain .ws-sky-layer {
+/* Nuit nuageuse */
+.ws-time-night.weather-state-cloudy .ws-sky-layer {
+    background: linear-gradient(180deg, #090d16 0%, #111827 45%, #1f2937 80%, #374151 100%);
+}
+.ws-time-night.weather-state-cloudy {
+    --ws-hill-back: #111827;
+    --ws-hill-front: #0b0f19;
+    --ws-tree-color: #03170f;
+    --ws-trunk-color: #020617;
+    --ws-roof-color: #1f2937;
+    --ws-cloud-color: rgba(75, 85, 99, 0.7);
+}
+.ws-time-night.weather-state-cloudy .ws-sun-group { opacity: 0; }
+.ws-time-night.weather-state-cloudy .ws-moon-group { opacity: 0.5; transform: scale(0.9); }
+.ws-time-night.weather-state-cloudy .ws-stars-group { opacity: 0.2; }
+.ws-time-night.weather-state-cloudy .ws-clouds-front { opacity: 0.85; }
+.ws-time-night.weather-state-cloudy .ws-clouds-back { opacity: 0.75; }
+.ws-time-night.weather-state-cloudy .ws-rain-drops { opacity: 0; }
+.ws-time-night.weather-state-cloudy .ws-mist-group { opacity: 0.35; }
+
+/* --------------------------------------------------------------------------
+   3. PLUIE (JOUR ET PLUIE DE NUIT)
+   -------------------------------------------------------------------------- */
+/* Jour */
+.ws-time-day.weather-state-rain .ws-sky-layer,
+.weather-state-rain:not(.ws-time-night) .ws-sky-layer {
     background: linear-gradient(180deg, #1e293b 0%, #334155 40%, #475569 75%, #64748b 100%);
 }
-.weather-state-rain {
+.ws-time-day.weather-state-rain,
+.weather-state-rain:not(.ws-time-night) {
     --ws-hill-back: #1e293b;
     --ws-hill-front: #1c3527;
     --ws-tree-color: #0f241a;
     --ws-trunk-color: #18110b;
     --ws-roof-color: #334155;
     --ws-cloud-color: rgba(148, 163, 184, 0.85);
+    --ws-rain-color: rgba(186, 230, 253, 0.8);
 }
-.weather-state-rain .ws-sun-group { opacity: 0; }
-.weather-state-rain .ws-moon-group { opacity: 0; }
-.weather-state-rain .ws-stars-group { opacity: 0; }
-.weather-state-rain .ws-rain-drops { opacity: 1; }
-.weather-state-rain .ws-storm-lightning { opacity: 0; }
-.weather-state-rain .ws-snow-flakes { opacity: 0; }
-.weather-state-rain .ws-mist-group { opacity: 0.4; }
+.ws-time-day.weather-state-rain .ws-sun-group,
+.weather-state-rain:not(.ws-time-night) .ws-sun-group { opacity: 0; }
+.ws-time-day.weather-state-rain .ws-moon-group,
+.weather-state-rain:not(.ws-time-night) .ws-moon-group { opacity: 0; }
+.ws-time-day.weather-state-rain .ws-stars-group,
+.weather-state-rain:not(.ws-time-night) .ws-stars-group { opacity: 0; }
+.ws-time-day.weather-state-rain .ws-rain-drops,
+.weather-state-rain:not(.ws-time-night) .ws-rain-drops { opacity: 1; }
+.ws-time-day.weather-state-rain .ws-mist-group,
+.weather-state-rain:not(.ws-time-night) .ws-mist-group { opacity: 0.4; }
 
-/* 5. ORAGE */
-.weather-state-storm .ws-sky-layer {
-    background: linear-gradient(180deg, #09090b 0%, #18181b 35%, #2e1065 70%, #172554 100%);
+/* Pluie de nuit */
+.ws-time-night.weather-state-rain .ws-sky-layer {
+    background: linear-gradient(180deg, #030712 0%, #0b0f19 40%, #111827 75%, #1f2937 100%);
 }
-.weather-state-storm {
+.ws-time-night.weather-state-rain {
+    --ws-hill-back: #0f172a;
+    --ws-hill-front: #070a12;
+    --ws-tree-color: #02100a;
+    --ws-trunk-color: #010409;
+    --ws-roof-color: #0f172a;
+    --ws-cloud-color: rgba(31, 41, 55, 0.88);
+    --ws-rain-color: rgba(147, 197, 253, 0.65);
+}
+.ws-time-night.weather-state-rain .ws-sun-group { opacity: 0; }
+.ws-time-night.weather-state-rain .ws-moon-group { opacity: 0.25; filter: blur(3px); }
+.ws-time-night.weather-state-rain .ws-stars-group { opacity: 0; }
+.ws-time-night.weather-state-rain .ws-rain-drops { opacity: 1; }
+.ws-time-night.weather-state-rain .ws-mist-group { opacity: 0.55; }
+.ws-time-night.weather-state-rain .ws-clouds-front { opacity: 0.9; }
+.ws-time-night.weather-state-rain .ws-clouds-back { opacity: 0.85; }
+
+/* --------------------------------------------------------------------------
+   4. ORAGE (JOUR ET ORAGE DE NUIT)
+   -------------------------------------------------------------------------- */
+/* Jour */
+.ws-time-day.weather-state-storm .ws-sky-layer,
+.weather-state-storm:not(.ws-time-night) .ws-sky-layer {
+    background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 35%, #312e81 70%, #1e293b 100%);
+}
+.ws-time-day.weather-state-storm,
+.weather-state-storm:not(.ws-time-night) {
     --ws-hill-back: #1e1b4b;
     --ws-hill-front: #090d16;
     --ws-tree-color: #051a13;
     --ws-trunk-color: #020617;
     --ws-roof-color: #1e1b4b;
     --ws-cloud-color: rgba(71, 85, 105, 0.9);
+    animation: wsLightningFlashDay 7s infinite;
 }
-.weather-state-storm {
-    animation: wsLightningFlash 7s infinite;
-}
-.weather-state-storm .ws-storm-lightning {
+.ws-time-day.weather-state-storm .ws-storm-lightning,
+.weather-state-storm:not(.ws-time-night) .ws-storm-lightning {
     animation: wsLightningBolt 7s infinite;
 }
-.weather-state-storm .ws-sun-group { opacity: 0; }
-.weather-state-storm .ws-moon-group { opacity: 0; }
-.weather-state-storm .ws-stars-group { opacity: 0; }
-.weather-state-storm .ws-rain-drops { opacity: 1; }
-.weather-state-storm .ws-snow-flakes { opacity: 0; }
-.weather-state-storm .ws-mist-group { opacity: 0.5; }
+.ws-time-day.weather-state-storm .ws-sun-group,
+.weather-state-storm:not(.ws-time-night) .ws-sun-group { opacity: 0; }
+.ws-time-day.weather-state-storm .ws-moon-group,
+.weather-state-storm:not(.ws-time-night) .ws-moon-group { opacity: 0; }
+.ws-time-day.weather-state-storm .ws-stars-group,
+.weather-state-storm:not(.ws-time-night) .ws-stars-group { opacity: 0; }
+.ws-time-day.weather-state-storm .ws-rain-drops,
+.weather-state-storm:not(.ws-time-night) .ws-rain-drops { opacity: 1; }
+.ws-time-day.weather-state-storm .ws-mist-group,
+.weather-state-storm:not(.ws-time-night) .ws-mist-group { opacity: 0.5; }
 
-/* 6. NEIGE */
-.weather-state-snow .ws-sky-layer {
+/* Orage de nuit (obscurité quasi totale déchirée par l'éclair) */
+.ws-time-night.weather-state-storm .ws-sky-layer {
+    background: linear-gradient(180deg, #020204 0%, #06060c 35%, #130726 70%, #0b0d1e 100%);
+}
+.ws-time-night.weather-state-storm {
+    --ws-hill-back: #090714;
+    --ws-hill-front: #030305;
+    --ws-tree-color: #010805;
+    --ws-trunk-color: #000000;
+    --ws-roof-color: #090714;
+    --ws-cloud-color: rgba(30, 27, 75, 0.85);
+    animation: wsLightningFlashNight 6s infinite;
+}
+.ws-time-night.weather-state-storm .ws-storm-lightning {
+    animation: wsLightningBolt 6s infinite;
+}
+.ws-time-night.weather-state-storm .ws-sun-group { opacity: 0; }
+.ws-time-night.weather-state-storm .ws-moon-group { opacity: 0; }
+.ws-time-night.weather-state-storm .ws-stars-group { opacity: 0; }
+.ws-time-night.weather-state-storm .ws-rain-drops { opacity: 1; --ws-rain-color: rgba(199, 210, 254, 0.7); }
+.ws-time-night.weather-state-storm .ws-mist-group { opacity: 0.6; }
+
+/* --------------------------------------------------------------------------
+   5. NEIGE (JOUR ET NEIGE DE NUIT)
+   -------------------------------------------------------------------------- */
+/* Jour */
+.ws-time-day.weather-state-snow .ws-sky-layer,
+.weather-state-snow:not(.ws-time-night) .ws-sky-layer {
     background: linear-gradient(180deg, #64748b 0%, #94a3b8 40%, #cbd5e1 75%, #e2e8f0 100%);
 }
-.weather-state-snow {
+.ws-time-day.weather-state-snow,
+.weather-state-snow:not(.ws-time-night) {
     --ws-hill-back: #cbd5e1;
     --ws-hill-front: #e2e8f0;
     --ws-tree-color: #475569;
@@ -344,33 +477,88 @@
     --ws-roof-color: #f8fafc;
     --ws-cloud-color: rgba(255, 255, 255, 0.9);
 }
-.weather-state-snow .ws-sun-group { opacity: 0.2; }
-.weather-state-snow .ws-moon-group { opacity: 0; }
-.weather-state-snow .ws-stars-group { opacity: 0; }
-.weather-state-snow .ws-rain-drops { opacity: 0; }
-.weather-state-snow .ws-storm-lightning { opacity: 0; }
-.weather-state-snow .ws-snow-flakes { opacity: 1; }
-.weather-state-snow .ws-mist-group { opacity: 0.3; }
+.ws-time-day.weather-state-snow .ws-sun-group,
+.weather-state-snow:not(.ws-time-night) .ws-sun-group { opacity: 0.2; }
+.ws-time-day.weather-state-snow .ws-moon-group,
+.weather-state-snow:not(.ws-time-night) .ws-moon-group { opacity: 0; }
+.ws-time-day.weather-state-snow .ws-stars-group,
+.weather-state-snow:not(.ws-time-night) .ws-stars-group { opacity: 0; }
+.ws-time-day.weather-state-snow .ws-rain-drops,
+.weather-state-snow:not(.ws-time-night) .ws-rain-drops { opacity: 0; }
+.ws-time-day.weather-state-snow .ws-snow-flakes,
+.weather-state-snow:not(.ws-time-night) .ws-snow-flakes { opacity: 1; }
+.ws-time-day.weather-state-snow .ws-mist-group,
+.weather-state-snow:not(.ws-time-night) .ws-mist-group { opacity: 0.3; }
 
-/* 7. BROUILLARD / BRUME */
-.weather-state-fog .ws-sky-layer {
+/* Neige de nuit (flocons blancs illuminés sous le croissant de lune) */
+.ws-time-night.weather-state-snow .ws-sky-layer {
+    background: linear-gradient(180deg, #090e1a 0%, #131c2e 40%, #1e293b 75%, #334155 100%);
+}
+.ws-time-night.weather-state-snow {
+    --ws-hill-back: #263345;
+    --ws-hill-front: #3b495d;
+    --ws-tree-color: #1a2536;
+    --ws-trunk-color: #0f172a;
+    --ws-roof-color: #e2e8f0;
+    --ws-cloud-color: rgba(71, 85, 105, 0.5);
+}
+.ws-time-night.weather-state-snow .ws-sun-group { opacity: 0; }
+.ws-time-night.weather-state-snow .ws-moon-group { opacity: 0.85; transform: scale(1); }
+.ws-time-night.weather-state-snow .ws-stars-group { opacity: 0.6; }
+.ws-time-night.weather-state-snow .ws-rain-drops { opacity: 0; }
+.ws-time-night.weather-state-snow .ws-snow-flakes { opacity: 1; }
+.ws-time-night.weather-state-snow .ws-mist-group { opacity: 0.4; }
+
+/* --------------------------------------------------------------------------
+   6. BROUILLARD / BRUME (JOUR ET BRUME DE NUIT)
+   -------------------------------------------------------------------------- */
+/* Jour */
+.ws-time-day.weather-state-fog .ws-sky-layer,
+.weather-state-fog:not(.ws-time-night) .ws-sky-layer {
     background: linear-gradient(180deg, #475569 0%, #64748b 40%, #94a3b8 75%, #cbd5e1 100%);
 }
-.weather-state-fog {
+.ws-time-day.weather-state-fog,
+.weather-state-fog:not(.ws-time-night) {
     --ws-hill-back: #64748b;
     --ws-hill-front: #475569;
     --ws-tree-color: #334155;
     --ws-trunk-color: #1e293b;
     --ws-roof-color: #475569;
     --ws-cloud-color: rgba(226, 232, 240, 0.7);
+    --ws-mist-color: rgba(226, 232, 240, 0.55);
 }
-.weather-state-fog .ws-sun-group { opacity: 0.3; filter: blur(4px); }
-.weather-state-fog .ws-moon-group { opacity: 0; }
-.weather-state-fog .ws-stars-group { opacity: 0; }
-.weather-state-fog .ws-rain-drops { opacity: 0; }
-.weather-state-fog .ws-storm-lightning { opacity: 0; }
-.weather-state-fog .ws-snow-flakes { opacity: 0; }
-.weather-state-fog .ws-mist-group { opacity: 1; }
+.ws-time-day.weather-state-fog .ws-sun-group,
+.weather-state-fog:not(.ws-time-night) .ws-sun-group { opacity: 0.3; filter: blur(4px); }
+.ws-time-day.weather-state-fog .ws-moon-group,
+.weather-state-fog:not(.ws-time-night) .ws-moon-group { opacity: 0; }
+.ws-time-day.weather-state-fog .ws-stars-group,
+.weather-state-fog:not(.ws-time-night) .ws-stars-group { opacity: 0; }
+.ws-time-day.weather-state-fog .ws-rain-drops,
+.weather-state-fog:not(.ws-time-night) .ws-rain-drops { opacity: 0; }
+.ws-time-day.weather-state-fog .ws-snow-flakes,
+.weather-state-fog:not(.ws-time-night) .ws-snow-flakes { opacity: 0; }
+.ws-time-day.weather-state-fog .ws-mist-group,
+.weather-state-fog:not(.ws-time-night) .ws-mist-group { opacity: 1; }
+
+/* Brume de nuit (ambiance spectrale, lune voilée par un halo de brouillard) */
+.ws-time-night.weather-state-fog .ws-sky-layer {
+    background: linear-gradient(180deg, #060911 0%, #0f172a 40%, #1e293b 75%, #334155 100%);
+}
+.ws-time-night.weather-state-fog {
+    --ws-hill-back: #182030;
+    --ws-hill-front: #0e1524;
+    --ws-tree-color: #08140e;
+    --ws-trunk-color: #020617;
+    --ws-roof-color: #182030;
+    --ws-cloud-color: rgba(148, 163, 184, 0.4);
+    --ws-mist-color: rgba(148, 163, 184, 0.45);
+}
+.ws-time-night.weather-state-fog .ws-sun-group { opacity: 0; }
+.ws-time-night.weather-state-fog .ws-moon-group { opacity: 0.65; filter: blur(6px); transform: scale(1.1); }
+.ws-time-night.weather-state-fog .ws-stars-group { opacity: 0.1; }
+.ws-time-night.weather-state-fog .ws-rain-drops { opacity: 0; }
+.ws-time-night.weather-state-fog .ws-snow-flakes { opacity: 0; }
+.ws-time-night.weather-state-fog .ws-mist-group { opacity: 1; }
 
 /* ==========================================================================
    CARTE D'INFORMATIONS MÉTÉO EN VERRE DÉPOLI (FROSTED GLASS CARD)
@@ -388,7 +576,7 @@
     padding: 16px 20px;
     color: #ffffff;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
-    max-width: 380px;
+    max-width: 440px;
 }
 
 .ws-card-badge {
@@ -459,7 +647,7 @@
     color: #94a3b8;
 }
 
-/* Sélecteur d'ambiance rapide */
+/* Sélecteur d'ambiance rapide & Bascule Jour/Nuit */
 .ws-scene-picker {
     display: flex;
     align-items: center;
@@ -467,6 +655,15 @@
     margin-top: 14px;
     padding-top: 10px;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
+    flex-wrap: wrap;
+}
+
+.ws-pick-sep {
+    display: inline-block;
+    width: 1px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 0 3px;
 }
 
 .ws-pick-btn {
@@ -474,7 +671,7 @@
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 6px;
     color: #ffffff;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     padding: 3px 6px;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -485,6 +682,24 @@
     background: #38bdf8;
     border-color: #38bdf8;
     color: #020617;
+    transform: translateY(-1px);
+}
+
+.ws-pick-time-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 6px;
+    color: #fef08a;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.ws-pick-time-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
     transform: translateY(-1px);
 }
 

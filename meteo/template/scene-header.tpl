@@ -1,4 +1,4 @@
-<div class="weather-living-scene weather-state-sunny" id="meteo_living_scene" data-api-url="{{apiCurrentUrl}}" data-city="{{defaultCity}}" data-country="{{defaultCountry}}">
+<div class="weather-living-scene ws-time-day weather-state-sunny" id="meteo_living_scene" data-api-url="{{apiCurrentUrl}}" data-city="{{defaultCity}}" data-country="{{defaultCountry}}">
     <!-- 1. Couche du Ciel dynamique -->
     <div class="ws-sky-layer" aria-hidden="true"></div>
 
@@ -149,15 +149,18 @@
                 <span class="ws-condition-sub" data-role="ws-sub">En direct</span>
             </div>
         </div>
-        <!-- Sélecteur d'ambiances de prévisualisation -->
-        <div class="ws-scene-picker" title="Tester les ambiances météo">
+        <!-- Sélecteur d'ambiances de prévisualisation interactif -->
+        <div class="ws-scene-picker" title="Tester les ambiances météo (Jour & Nuit)">
             <button type="button" class="ws-pick-btn is-active" data-scene="auto" title="Météo réelle en direct">⚡ Réel</button>
-            <button type="button" class="ws-pick-btn" data-scene="sunny" title="Soleil">☀️</button>
-            <button type="button" class="ws-pick-btn" data-scene="night" title="Nuit étoilée">🌙</button>
+            <span class="ws-pick-sep"></span>
+            <button type="button" class="ws-pick-btn" data-scene="sunny" title="Ciel clair / Soleil">☀️</button>
+            <button type="button" class="ws-pick-btn" data-scene="cloudy" title="Nuageux">⛅</button>
             <button type="button" class="ws-pick-btn" data-scene="rain" title="Pluie">🌧️</button>
             <button type="button" class="ws-pick-btn" data-scene="storm" title="Orage">⛈️</button>
             <button type="button" class="ws-pick-btn" data-scene="snow" title="Neige">❄️</button>
-            <button type="button" class="ws-pick-btn" data-scene="fog" title="Brume">🌫️</button>
+            <button type="button" class="ws-pick-btn" data-scene="fog" title="Brume / Brouillard">🌫️</button>
+            <span class="ws-pick-sep"></span>
+            <button type="button" class="ws-pick-time-btn" id="ws_time_toggle" title="Basculer entre Jour et Nuit">🌙 Nuit</button>
         </div>
     </div>
 </div>
