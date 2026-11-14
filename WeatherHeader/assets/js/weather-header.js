@@ -54,6 +54,9 @@ document.addEventListener("DOMContentLoaded", function () {
     var subEl = scene.querySelector('[data-role="ws-sub"]');
     var windEl = scene.querySelector('[data-role="ws-wind"]');
     var windArrowEl = scene.querySelector('[data-role="ws-wind-arrow"]');
+    var humEl = scene.querySelector('[data-role="ws-humidity"]');
+    var precipEl = scene.querySelector('[data-role="ws-precip"]');
+    var pressEl = scene.querySelector('[data-role="ws-pressure"]');
     var pickerBtns = scene.querySelectorAll(".ws-pick-btn");
     var timeBtn = document.getElementById("ws_time_toggle");
 
@@ -66,7 +69,10 @@ document.addEventListener("DOMContentLoaded", function () {
         cond: "Ensoleillé",
         city: defaultCity,
         windSpeed: 12,
-        windDir: 220
+        windDir: 220,
+        humidity: 60,
+        precip: 0,
+        pressure: 1015
     };
 
     function getWindCardinal(deg) {
@@ -144,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function fetchMeteo(targetLat, targetLon, cityName) {
-        var url = "https://api.open-meteo.com/v1/forecast?latitude=" + targetLat + "&longitude=" + targetLon + "&current=temperature_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m&timezone=auto";
+        var url = "https://api.open-meteo.com/v1/forecast?latitude=" + targetLat + "&longitude=" + targetLon + "&current=temperature_2m,relative_humidity_2m,surface_pressure,weather_code,is_day,wind_speed_10m,wind_direction_10m,precipitation&hourly=precipitation_probability&forecast_days=1&timezone=auto";
         return fetch(url)
             .then(function (res) { return res.ok ? res.json() : null; })
             .then(function (payload) {
@@ -158,6 +164,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 var temp = Math.round(curr.temperature_2m);
                 var windSpeed = Math.round(curr.wind_speed_10m || 0);
                 var windDir = Math.round(curr.wind_direction_10m || 0);
+                var humidity = Math.round(curr.relative_humidity_2m || 0);
+                var pressure = Math.round(curr.surface_pressure || 1013);
+                var precipProb = 0;
+                if (payload.hourly && payload.hourly.precipitation_probability && payload.hourly.precipitation_probability.length > 0) {
+                    var curHour = new Date().getHours();
+                    precipProb = Math.round(payload.hourly.precipitation_probability[curHour] || payload.hourly.precipitation_probability[0] || 0);
+                } else if (curr.precipitation && curr.precipitation > 0) {
+                    precipProb = Math.min(100, Math.round(curr.precipitation * 30));
+                }
 
                 realState = {
                     type: determineWeatherType(code),
@@ -166,7 +181,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     cond: getWeatherDesc(code, isDay),
                     city: cityName || defaultCity,
                     windSpeed: windSpeed,
-                    windDir: windDir
+                    windDir: windDir,
+                    humidity: humidity,
+                    pressure: pressure,
+                    precip: precipProb
                 };
 
                 if (tempEl) tempEl.textContent = realState.temp;
@@ -175,11 +193,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (subEl) subEl.textContent = isDay ? "Observations du jour" : "Observations nocturnes";
 
                 if (windEl) {
-                    windEl.textContent = "Vent " + windSpeed + " km/h " + getWindCardinal(windDir);
+                    windEl.textContent = windSpeed + " km/h " + getWindCardinal(windDir);
                 }
                 if (windArrowEl) {
                     windArrowEl.style.transform = "rotate(" + (windDir + 180) + "deg)";
                 }
+                if (humEl) humEl.textContent = humidity + "%";
+                if (precipEl) precipEl.textContent = precipProb + "%";
+                if (pressEl) pressEl.textContent = pressure + " hPa";
 
                 applyScene(realState.type, realState.isDay);
             })
@@ -198,32 +219,61 @@ document.addEventListener("DOMContentLoaded", function () {
             cond: isDay ? "Ensoleillé" : "Nuit claire étoilée",
             city: defaultCity,
             windSpeed: 10,
-            windDir: 210
+            windDir: 210,
+            humidity: 65,
+            pressure: 1016,
+            precip: 5
         };
         if (tempEl) tempEl.textContent = realState.temp;
         if (condEl) condEl.textContent = realState.cond;
         if (cityEl) cityEl.textContent = realState.city;
         if (subEl) subEl.textContent = isDay ? "Journée estimée" : "Nuit estimée";
-        if (windEl) windEl.textContent = "Vent 10 km/h SO";
+        if (windEl) windEl.textContent = "10 km/h SO";
+        if (humEl) humEl.textContent = "65%";
+        if (precipEl) precipEl.textContent = "5%";
+        if (pressEl) pressEl.textContent = "1016 hPa";
         applyScene(realState.type, realState.isDay);
     }
 
     function reverseGeocodeAndFetch(uLat, uLon) {
+        function saveAndApply(cityName) {
+            try {
+                localStorage.setItem("wh_user_geo", JSON.stringify({ lat: uLat, lon: uLon, city: cityName }));
+            } catch (e) {}
+            if (cityEl) cityEl.textContent = cityName;
+            fetchMeteo(uLat, uLon, cityName);
+        }
+
         var geoApi = "https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=" + uLat + "&longitude=" + uLon + "&localityLanguage=fr";
         fetch(geoApi)
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (data) {
-                var detectedCity = defaultCity;
-                if (data && (data.city || data.locality)) {
-                    detectedCity = data.city || data.locality;
+                var detectedCity = null;
+                if (data) {
+                    detectedCity = data.city || data.locality || data.town || data.village;
                 }
-                try {
-                    localStorage.setItem("wh_user_geo", JSON.stringify({ lat: uLat, lon: uLon, city: detectedCity }));
-                } catch (e) {}
-                fetchMeteo(uLat, uLon, detectedCity);
+                if (detectedCity) {
+                    saveAndApply(detectedCity);
+                } else {
+                    // Fallback Nominatim
+                    var nomApi = "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + uLat + "&lon=" + uLon + "&accept-language=fr";
+                    fetch(nomApi)
+                        .then(function (nr) { return nr.ok ? nr.json() : null; })
+                        .then(function (ndata) {
+                            var nCity = defaultCity;
+                            if (ndata && ndata.address) {
+                                var a = ndata.address;
+                                nCity = a.city || a.town || a.village || a.municipality || defaultCity;
+                            }
+                            saveAndApply(nCity);
+                        })
+                        .catch(function () {
+                            saveAndApply(defaultCity);
+                        });
+                }
             })
             .catch(function () {
-                fetchMeteo(uLat, uLon, defaultCity);
+                saveAndApply(defaultCity);
             });
     }
 
@@ -268,19 +318,22 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (condEl) condEl.textContent = realState.cond;
                     if (cityEl) cityEl.textContent = realState.city;
                     if (subEl) subEl.textContent = realState.isDay ? "Observations du jour" : "Observations nocturnes";
-                    if (windEl) windEl.textContent = "Vent " + realState.windSpeed + " km/h " + getWindCardinal(realState.windDir);
+                    if (windEl) windEl.textContent = realState.windSpeed + " km/h " + getWindCardinal(realState.windDir);
                     if (windArrowEl) windArrowEl.style.transform = "rotate(" + (realState.windDir + 180) + "deg)";
+                    if (humEl) humEl.textContent = (realState.humidity || 60) + "%";
+                    if (precipEl) precipEl.textContent = (realState.precip || 0) + "%";
+                    if (pressEl) pressEl.textContent = (realState.pressure || 1015) + " hPa";
                     applyScene(realState.type, realState.isDay);
                     return;
                 }
 
                 var previews = {
-                    sunny: { temp: 22, cond: "Soleil radieux", dayOnly: true, wind: 8, dir: 180 },
-                    cloudy: { temp: 15, cond: "Ciel très nuageux", wind: 16, dir: 240 },
-                    rain: { temp: 12, cond: "Pluie battante", wind: 24, dir: 270 },
-                    storm: { temp: 18, cond: "Orage violent", wind: 45, dir: 315 },
-                    snow: { temp: -1, cond: "Neige abondante", wind: 12, dir: 45 },
-                    fog: { temp: 8, cond: "Brouillard épais", wind: 3, dir: 90 }
+                    sunny: { temp: 22, cond: "Soleil radieux", dayOnly: true, wind: 8, dir: 180, hum: 45, precip: 0, press: 1022 },
+                    cloudy: { temp: 15, cond: "Ciel très nuageux", wind: 16, dir: 240, hum: 70, precip: 15, press: 1015 },
+                    rain: { temp: 12, cond: "Pluie battante", wind: 24, dir: 270, hum: 92, precip: 85, press: 1004 },
+                    storm: { temp: 18, cond: "Orage violent", wind: 45, dir: 315, hum: 88, precip: 95, press: 998 },
+                    snow: { temp: -1, cond: "Neige abondante", wind: 12, dir: 45, hum: 80, precip: 75, press: 1012 },
+                    fog: { temp: 8, cond: "Brouillard épais", wind: 3, dir: 90, hum: 98, precip: 10, press: 1020 }
                 };
 
                 var data = previews[target];
@@ -290,8 +343,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (tempEl) tempEl.textContent = data.temp;
                     if (condEl) condEl.textContent = data.cond;
                     if (subEl) subEl.textContent = "Simulation d'ambiance";
-                    if (windEl) windEl.textContent = "Vent " + data.wind + " km/h " + getWindCardinal(data.dir);
+                    if (windEl) windEl.textContent = data.wind + " km/h " + getWindCardinal(data.dir);
                     if (windArrowEl) windArrowEl.style.transform = "rotate(" + (data.dir + 180) + "deg)";
+                    if (humEl) humEl.textContent = data.hum + "%";
+                    if (precipEl) precipEl.textContent = data.precip + "%";
+                    if (pressEl) pressEl.textContent = data.press + " hPa";
                     applyScene(target, isDay);
                 }
             });

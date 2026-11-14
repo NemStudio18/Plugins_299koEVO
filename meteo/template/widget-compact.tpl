@@ -18,6 +18,10 @@
     flex-shrink: 0;
 }
 
+.meteo-widget-compact .weather-icon-container {
+    box-shadow: none !important;
+}
+
 /* 1. HOT / SUNNY */
 .weather-icon-container.hot {
     background: linear-gradient(to top right, rgba(255, 87, 34, 1) 0%, rgba(251, 140, 0, 1) 100%);

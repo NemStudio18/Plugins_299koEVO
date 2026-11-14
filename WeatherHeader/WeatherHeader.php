@@ -5,6 +5,7 @@ defined('ROOT') or exit('Access denied!');
 use Core\Core;
 use Template\Template;
 use Core\Auth\CurrentUser;
+use Core\Auth\UsersManager;
 
 $GLOBALS['weatherHeaderRendered'] = false;
 
@@ -15,7 +16,7 @@ function weatherHeaderEndFrontHead($param = ''): string
 {
     $output = (string)$param;
     $cssFile = PLUGINS . 'WeatherHeader/assets/css/weather-header.css';
-    $v = file_exists($cssFile) ? filemtime($cssFile) : '2.0.2';
+    $v = file_exists($cssFile) ? filemtime($cssFile) : '2.1.0';
     $output .= '<link rel="stylesheet" href="/plugin/WeatherHeader/assets/css/weather-header.css?v=' . $v . '" type="text/css"/>' . "\n";
     return $output;
 }
@@ -115,10 +116,37 @@ function weatherHeaderRenderBanner($param = ''): string
         $lon = 2.3988;
     }
 
-    // Seul l'administrateur peut voir les boutons de test / simulation de scènes
+    // 2. Vérification STRICTE des droits Administrateur
     $isAdmin = false;
     if (class_exists(CurrentUser::class)) {
-        $isAdmin = CurrentUser::getInstance()->can_access('system:admin-access');
+        $user = UsersManager::getCurrentUser();
+        if ($user) {
+            $role = isset($user->role) ? $user->role : (method_exists($user, 'getRole') ? $user->getRole() : '');
+            if ($role === 'admin' || $role === 'administrator') {
+                $isAdmin = true;
+            } elseif (CurrentUser::get()->can_access('system:admin-access')) {
+                $isAdmin = true;
+            }
+        }
+    }
+
+    // 3. Sélecteur de simulation : STRICTEMENT RÉSERVÉ À L'ADMIN CONNECTÉ
+    // Les visiteurs non-admins ne reçoivent JAMAIS ce bloc HTML
+    $adminPickerHtml = '';
+    if ($isAdmin) {
+        $adminPickerHtml = '
+        <div class="ws-scene-picker" title="Simulation météo (Réservé à l\'administrateur)">
+            <button type="button" class="ws-pick-btn is-active" data-scene="auto" title="Météo réelle en direct">⚡ Réel</button>
+            <span class="ws-pick-sep"></span>
+            <button type="button" class="ws-pick-btn" data-scene="sunny" title="Ciel clair / Soleil">☀️</button>
+            <button type="button" class="ws-pick-btn" data-scene="cloudy" title="Nuageux">⛅</button>
+            <button type="button" class="ws-pick-btn" data-scene="rain" title="Pluie">🌧️</button>
+            <button type="button" class="ws-pick-btn" data-scene="storm" title="Orage">⛈️</button>
+            <button type="button" class="ws-pick-btn" data-scene="snow" title="Neige">❄️</button>
+            <button type="button" class="ws-pick-btn" data-scene="fog" title="Brume / Brouillard">🌫️</button>
+            <span class="ws-pick-sep"></span>
+            <button type="button" class="ws-pick-time-btn" id="ws_time_toggle" title="Basculer entre Jour et Nuit">🌙 Nuit</button>
+        </div>';
     }
 
     $tpl = new Template($tplPath);
@@ -127,7 +155,7 @@ function weatherHeaderRenderBanner($param = ''): string
     $tpl->set('latitude', $lat);
     $tpl->set('longitude', $lon);
     $tpl->set('autoGeolocate', $autoGeolocate);
-    $tpl->set('isAdmin', $isAdmin);
+    $tpl->set('adminPickerHtml', $adminPickerHtml);
 
     return (string)$param . $tpl->output();
 }
@@ -147,7 +175,7 @@ function weatherHeaderEndFrontBody($param = ''): string
     }
 
     $jsFile = PLUGINS . 'WeatherHeader/assets/js/weather-header.js';
-    $v = file_exists($jsFile) ? filemtime($jsFile) : '2.0.2';
+    $v = file_exists($jsFile) ? filemtime($jsFile) : '2.1.0';
     $output .= '<script src="/plugin/WeatherHeader/assets/js/weather-header.js?v=' . $v . '" defer></script>' . "\n";
     return $output;
 }

@@ -38,7 +38,7 @@
             <circle cx="1340" cy="75" r="1.5" class="ws-star ws-star-4"/>
         </g>
 
-        <!-- Astre Solaire (Jour) - Placé à gauche -->
+        <!-- Astre Solaire (Jour) - Placé à gauche pour ne jamais être masqué -->
         <g class="ws-sun-group">
             <circle cx="220" cy="90" r="80" fill="url(#wsSunGlow)" class="ws-sun-halo"/>
             <circle cx="220" cy="90" r="32" fill="#fef08a" class="ws-sun-disc"/>
@@ -54,7 +54,7 @@
             </g>
         </g>
 
-        <!-- Astre Lunaire (Nuit) - Placé à gauche -->
+        <!-- Astre Lunaire (Nuit) - Placé à gauche pour ne jamais être masqué -->
         <g class="ws-moon-group">
             <circle cx="220" cy="90" r="60" fill="url(#wsMoonGlow)" class="ws-moon-halo"/>
             <path d="M210,65 C228,65 242,79 242,97 C242,115 228,129 210,129 C205,129 200,128 195,126 C206,121 214,110 214,97 C214,84 206,73 195,68 C200,66 205,65 210,65 Z" fill="#ffffff" class="ws-moon-crescent"/>
@@ -100,14 +100,14 @@
             <path class="ws-cloud" d="M1020,135 Q1070,100 1120,130 Q1180,90 1250,130 Q1290,115 1320,145 L1020,145 Z"/>
         </g>
 
-        <!-- Éclair et Foudre (Orage) -->
-        <g class="ws-lightning-group">
-            <polygon class="ws-bolt" points="750,20 730,90 745,90 720,165 770,85 750,85 765,20"/>
-            <circle cx="730" cy="100" r="60" class="ws-lightning-glow"/>
+        <!-- Éclair et Foudre (Orage uniquement) -->
+        <g class="ws-lightning-group" aria-hidden="true">
+            <polygon class="ws-bolt" points="750,20 730,90 745,90 720,165 770,85 750,85 765,20" fill="#fef08a"/>
+            <circle cx="730" cy="100" r="60" class="ws-lightning-glow" fill="rgba(254, 240, 138, 0.35)"/>
         </g>
 
-        <!-- Rideau de Pluie -->
-        <g class="ws-rain-group">
+        <!-- Rideau de Pluie (Pluie & Orage uniquement) -->
+        <g class="ws-rain-group" aria-hidden="true">
             <line x1="80" y1="20" x2="60" y2="80" class="ws-drop ws-drop-1"/>
             <line x1="240" y1="50" x2="220" y2="110" class="ws-drop ws-drop-2"/>
             <line x1="420" y1="10" x2="400" y2="70" class="ws-drop ws-drop-3"/>
@@ -119,8 +119,8 @@
             <line x1="1400" y1="10" x2="1380" y2="70" class="ws-drop ws-drop-1"/>
         </g>
 
-        <!-- Chute de Flocons de Neige -->
-        <g class="ws-snow-group">
+        <!-- Chute de Flocons de Neige (Neige uniquement) -->
+        <g class="ws-snow-group" aria-hidden="true">
             <circle cx="160" cy="50" r="3.2" class="ws-flake ws-flake-1"/>
             <circle cx="340" cy="70" r="2.5" class="ws-flake ws-flake-2"/>
             <circle cx="520" cy="40" r="4.0" class="ws-flake ws-flake-3"/>
@@ -131,51 +131,51 @@
             <circle cx="1380" cy="65" r="2.5" class="ws-flake ws-flake-4"/>
         </g>
 
-        <!-- Nappe de Brouillard -->
-        <g class="ws-mist-group">
+        <!-- Nappe de Brouillard (Brouillard uniquement) -->
+        <g class="ws-mist-group" aria-hidden="true">
             <path class="ws-mist-wave ws-mist-1" d="M-100,280 Q300,260 700,285 Q1100,310 1540,280 L1540,320 L-100,320 Z"/>
             <path class="ws-mist-wave ws-mist-2" d="M-50,295 Q350,315 750,290 Q1150,265 1500,295 L1500,320 L-50,320 Z"/>
         </g>
     </svg>
 
-    <!-- Superposition Carte Météo Frosted Glass (Positionnée à droite pour dégager le Soleil et la Lune) -->
+    <!-- Superposition Carte Météo Frosted Glass Compacte (Positionnée à DROITE pour dégager Soleil et Lune) -->
     <div class="ws-overlay-card">
-        <div class="ws-card-badge">
-            <span class="ws-live-dot" aria-hidden="true"></span>
-            <span class="ws-card-city" data-role="ws-city">{{defaultCity}}</span>
+        <div class="ws-card-header">
+            <div class="ws-card-badge">
+                <span class="ws-live-dot" aria-hidden="true"></span>
+                <span class="ws-card-city" data-role="ws-city">{{defaultCity}}</span>
+            </div>
+            <span class="ws-condition-sub" data-role="ws-sub">En direct</span>
         </div>
-        <div class="ws-card-main">
+
+        <div class="ws-card-body">
             <div class="ws-temp-wrap">
                 <span class="ws-temp-value" data-role="ws-temp">--</span>
                 <span class="ws-temp-unit">°C</span>
             </div>
-            <div class="ws-condition-wrap">
-                <span class="ws-condition-text" data-role="ws-condition">Chargement...</span>
-                <div class="ws-meta-row">
-                    <span class="ws-condition-sub" data-role="ws-sub">En direct</span>
-                    <span class="ws-meta-sep" aria-hidden="true">·</span>
-                    <span class="ws-wind-wrap" data-role="ws-wind-wrap" title="Sens et vitesse du vent">
-                        <span class="ws-wind-arrow" data-role="ws-wind-arrow" aria-hidden="true">↑</span>
-                        <span class="ws-wind-text" data-role="ws-wind">Vent --</span>
-                    </span>
-                </div>
+            <div class="ws-condition-text" data-role="ws-condition">Chargement...</div>
+        </div>
+
+        <!-- Micro-indicateurs météorologiques précis -->
+        <div class="ws-metrics-grid">
+            <div class="ws-metric-item" title="Vitesse et sens du vent">
+                <span class="ws-metric-icon ws-wind-arrow" data-role="ws-wind-arrow" aria-hidden="true">↑</span>
+                <span class="ws-metric-val" data-role="ws-wind">-- km/h</span>
+            </div>
+            <div class="ws-metric-item" title="Humidité relative de l'air">
+                <span class="ws-metric-icon">💧</span>
+                <span class="ws-metric-val" data-role="ws-humidity">--%</span>
+            </div>
+            <div class="ws-metric-item" title="Probabilité de précipitations">
+                <span class="ws-metric-icon">🌧️</span>
+                <span class="ws-metric-val" data-role="ws-precip">0%</span>
+            </div>
+            <div class="ws-metric-item" title="Pression atmosphérique">
+                <span class="ws-metric-icon">🧭</span>
+                <span class="ws-metric-val" data-role="ws-pressure">-- hPa</span>
             </div>
         </div>
 
-        <!-- Sélecteur d'ambiances de simulation (RÉSERVÉ À L'ADMINISTRATEUR) -->
-        {% if isAdmin %}
-        <div class="ws-scene-picker" title="Simulation météo (Panneau Administrateur)">
-            <button type="button" class="ws-pick-btn is-active" data-scene="auto" title="Météo réelle en direct">⚡ Réel</button>
-            <span class="ws-pick-sep"></span>
-            <button type="button" class="ws-pick-btn" data-scene="sunny" title="Ciel clair / Soleil">☀️</button>
-            <button type="button" class="ws-pick-btn" data-scene="cloudy" title="Nuageux">⛅</button>
-            <button type="button" class="ws-pick-btn" data-scene="rain" title="Pluie">🌧️</button>
-            <button type="button" class="ws-pick-btn" data-scene="storm" title="Orage">⛈️</button>
-            <button type="button" class="ws-pick-btn" data-scene="snow" title="Neige">❄️</button>
-            <button type="button" class="ws-pick-btn" data-scene="fog" title="Brume / Brouillard">🌫️</button>
-            <span class="ws-pick-sep"></span>
-            <button type="button" class="ws-pick-time-btn" id="ws_time_toggle" title="Basculer entre Jour et Nuit">🌙 Nuit</button>
-        </div>
-        {% endif %}
+        {{adminPickerHtml}}
     </div>
 </div>

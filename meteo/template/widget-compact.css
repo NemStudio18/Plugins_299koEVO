@@ -102,4 +102,76 @@ body.theme-dark .meteo-widget-compact__temp {
     visibility: visible;
     opacity: 1;
 }
+
+/* Neutraliser les halos bleus/agressifs dans tous les en-têtes */
+.meteo-widget-compact .weather-icon-container {
+    box-shadow: none !important;
+}
+
+/* Thème Ebene : capsule d'ébénisterie royale & or */
+body.theme-ebene .meteo-widget-compact {
+    background: var(--eb-surface, #180e08);
+    border: 1px solid var(--eb-border, rgba(212, 175, 55, 0.25));
+    border-radius: 9999px;
+    padding: 2px 10px 2px 4px;
+    transition: all 0.2s ease;
+}
+body.theme-ebene .meteo-widget-compact:hover {
+    background: var(--eb-surface-alt, #24150c);
+    border-color: var(--eb-gold, #d4af37);
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.35);
+}
+body.theme-ebene .meteo-widget-compact__temp {
+    color: var(--eb-gold, #d4af37) !important;
+}
+
+/* Thème Ignis : capsule braise & flamme */
+body.theme-ignis .meteo-widget-compact {
+    background: var(--ignis-surface, #0f172a);
+    border: 1px solid var(--ignis-border, rgba(249, 115, 22, 0.3));
+    border-radius: 9999px;
+    padding: 2px 10px 2px 4px;
+    transition: all 0.2s ease;
+}
+body.theme-ignis .meteo-widget-compact:hover {
+    border-color: var(--ignis-primary, #f97316);
+    box-shadow: 0 0 12px rgba(249, 115, 22, 0.35);
+}
+body.theme-ignis .meteo-widget-compact__temp {
+    color: var(--ignis-primary, #f97316) !important;
+}
+
+/* Thème Végétal : capsule chlorophylle */
+body.theme-vegetal .meteo-widget-compact {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 9999px;
+    padding: 2px 10px 2px 4px;
+    transition: all 0.2s ease;
+}
+body.theme-vegetal .meteo-widget-compact:hover {
+    border-color: #16a34a;
+    box-shadow: 0 0 12px rgba(22, 163, 74, 0.25);
+}
+body.theme-vegetal .meteo-widget-compact__temp {
+    color: #15803d !important;
+}
+
+/* Thème DesktopOS : capsule acrylique macOS */
+body.theme-desktop-os .meteo-widget-compact {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+    padding: 2px 10px 2px 4px;
+    transition: all 0.2s ease;
+}
+body.theme-desktop-os .meteo-widget-compact:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+body.theme-desktop-os .meteo-widget-compact__temp {
+    color: #ffffff !important;
+}
 }

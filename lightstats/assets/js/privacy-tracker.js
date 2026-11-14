@@ -166,14 +166,104 @@
                 animation: vbSlideUp 0.35s ease-out;
             }
             body.theme-dark #vb-privacy-toast,
-            body.theme-ebene #vb-privacy-toast,
-            body.theme-ignis #vb-privacy-toast,
-            body.theme-desktop-os #vb-privacy-toast,
             [data-theme="dark"] #vb-privacy-toast {
                 background: #18181b;
                 color: #f4f4f5;
                 border: 1px solid #3f3f46;
                 box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
+            }
+            /* Thème Ebene : Ébénisterie royale et or */
+            body.theme-ebene #vb-privacy-toast {
+                background: #1c110a !important;
+                color: #fdfaf6 !important;
+                border: 1px solid rgba(212, 175, 55, 0.48) !important;
+                box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8), 0 0 24px rgba(212, 175, 55, 0.15) !important;
+            }
+            body.theme-ebene .vb-privacy-header {
+                color: #f9e295 !important;
+            }
+            body.theme-ebene .vb-privacy-icon {
+                color: #d4af37 !important;
+            }
+            body.theme-ebene .vb-privacy-text {
+                color: #d8c7b4 !important;
+            }
+            body.theme-ebene .vb-btn-refuse {
+                background: #24150c !important;
+                color: #fdfaf6 !important;
+                border: 1px solid rgba(212, 175, 55, 0.3) !important;
+            }
+            body.theme-ebene .vb-btn-refuse:hover {
+                border-color: #d4af37 !important;
+                color: #f9e295 !important;
+            }
+            body.theme-ebene .vb-btn-accept {
+                background: linear-gradient(135deg, #d4af37 0%, #a07817 100%) !important;
+                color: #120904 !important;
+                font-weight: 700 !important;
+                box-shadow: 0 4px 14px rgba(212, 175, 55, 0.4) !important;
+            }
+            body.theme-ebene .vb-btn-accept:hover {
+                background: linear-gradient(135deg, #f9e295 0%, #d4af37 100%) !important;
+                box-shadow: 0 6px 18px rgba(212, 175, 55, 0.6) !important;
+            }
+
+            /* Thème Ignis : Braise et flamme */
+            body.theme-ignis #vb-privacy-toast {
+                background: #0f172a !important;
+                color: #f8fafc !important;
+                border: 1px solid rgba(249, 115, 22, 0.4) !important;
+                box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7), 0 0 20px rgba(249, 115, 22, 0.15) !important;
+            }
+            body.theme-ignis .vb-privacy-header {
+                color: #fb923c !important;
+            }
+            body.theme-ignis .vb-privacy-text {
+                color: #cbd5e1 !important;
+            }
+            body.theme-ignis .vb-btn-refuse {
+                background: #1e293b !important;
+                color: #f8fafc !important;
+                border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            }
+            body.theme-ignis .vb-btn-accept {
+                background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+                color: #ffffff !important;
+                box-shadow: 0 4px 14px rgba(249, 115, 22, 0.4) !important;
+            }
+
+            /* Thème Végétal : Forêt et chlorophylle */
+            body.theme-vegetal #vb-privacy-toast {
+                background: #ffffff !important;
+                color: #14532d !important;
+                border: 1px solid rgba(34, 197, 94, 0.35) !important;
+                box-shadow: 0 16px 36px rgba(20, 83, 45, 0.12) !important;
+            }
+            body.theme-vegetal .vb-privacy-header {
+                color: #15803d !important;
+            }
+            body.theme-vegetal .vb-privacy-text {
+                color: #374151 !important;
+            }
+            body.theme-vegetal .vb-btn-refuse {
+                background: #f0fdf4 !important;
+                color: #166534 !important;
+                border: 1px solid #bbf7d0 !important;
+            }
+            body.theme-vegetal .vb-btn-accept {
+                background: #16a34a !important;
+                color: #ffffff !important;
+                box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3) !important;
+            }
+
+            /* Thème DesktopOS : Verre dépoli macOS */
+            body.theme-desktop-os #vb-privacy-toast {
+                background: rgba(15, 23, 42, 0.85) !important;
+                backdrop-filter: blur(20px) saturate(180%) !important;
+                -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+                color: #f8fafc !important;
+                border: 1px solid rgba(255, 255, 255, 0.16) !important;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45) !important;
             }
             @keyframes vbSlideUp {
                 from { transform: translateY(30px); opacity: 0; }
@@ -188,10 +278,7 @@
                 font-weight: 700;
                 color: #2563eb;
             }
-            body.theme-dark .vb-privacy-header,
-            body.theme-ebene .vb-privacy-header,
-            body.theme-ignis .vb-privacy-header,
-            body.theme-desktop-os .vb-privacy-header {
+            body.theme-dark .vb-privacy-header {
                 color: #60a5fa;
             }
             .vb-privacy-text {
@@ -200,10 +287,7 @@
                 color: #64748b;
                 margin: 0 0 16px 0;
             }
-            body.theme-dark .vb-privacy-text,
-            body.theme-ebene .vb-privacy-text,
-            body.theme-ignis .vb-privacy-text,
-            body.theme-desktop-os .vb-privacy-text {
+            body.theme-dark .vb-privacy-text {
                 color: #a1a1aa;
             }
             .vb-privacy-actions {
@@ -228,10 +312,7 @@
             .vb-btn-refuse:hover {
                 border-color: #2563eb;
             }
-            body.theme-dark .vb-btn-refuse,
-            body.theme-ebene .vb-btn-refuse,
-            body.theme-ignis .vb-btn-refuse,
-            body.theme-desktop-os .vb-btn-refuse {
+            body.theme-dark .vb-btn-refuse {
                 background: #27272a;
                 color: #f4f4f5;
                 border: 1px solid #3f3f46;
