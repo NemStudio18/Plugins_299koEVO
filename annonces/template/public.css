@@ -168,8 +168,8 @@ a.annonce-card-btn:visited {
     padding: 9px 14px;
     border-radius: var(--evo-radius-sm);
     background: var(--evo-accent);
-    color: #ffffff !important;
-    text-decoration: none !important;
+    color: #ffffff;
+    text-decoration: none;
     font-weight: 600;
     font-size: 0.9rem;
     margin-top: 6px;
@@ -178,8 +178,8 @@ a.annonce-card-btn:visited {
 a.annonce-card-btn:hover,
 a.annonce-card-btn:focus {
     background: var(--evo-accent-hover);
-    color: #ffffff !important;
-    text-decoration: none !important;
+    color: #ffffff;
+    text-decoration: none;
 }
 .annonce-detail-grid {
     display: grid;
