@@ -103,8 +103,8 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             var d = payload.data;
             var temp = Math.round(d.temperature);
-            var isDay = (typeof d.isDay !== "undefined") ? Boolean(d.isDay) : true;
-            var code = (typeof d.weatherCode !== "undefined") ? parseInt(d.weatherCode, 10) : 0;
+            var isDay = (typeof d.is_day !== "undefined") ? Boolean(d.is_day) : ((typeof d.isDay !== "undefined") ? Boolean(d.isDay) : true);
+            var code = (typeof d.weather_code !== "undefined") ? parseInt(d.weather_code, 10) : ((typeof d.weatherCode !== "undefined") ? parseInt(d.weatherCode, 10) : 0);
 
             if (tempEl) tempEl.textContent = temp;
             if (condEl) condEl.textContent = getWeatherDesc(code, isDay);
