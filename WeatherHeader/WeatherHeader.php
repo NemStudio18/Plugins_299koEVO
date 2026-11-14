@@ -104,14 +104,14 @@ function weatherHeaderRenderBanner($param = ''): string
     // Si le plugin meteo est absent, WeatherHeader demandera de lui-même la géolocalisation
     $autoGeolocate = !$hasMeteoPlugin;
 
-    // Fallbacks globaux CMS
-    if (empty($city)) {
+    // Fallbacks globaux CMS (Bourges préfecture du Cher par défaut)
+    if (empty($city) || $city === 'Paris') {
         $city = $core->getConfigVal('siteCity') ?: 'Bourges';
     }
     if (empty($country)) {
         $country = 'FR';
     }
-    if (empty($lat) || empty($lon)) {
+    if (empty($lat) || empty($lon) || ($lat == 48.8566 && $lon == 2.3522)) {
         $lat = 47.0810;
         $lon = 2.3988;
     }

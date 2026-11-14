@@ -73,8 +73,8 @@
 
 .ws-time-night .ws-window-glow,
 .weather-state-night .ws-window-glow {
-    fill: #fef08a !important;
-    filter: drop-shadow(0 0 4px #f59e0b) drop-shadow(0 0 8px rgba(245, 158, 11, 0.6)) !important;
+    fill: #fef08a;
+    filter: drop-shadow(0 0 4px #f59e0b) drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
 }
 
 .ws-hill-front {
@@ -90,8 +90,18 @@
     transform-origin: 220px 90px;
 }
 
+.ws-sun-halo {
+    animation: wsSunPulse 7s ease-in-out infinite alternate;
+    transform-origin: 220px 90px;
+}
+
+@keyframes wsSunPulse {
+    0% { opacity: 0.75; transform: scale(0.96); }
+    100% { opacity: 1; transform: scale(1.08); }
+}
+
 .ws-sun-rays {
-    animation: wsSunRaySpin 30s linear infinite;
+    animation: wsSunRaySpin 36s linear infinite;
     transform-origin: 220px 90px;
 }
 
@@ -106,8 +116,28 @@
     transform-origin: 220px 90px;
 }
 
+.ws-moon-halo {
+    animation: wsMoonPulse 5s ease-in-out infinite alternate;
+    transform-origin: 220px 90px;
+}
+
+.ws-moon-halo-outer {
+    animation: wsMoonPulseOuter 9s ease-in-out infinite alternate;
+    transform-origin: 220px 90px;
+}
+
+@keyframes wsMoonPulse {
+    0% { opacity: 0.8; transform: scale(0.97); }
+    100% { opacity: 1; transform: scale(1.06); }
+}
+
+@keyframes wsMoonPulseOuter {
+    0% { opacity: 0.4; transform: scale(0.94); }
+    100% { opacity: 0.75; transform: scale(1.1); }
+}
+
 .ws-moon-crescent {
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.85));
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 24px rgba(186, 230, 253, 0.6));
 }
 
 .ws-stars-group {
@@ -156,8 +186,8 @@
 /* Pluie */
 .ws-rain-group,
 .ws-rain-drops {
-    display: none !important;
-    opacity: 0 !important;
+    display: none;
+    opacity: 0;
     transition: opacity 0.8s ease;
 }
 
@@ -181,17 +211,17 @@
 /* Foudre / Orage */
 .ws-lightning-group,
 .ws-storm-lightning {
-    display: none !important;
-    opacity: 0 !important;
+    display: none;
+    opacity: 0;
     transition: opacity 0.2s ease;
 }
 
 .ws-lightning-group .ws-bolt {
-    fill: #fef08a !important;
+    fill: #fef08a;
 }
 
 .ws-lightning-group .ws-lightning-glow {
-    fill: rgba(254, 240, 138, 0.35) !important;
+    fill: rgba(254, 240, 138, 0.35);
 }
 
 @keyframes wsLightningBolt {
@@ -213,8 +243,8 @@
 /* Neige */
 .ws-snow-group,
 .ws-snow-flakes {
-    display: none !important;
-    opacity: 0 !important;
+    display: none;
+    opacity: 0;
     transition: opacity 0.8s ease;
 }
 
@@ -239,8 +269,8 @@
 
 /* Brume / Brouillard */
 .ws-mist-group {
-    display: none !important;
-    opacity: 0 !important;
+    display: none;
+    opacity: 0;
     transition: opacity 1s ease;
 }
 
@@ -269,7 +299,9 @@
 /* Jour */
 .ws-time-day.weather-state-sunny .ws-sky-layer,
 .weather-state-sunny:not(.ws-time-night) .ws-sky-layer {
-    background: linear-gradient(180deg, #0284c7 0%, #38bdf8 35%, #7dd3fc 70%, #fef08a 100%);
+    background:
+        radial-gradient(circle at 16% 28%, rgba(254, 240, 138, 0.35) 0%, transparent 45%),
+        linear-gradient(180deg, #0284c7 0%, #38bdf8 35%, #7dd3fc 68%, #fde68a 100%);
 }
 .ws-time-day.weather-state-sunny,
 .weather-state-sunny:not(.ws-time-night) {
@@ -303,7 +335,10 @@
 .ws-time-night.weather-state-sunny .ws-sky-layer,
 .ws-time-night.weather-state-clear .ws-sky-layer,
 .weather-state-night .ws-sky-layer {
-    background: linear-gradient(180deg, #050811 0%, #0c1222 40%, #1e1b4b 75%, #312e81 100%);
+    background:
+        radial-gradient(circle at 15% 28%, rgba(224, 231, 255, 0.16) 0%, transparent 40%),
+        radial-gradient(circle at 75% 18%, rgba(129, 140, 248, 0.12) 0%, transparent 50%),
+        linear-gradient(180deg, #020617 0%, #080e1d 35%, #0f172a 70%, #1e1b4b 100%);
 }
 .ws-time-night.weather-state-sunny,
 .ws-time-night.weather-state-clear,
@@ -598,22 +633,22 @@
    CARTE D'INFORMATIONS MÉTÉO COMPACTE & DISCRÈTE (EN HAUT À DROITE)
    ========================================================================== */
 .ws-overlay-card {
-    position: absolute !important;
-    top: 12px !important;
-    right: 16px !important;
-    left: auto !important;
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    left: auto;
     z-index: 10;
-    background: var(--evo-card-bg, rgba(15, 23, 42, 0.8)) !important;
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
-    border: 1px solid var(--evo-border, rgba(255, 255, 255, 0.16)) !important;
-    border-radius: var(--evo-radius-md, 10px) !important;
-    padding: 7px 12px !important;
-    color: var(--evo-text, #ffffff) !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
-    width: auto !important;
-    max-width: 230px !important;
-    box-sizing: border-box !important;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--evo-radius-md, 10px);
+    padding: 7px 12px;
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    width: auto;
+    max-width: 230px;
+    box-sizing: border-box;
 }
 
 .ws-card-header {
@@ -652,7 +687,7 @@
 
 .ws-condition-sub {
     font-size: 0.68rem;
-    color: var(--evo-text-muted, #94a3b8);
+    color: rgba(255, 255, 255, 0.65);
 }
 
 .ws-card-body {
@@ -672,20 +707,20 @@
     font-weight: 800;
     line-height: 1;
     letter-spacing: -0.02em;
-    color: var(--evo-text, #ffffff);
+    color: #ffffff;
 }
 
 .ws-temp-unit {
     font-size: 0.85rem;
     font-weight: 600;
-    color: var(--evo-text-muted, #94a3b8);
+    color: rgba(255, 255, 255, 0.7);
     margin-left: 1px;
 }
 
 .ws-condition-text {
     font-size: 0.86rem;
     font-weight: 600;
-    color: var(--evo-text, #f8fafc);
+    color: #f8fafc;
     line-height: 1.15;
 }
 
@@ -695,9 +730,9 @@
     grid-template-columns: 1fr 1fr;
     gap: 2px 8px;
     padding-top: 4px;
-    border-top: 1px solid var(--evo-border, rgba(255, 255, 255, 0.12));
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
     font-size: 0.7rem;
-    color: var(--evo-text-muted, #cbd5e1);
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .ws-metric-item {
@@ -723,7 +758,7 @@
 
 .ws-metric-val {
     font-weight: 500;
-    color: var(--evo-text, #e2e8f0);
+    color: #ffffff;
 }
 
 @media (max-width: 640px) {
@@ -732,11 +767,11 @@
         min-height: 240px;
     }
     .ws-overlay-card {
-        top: 10px !important;
-        right: 10px !important;
-        left: auto !important;
-        max-width: 210px !important;
-        padding: 6px 10px !important;
+        top: 10px;
+        right: 10px;
+        left: auto;
+        max-width: 210px;
+        padding: 6px 10px;
     }
     .ws-temp-value {
         font-size: 1.4rem;

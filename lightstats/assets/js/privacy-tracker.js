@@ -174,96 +174,96 @@
             }
             /* Thème Ebene : Ébénisterie royale et or */
             body.theme-ebene #vb-privacy-toast {
-                background: #1c110a !important;
-                color: #fdfaf6 !important;
-                border: 1px solid rgba(212, 175, 55, 0.48) !important;
-                box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8), 0 0 24px rgba(212, 175, 55, 0.15) !important;
+                background: #1c110a;
+                color: #fdfaf6;
+                border: 1px solid rgba(212, 175, 55, 0.48);
+                box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8), 0 0 24px rgba(212, 175, 55, 0.15);
             }
             body.theme-ebene .vb-privacy-header {
-                color: #f9e295 !important;
+                color: #f9e295;
             }
             body.theme-ebene .vb-privacy-icon {
-                color: #d4af37 !important;
+                color: #d4af37;
             }
             body.theme-ebene .vb-privacy-text {
-                color: #d8c7b4 !important;
+                color: #d8c7b4;
             }
             body.theme-ebene .vb-btn-refuse {
-                background: #24150c !important;
-                color: #fdfaf6 !important;
-                border: 1px solid rgba(212, 175, 55, 0.3) !important;
+                background: #24150c;
+                color: #fdfaf6;
+                border: 1px solid rgba(212, 175, 55, 0.3);
             }
             body.theme-ebene .vb-btn-refuse:hover {
-                border-color: #d4af37 !important;
-                color: #f9e295 !important;
+                border-color: #d4af37;
+                color: #f9e295;
             }
             body.theme-ebene .vb-btn-accept {
-                background: linear-gradient(135deg, #d4af37 0%, #a07817 100%) !important;
-                color: #120904 !important;
-                font-weight: 700 !important;
-                box-shadow: 0 4px 14px rgba(212, 175, 55, 0.4) !important;
+                background: linear-gradient(135deg, #d4af37 0%, #a07817 100%);
+                color: #120904;
+                font-weight: 700;
+                box-shadow: 0 4px 14px rgba(212, 175, 55, 0.4);
             }
             body.theme-ebene .vb-btn-accept:hover {
-                background: linear-gradient(135deg, #f9e295 0%, #d4af37 100%) !important;
-                box-shadow: 0 6px 18px rgba(212, 175, 55, 0.6) !important;
+                background: linear-gradient(135deg, #f9e295 0%, #d4af37 100%);
+                box-shadow: 0 6px 18px rgba(212, 175, 55, 0.6);
             }
 
             /* Thème Ignis : Braise et flamme */
             body.theme-ignis #vb-privacy-toast {
-                background: #0f172a !important;
-                color: #f8fafc !important;
-                border: 1px solid rgba(249, 115, 22, 0.4) !important;
-                box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7), 0 0 20px rgba(249, 115, 22, 0.15) !important;
+                background: #0f172a;
+                color: #f8fafc;
+                border: 1px solid rgba(249, 115, 22, 0.4);
+                box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7), 0 0 20px rgba(249, 115, 22, 0.15);
             }
             body.theme-ignis .vb-privacy-header {
-                color: #fb923c !important;
+                color: #fb923c;
             }
             body.theme-ignis .vb-privacy-text {
-                color: #cbd5e1 !important;
+                color: #cbd5e1;
             }
             body.theme-ignis .vb-btn-refuse {
-                background: #1e293b !important;
-                color: #f8fafc !important;
-                border: 1px solid rgba(255, 255, 255, 0.15) !important;
+                background: #1e293b;
+                color: #f8fafc;
+                border: 1px solid rgba(255, 255, 255, 0.15);
             }
             body.theme-ignis .vb-btn-accept {
-                background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
-                color: #ffffff !important;
-                box-shadow: 0 4px 14px rgba(249, 115, 22, 0.4) !important;
+                background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+                color: #ffffff;
+                box-shadow: 0 4px 14px rgba(249, 115, 22, 0.4);
             }
 
             /* Thème Végétal : Forêt et chlorophylle */
             body.theme-vegetal #vb-privacy-toast {
-                background: #ffffff !important;
-                color: #14532d !important;
-                border: 1px solid rgba(34, 197, 94, 0.35) !important;
-                box-shadow: 0 16px 36px rgba(20, 83, 45, 0.12) !important;
+                background: #ffffff;
+                color: #14532d;
+                border: 1px solid rgba(34, 197, 94, 0.35);
+                box-shadow: 0 16px 36px rgba(20, 83, 45, 0.12);
             }
             body.theme-vegetal .vb-privacy-header {
-                color: #15803d !important;
+                color: #15803d;
             }
             body.theme-vegetal .vb-privacy-text {
-                color: #374151 !important;
+                color: #374151;
             }
             body.theme-vegetal .vb-btn-refuse {
-                background: #f0fdf4 !important;
-                color: #166534 !important;
-                border: 1px solid #bbf7d0 !important;
+                background: #f0fdf4;
+                color: #166534;
+                border: 1px solid #bbf7d0;
             }
             body.theme-vegetal .vb-btn-accept {
-                background: #16a34a !important;
-                color: #ffffff !important;
-                box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3) !important;
+                background: #16a34a;
+                color: #ffffff;
+                box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3);
             }
 
             /* Thème DesktopOS : Verre dépoli macOS */
             body.theme-desktop-os #vb-privacy-toast {
-                background: rgba(15, 23, 42, 0.85) !important;
-                backdrop-filter: blur(20px) saturate(180%) !important;
-                -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-                color: #f8fafc !important;
-                border: 1px solid rgba(255, 255, 255, 0.16) !important;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45) !important;
+                background: rgba(15, 23, 42, 0.85);
+                backdrop-filter: blur(20px) saturate(180%);
+                -webkit-backdrop-filter: blur(20px) saturate(180%);
+                color: #f8fafc;
+                border: 1px solid rgba(255, 255, 255, 0.16);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
             }
             @keyframes vbSlideUp {
                 from { transform: translateY(30px); opacity: 0; }
@@ -276,19 +276,19 @@
                 margin-bottom: 8px;
                 font-size: 15px;
                 font-weight: 700;
-                color: #2563eb;
+                color: var(--evo-accent, #2563eb);
             }
             body.theme-dark .vb-privacy-header {
-                color: #60a5fa;
+                color: var(--evo-accent, #60a5fa);
             }
             .vb-privacy-text {
                 font-size: 13px;
                 line-height: 1.5;
-                color: #64748b;
+                color: var(--evo-text-muted, #64748b);
                 margin: 0 0 16px 0;
             }
             body.theme-dark .vb-privacy-text {
-                color: #a1a1aa;
+                color: var(--evo-text-muted, #a1a1aa);
             }
             .vb-privacy-actions {
                 display: flex;
@@ -305,25 +305,26 @@
                 border: none;
             }
             .vb-btn-refuse {
-                background: #f1f5f9;
-                color: #334155;
-                border: 1px solid #cbd5e1;
+                background: var(--evo-surface-alt, #f1f5f9);
+                color: var(--evo-text, #334155);
+                border: 1px solid var(--evo-border, #cbd5e1);
             }
             .vb-btn-refuse:hover {
-                border-color: #2563eb;
+                border-color: var(--evo-accent, #2563eb);
+                color: var(--evo-text, #334155);
             }
             body.theme-dark .vb-btn-refuse {
-                background: #27272a;
-                color: #f4f4f5;
-                border: 1px solid #3f3f46;
+                background: var(--evo-surface-alt, #27272a);
+                color: var(--evo-text, #f4f4f5);
+                border: 1px solid var(--evo-border, #3f3f46);
             }
             .vb-btn-accept {
-                background: #2563eb;
-                color: #ffffff;
-                box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+                background: var(--evo-accent, #2563eb);
+                color: var(--evo-accent-text, #ffffff);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             }
             .vb-btn-accept:hover {
-                background: #1d4ed8;
+                background: var(--evo-accent-hover, #1d4ed8);
                 transform: translateY(-1px);
             }
             @media (max-width: 600px) {

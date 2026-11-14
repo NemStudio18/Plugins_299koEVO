@@ -20,7 +20,7 @@
 }
 
 .antispam-icon > input[type="radio"]:checked + label {
-    color: var(--primary-color);
+    color: var(--evo-accent);
 }
 .antispam-icon > input[type="radio"] {
     display: none;

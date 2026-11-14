@@ -2,6 +2,8 @@
    NATIVE LIVECHAT WIDGET — STYLES (Harmonisé Thème)
    ========================================================================== */
 
+@layer evo-plugins {
+
 .vb-chat-launcher {
     position: fixed;
     bottom: 24px;
@@ -292,4 +294,6 @@
         max-height: 85vh;
         border-radius: 20px 20px 0 0;
     }
+}
+
 }

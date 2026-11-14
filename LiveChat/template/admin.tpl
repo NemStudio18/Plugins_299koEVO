@@ -490,7 +490,7 @@
     border-radius: 11px;
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    text-decoration: none !important;
+    text-decoration: none;
     color: inherit;
     transition: all 0.15s ease;
 }
@@ -499,8 +499,8 @@
     border-color: #cbd5e1;
 }
 .livechat-conv-item.active {
-    background: var(--lc-accent-soft) !important;
-    border-color: var(--lc-accent-border) !important;
+    background: var(--lc-accent-soft);
+    border-color: var(--lc-accent-border);
     box-shadow: 0 2px 8px rgba(31, 98, 169, 0.12);
 }
 .livechat-conv-item.has-unread {
@@ -969,7 +969,7 @@
     font-weight: 700;
 }
 .is-hidden {
-    display: none !important;
+    display: none;
 }
 
 /* RESPONSIVE MOBILE */

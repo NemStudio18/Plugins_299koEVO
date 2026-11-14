@@ -125,7 +125,7 @@ function messagingUserProfileStats(array $stats): array
     $stats[] = [
         'label' => 'Messages envoyés',
         'value' => $count,
-        'color' => 'var(--primary-color)',
+        'color' => 'var(--evo-accent, var(--primary-color))',
         'icon' => 'fa-solid fa-paper-plane'
     ];
 

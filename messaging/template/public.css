@@ -24,7 +24,7 @@
 .messaging-section-title {
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--evo-primary, var(--primary-color, #4f46e5));
+    border-bottom: 2px solid var(--evo-accent, #4f46e5);
 }
 
 .messaging-section-title--success {
@@ -54,8 +54,8 @@
 }
 
 .messaging-item--unread {
-    background: var(--evo-surface-2, var(--info-bg-color, #eff6ff)) !important;
-    border-left: 4px solid var(--evo-primary, var(--primary-color, #4f46e5)) !important;
+    background: var(--evo-surface-2, var(--info-bg-color, #eff6ff));
+    border-left: 4px solid var(--evo-accent, #4f46e5);
     font-weight: bold;
 }
 
@@ -68,7 +68,7 @@
 }
 
 .messaging-badge--new {
-    background: var(--evo-primary, var(--primary-color, #4f46e5));
+    background: var(--evo-accent, #4f46e5);
 }
 
 .messaging-badge--read {
@@ -215,7 +215,7 @@
 
 .messaging-read__title {
     margin-top: 0;
-    color: var(--evo-primary, var(--primary-color, #4f46e5));
+    color: var(--evo-accent, #4f46e5);
 }
 
 .messaging-read__text {

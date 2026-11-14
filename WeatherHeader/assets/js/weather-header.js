@@ -281,17 +281,36 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
-    // 3. Chargement initial immédiat (sans bloquer l'affichage)
+    // 3. Détection IP transparente immédiate si aucune coordonnée locale n'est présente
+    if (!savedGeo || !savedGeo.lat) {
+        fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=fr")
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) {
+                if (data && (data.city || data.locality)) {
+                    var ipCity = data.city || data.locality;
+                    var ipLat = parseFloat(data.latitude);
+                    var ipLon = parseFloat(data.longitude);
+                    if (ipLat && ipLon) {
+                        try {
+                            localStorage.setItem("wh_user_geo", JSON.stringify({ lat: ipLat, lon: ipLon, city: ipCity }));
+                        } catch(e) {}
+                        fetchMeteo(ipLat, ipLon, ipCity);
+                    }
+                }
+            })
+            .catch(function () {});
+    }
+
+    // Chargement initial immédiat (sans bloquer l'affichage)
     fetchMeteo(lat, lon, defaultCity);
 
-    // 4. Si le plugin météo est absent (autoGeo=true), demander automatiquement la géolocalisation
-    if (autoGeo && navigator.geolocation) {
+    // 4. Si la géolocalisation GPS est disponible et non refusée, affiner les coordonnées
+    if (navigator.geolocation) {
         var geoRefused = false;
         try {
             geoRefused = (localStorage.getItem("wh_geo_refused") === "1");
         } catch (e) {}
 
-        // Si l'utilisateur n'a pas déjà refusé et n'a pas encore de position mémorisée
         if (!geoRefused && (!savedGeo || !savedGeo.lat)) {
             navigator.geolocation.getCurrentPosition(
                 function (pos) {

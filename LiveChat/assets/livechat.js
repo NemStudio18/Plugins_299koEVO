@@ -63,7 +63,7 @@
 
             <footer class="vb-chat-footer">
                 <form id="vbChatForm" class="vb-chat-form" onsubmit="handleVisitorSend(event)">
-                    <input type="text" name="_gotcha" style="display:none !important;" tabindex="-1">
+                    <input type="text" name="_gotcha" style="display:none;" tabindex="-1">
                     <input type="text" id="vbChatInput" class="vb-chat-input" 
                            placeholder="Écrivez votre message..." autocomplete="off" required>
                     <button type="submit" id="vbChatSendBtn" class="vb-chat-send-btn" title="Envoyer">

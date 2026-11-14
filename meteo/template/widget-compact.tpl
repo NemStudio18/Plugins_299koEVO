@@ -19,7 +19,7 @@
 }
 
 .meteo-widget-compact .weather-icon-container {
-    box-shadow: none !important;
+    box-shadow: none;
 }
 
 /* 1. HOT / SUNNY */

@@ -105,7 +105,7 @@ body.theme-dark .meteo-widget-compact__temp {
 
 /* Neutraliser les halos bleus/agressifs dans tous les en-têtes */
 .meteo-widget-compact .weather-icon-container {
-    box-shadow: none !important;
+    box-shadow: none;
 }
 
 /* Thème Ebene : capsule d'ébénisterie royale & or */
@@ -122,7 +122,7 @@ body.theme-ebene .meteo-widget-compact:hover {
     box-shadow: 0 0 12px rgba(212, 175, 55, 0.35);
 }
 body.theme-ebene .meteo-widget-compact__temp {
-    color: var(--eb-gold, #d4af37) !important;
+    color: var(--eb-gold, #d4af37);
 }
 
 /* Thème Ignis : capsule braise & flamme */
@@ -138,7 +138,7 @@ body.theme-ignis .meteo-widget-compact:hover {
     box-shadow: 0 0 12px rgba(249, 115, 22, 0.35);
 }
 body.theme-ignis .meteo-widget-compact__temp {
-    color: var(--ignis-primary, #f97316) !important;
+    color: var(--ignis-primary, #f97316);
 }
 
 /* Thème Végétal : capsule chlorophylle */
@@ -154,7 +154,7 @@ body.theme-vegetal .meteo-widget-compact:hover {
     box-shadow: 0 0 12px rgba(22, 163, 74, 0.25);
 }
 body.theme-vegetal .meteo-widget-compact__temp {
-    color: #15803d !important;
+    color: #15803d;
 }
 
 /* Thème DesktopOS : capsule acrylique macOS */
@@ -172,6 +172,6 @@ body.theme-desktop-os .meteo-widget-compact:hover {
     border-color: rgba(255, 255, 255, 0.3);
 }
 body.theme-desktop-os .meteo-widget-compact__temp {
-    color: #ffffff !important;
+    color: #ffffff;
 }
 }

@@ -70,7 +70,7 @@
 }
 
 .stat-progress .stat-value {
-    color: var(--evo-primary, #3b82f6);
+    color: var(--evo-accent, var(--evo-primary, #3b82f6);
 }
 
 .stat-fixed .stat-value {
@@ -169,8 +169,8 @@
 }
 
 .tab-link.active {
-    color: var(--evo-primary, #3b82f6);
-    border-bottom-color: var(--evo-primary, #3b82f6);
+    color: var(--evo-accent, var(--evo-primary, #3b82f6);
+    border-bottom-color: var(--evo-accent, var(--evo-primary, #3b82f6);
 }
 
 .tab-content {
@@ -212,7 +212,7 @@
 }
 
 .bug-header h3 a:hover {
-    color: var(--evo-primary, #3b82f6);
+    color: var(--evo-accent, var(--evo-primary, #3b82f6);
 }
 
 .bug-meta {
@@ -270,7 +270,7 @@
 }
 
 .badge-info {
-    background: var(--evo-primary, #3b82f6);
+    background: var(--evo-accent, var(--evo-primary, #3b82f6);
     color: #fff;
 }
 
@@ -341,8 +341,8 @@
 }
 
 .bug-comment-admin {
-    background: var(--evo-primary-soft, rgba(59, 130, 246, 0.1));
-    border-left-color: var(--evo-primary, #3b82f6);
+    background: var(--evo-accent-soft, var(--evo-primary-soft, rgba(59, 130, 246, 0.1));
+    border-left-color: var(--evo-accent, var(--evo-primary, #3b82f6);
 }
 
 .comment-header {
@@ -403,7 +403,7 @@
 }
 
 .stat-card.stat-progress .stat-value {
-    color: var(--evo-primary, #3b82f6);
+    color: var(--evo-accent, var(--evo-primary, #3b82f6);
 }
 
 .stat-card.stat-fixed .stat-value {

@@ -1,8 +1,8 @@
 {
-    "city": "Paris",
+    "city": "Bourges",
     "country": "FR",
-    "latitude": 48.8566,
-    "longitude": 2.3522,
-    "show_picker": true
+    "latitude": 47.0810,
+    "longitude": 2.3988,
+    "show_picker": false
 }
 

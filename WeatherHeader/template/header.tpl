@@ -2,23 +2,30 @@
     <!-- 1. Couche du Ciel dynamique -->
     <div class="ws-sky-layer" aria-hidden="true"></div>
 
-    <!-- 2. Scène Vectorielle Vivante Unique -->
-    <svg class="ws-svg-canvas" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+    <!-- 2. Scène Vectorielle Vivante Unique (Proportions 1:1 parfaites pour garantir des astres et halos 100% ronds) -->
+    <svg class="ws-svg-canvas" viewBox="0 0 1440 320" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
             <radialGradient id="wsSunGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#fffbeb" stop-opacity="1"/>
-                <stop offset="40%" stop-color="#fde047" stop-opacity="0.9"/>
-                <stop offset="70%" stop-color="#f59e0b" stop-opacity="0.5"/>
+                <stop offset="0%" stop-color="#fffbeb" stop-opacity="0.95"/>
+                <stop offset="30%" stop-color="#fde047" stop-opacity="0.75"/>
+                <stop offset="65%" stop-color="#f59e0b" stop-opacity="0.3"/>
                 <stop offset="100%" stop-color="#ea580c" stop-opacity="0"/>
             </radialGradient>
             <radialGradient id="wsMoonGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
-                <stop offset="60%" stop-color="#e0e7ff" stop-opacity="0.75"/>
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+                <stop offset="40%" stop-color="#e0e7ff" stop-opacity="0.5"/>
+                <stop offset="75%" stop-color="#93c5fd" stop-opacity="0.18"/>
+                <stop offset="100%" stop-color="#818cf8" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="wsMoonGlowOuter" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
+                <stop offset="50%" stop-color="#c7d2fe" stop-opacity="0.12"/>
                 <stop offset="100%" stop-color="#818cf8" stop-opacity="0"/>
             </radialGradient>
             <linearGradient id="wsTerrainBack" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="var(--ws-hill-back)" stop-opacity="0.85"/>
-                <stop offset="100%" stop-color="var(--ws-hill-back)" stop-opacity="1"/>
+                <stop offset="0%" stop-color="var(--ws-hill-back)" stop-opacity="0.88"/>
+                <stop offset="60%" stop-color="var(--ws-hill-back)" stop-opacity="0.96"/>
+                <stop offset="100%" stop-color="var(--ws-hill-front)" stop-opacity="1"/>
             </linearGradient>
             <linearGradient id="wsTerrainFront" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stop-color="var(--ws-hill-front)" stop-opacity="0.95"/>
@@ -26,37 +33,43 @@
             </linearGradient>
         </defs>
 
-        <!-- Nuit : Constellation d'étoiles scintillantes -->
+        <!-- Nuit : Voûte céleste & constellation d'étoiles réalistes -->
         <g class="ws-stars-group">
-            <circle cx="120" cy="40" r="1.5" class="ws-star ws-star-1"/>
-            <circle cx="280" cy="70" r="1.2" class="ws-star ws-star-2"/>
-            <circle cx="450" cy="30" r="2.0" class="ws-star ws-star-3"/>
-            <circle cx="620" cy="80" r="1.4" class="ws-star ws-star-4"/>
-            <circle cx="850" cy="45" r="1.8" class="ws-star ws-star-1"/>
+            <circle cx="80" cy="55" r="1.2" class="ws-star ws-star-1"/>
+            <circle cx="160" cy="35" r="1.8" class="ws-star ws-star-3"/>
+            <circle cx="280" cy="70" r="1.1" class="ws-star ws-star-2"/>
+            <circle cx="360" cy="25" r="2.2" class="ws-star ws-star-1"/>
+            <circle cx="450" cy="45" r="1.6" class="ws-star ws-star-4"/>
+            <circle cx="560" cy="65" r="1.2" class="ws-star ws-star-2"/>
+            <circle cx="680" cy="30" r="2.0" class="ws-star ws-star-3"/>
+            <circle cx="790" cy="75" r="1.4" class="ws-star ws-star-4"/>
+            <circle cx="910" cy="40" r="1.9" class="ws-star ws-star-1"/>
             <circle cx="1020" cy="65" r="1.3" class="ws-star ws-star-2"/>
-            <circle cx="1180" cy="35" r="2.2" class="ws-star ws-star-3"/>
-            <circle cx="1340" cy="75" r="1.5" class="ws-star ws-star-4"/>
+            <circle cx="1140" cy="25" r="2.4" class="ws-star ws-star-3"/>
+            <circle cx="1260" cy="50" r="1.5" class="ws-star ws-star-4"/>
+            <circle cx="1380" cy="35" r="1.7" class="ws-star ws-star-1"/>
         </g>
 
-        <!-- Astre Solaire (Jour) - Placé à gauche pour ne jamais être masqué -->
+        <!-- Astre Solaire (Jour) - Parfaitement circulaire -->
         <g class="ws-sun-group">
-            <circle cx="220" cy="90" r="80" fill="url(#wsSunGlow)" class="ws-sun-halo"/>
+            <circle cx="220" cy="90" r="95" fill="url(#wsSunGlow)" class="ws-sun-halo"/>
             <circle cx="220" cy="90" r="32" fill="#fef08a" class="ws-sun-disc"/>
             <g class="ws-sun-rays">
-                <line x1="220" y1="40" x2="220" y2="20" stroke="#fef08a" stroke-width="3" stroke-linecap="round"/>
-                <line x1="220" y1="140" x2="220" y2="160" stroke="#fef08a" stroke-width="3" stroke-linecap="round"/>
-                <line x1="170" y1="90" x2="150" y2="90" stroke="#fef08a" stroke-width="3" stroke-linecap="round"/>
-                <line x1="270" y1="90" x2="290" y2="90" stroke="#fef08a" stroke-width="3" stroke-linecap="round"/>
-                <line x1="185" y1="55" x2="170" y2="40" stroke="#fef08a" stroke-width="3" stroke-linecap="round"/>
-                <line x1="255" y1="125" x2="270" y2="140" stroke="#fef08a" stroke-width="3" stroke-linecap="round"/>
-                <line x1="185" y1="125" x2="170" y2="140" stroke="#fef08a" stroke-width="3" stroke-linecap="round"/>
-                <line x1="255" y1="55" x2="270" y2="40" stroke="#fef08a" stroke-width="3" stroke-linecap="round"/>
+                <line x1="220" y1="45" x2="220" y2="25" stroke="#fef08a" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="220" y1="135" x2="220" y2="155" stroke="#fef08a" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="175" y1="90" x2="155" y2="90" stroke="#fef08a" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="265" y1="90" x2="285" y2="90" stroke="#fef08a" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="188" y1="58" x2="174" y2="44" stroke="#fef08a" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="252" y1="122" x2="266" y2="136" stroke="#fef08a" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="188" y1="122" x2="174" y2="136" stroke="#fef08a" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="252" y1="58" x2="266" y2="44" stroke="#fef08a" stroke-width="2.5" stroke-linecap="round"/>
             </g>
         </g>
 
-        <!-- Astre Lunaire (Nuit) - Placé à gauche pour ne jamais être masqué -->
+        <!-- Astre Lunaire (Nuit) - Halo circulaire pur et croissant fin -->
         <g class="ws-moon-group">
-            <circle cx="220" cy="90" r="60" fill="url(#wsMoonGlow)" class="ws-moon-halo"/>
+            <circle cx="220" cy="90" r="95" fill="url(#wsMoonGlowOuter)" class="ws-moon-halo-outer"/>
+            <circle cx="220" cy="90" r="55" fill="url(#wsMoonGlow)" class="ws-moon-halo"/>
             <path d="M210,65 C228,65 242,79 242,97 C242,115 228,129 210,129 C205,129 200,128 195,126 C206,121 214,110 214,97 C214,84 206,73 195,68 C200,66 205,65 210,65 Z" fill="#ffffff" class="ws-moon-crescent"/>
         </g>
 
