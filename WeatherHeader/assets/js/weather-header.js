@@ -4,28 +4,76 @@
  */
 document.addEventListener("DOMContentLoaded", function () {
     var scene = document.getElementById("meteo_living_scene");
+    var fallbackHost = document.getElementById("weather_header_fallback_host");
+
+    // 1. Montage automatique pour les thèmes sans hook direct (ex: Ebene, Ignis, DesktopOS, etc.)
+    if (!scene && fallbackHost) {
+        var living = fallbackHost.querySelector("#meteo_living_scene");
+        if (living) {
+            var target = document.querySelector(".ebene-banner, .declic-banner, .ignis-banner, #banner, header#header, header.ebene-header, #header, header");
+            if (target && target.parentNode) {
+                target.parentNode.insertBefore(living, target);
+                target.style.display = "none";
+                scene = living;
+            } else {
+                document.body.insertBefore(living, document.body.firstChild);
+                scene = living;
+            }
+        }
+    }
+
     if (!scene) return;
 
-    // Masquage automatique des bannières par défaut du thème actif pour un remplacement propre
-    var defaultBanners = document.querySelectorAll("#banner:not(#meteo_living_scene), .declic-banner:not(#meteo_living_scene)");
+    // 2. Masquage automatique des bannières natives du thème actif pour un remplacement propre
+    var defaultBanners = document.querySelectorAll("#banner:not(#meteo_living_scene), .declic-banner:not(#meteo_living_scene), .ebene-banner:not(#meteo_living_scene), .ignis-banner:not(#meteo_living_scene)");
     defaultBanners.forEach(function (b) {
         b.style.display = "none";
     });
 
-    var defaultCity = scene.getAttribute("data-city") || "Paris";
-    var lat = parseFloat(scene.getAttribute("data-lat")) || 48.8566;
-    var lon = parseFloat(scene.getAttribute("data-lon")) || 2.3522;
+    var defaultCity = scene.getAttribute("data-city") || "Bourges";
+    var lat = parseFloat(scene.getAttribute("data-lat")) || 47.0810;
+    var lon = parseFloat(scene.getAttribute("data-lon")) || 2.3988;
+    var autoGeo = scene.getAttribute("data-auto-geo") === "1";
+
+    // Vérifier si le visiteur a des coordonnées déjà mémorisées
+    var savedGeo = null;
+    try {
+        var stored = localStorage.getItem("wh_user_geo");
+        if (stored) savedGeo = JSON.parse(stored);
+    } catch (e) {}
+
+    if (savedGeo && savedGeo.lat && savedGeo.lon) {
+        lat = savedGeo.lat;
+        lon = savedGeo.lon;
+        defaultCity = savedGeo.city || defaultCity;
+    }
 
     var tempEl = scene.querySelector('[data-role="ws-temp"]');
     var condEl = scene.querySelector('[data-role="ws-condition"]');
     var cityEl = scene.querySelector('[data-role="ws-city"]');
     var subEl = scene.querySelector('[data-role="ws-sub"]');
+    var windEl = scene.querySelector('[data-role="ws-wind"]');
+    var windArrowEl = scene.querySelector('[data-role="ws-wind-arrow"]');
     var pickerBtns = scene.querySelectorAll(".ws-pick-btn");
     var timeBtn = document.getElementById("ws_time_toggle");
 
     var currentDayNight = "day";
     var currentWeatherType = "sunny";
-    var realState = { type: "sunny", isDay: true, temp: 16, cond: "Ensoleillé", city: defaultCity };
+    var realState = {
+        type: "sunny",
+        isDay: true,
+        temp: 16,
+        cond: "Ensoleillé",
+        city: defaultCity,
+        windSpeed: 12,
+        windDir: 220
+    };
+
+    function getWindCardinal(deg) {
+        var cardinals = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO"];
+        var idx = Math.round(deg / 22.5) % 16;
+        return cardinals[idx];
+    }
 
     function applyScene(type, isDay) {
         currentWeatherType = type;
@@ -95,39 +143,50 @@ document.addEventListener("DOMContentLoaded", function () {
         return map[weatherCode] || (isDay ? "Ciel variable" : "Nuit variable");
     }
 
-    // Appel direct à Open-Meteo
-    var openMeteoUrl = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&current=temperature_2m,weather_code,is_day&timezone=auto";
+    function fetchMeteo(targetLat, targetLon, cityName) {
+        var url = "https://api.open-meteo.com/v1/forecast?latitude=" + targetLat + "&longitude=" + targetLon + "&current=temperature_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m&timezone=auto";
+        return fetch(url)
+            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (payload) {
+                if (!payload || !payload.current) {
+                    fallbackDefault();
+                    return;
+                }
+                var curr = payload.current;
+                var isDay = (curr.is_day === 1);
+                var code = parseInt(curr.weather_code, 10);
+                var temp = Math.round(curr.temperature_2m);
+                var windSpeed = Math.round(curr.wind_speed_10m || 0);
+                var windDir = Math.round(curr.wind_direction_10m || 0);
 
-    fetch(openMeteoUrl)
-        .then(function (res) { return res.ok ? res.json() : null; })
-        .then(function (payload) {
-            if (!payload || !payload.current) {
+                realState = {
+                    type: determineWeatherType(code),
+                    isDay: isDay,
+                    temp: temp,
+                    cond: getWeatherDesc(code, isDay),
+                    city: cityName || defaultCity,
+                    windSpeed: windSpeed,
+                    windDir: windDir
+                };
+
+                if (tempEl) tempEl.textContent = realState.temp;
+                if (condEl) condEl.textContent = realState.cond;
+                if (cityEl) cityEl.textContent = realState.city;
+                if (subEl) subEl.textContent = isDay ? "Observations du jour" : "Observations nocturnes";
+
+                if (windEl) {
+                    windEl.textContent = "Vent " + windSpeed + " km/h " + getWindCardinal(windDir);
+                }
+                if (windArrowEl) {
+                    windArrowEl.style.transform = "rotate(" + (windDir + 180) + "deg)";
+                }
+
+                applyScene(realState.type, realState.isDay);
+            })
+            .catch(function () {
                 fallbackDefault();
-                return;
-            }
-            var curr = payload.current;
-            var isDay = (curr.is_day === 1);
-            var code = parseInt(curr.weather_code, 10);
-            var temp = Math.round(curr.temperature_2m);
-
-            realState = {
-                type: determineWeatherType(code),
-                isDay: isDay,
-                temp: temp,
-                cond: getWeatherDesc(code, isDay),
-                city: defaultCity
-            };
-
-            if (tempEl) tempEl.textContent = realState.temp;
-            if (condEl) condEl.textContent = realState.cond;
-            if (cityEl) cityEl.textContent = realState.city;
-            if (subEl) subEl.textContent = isDay ? "Observations du jour" : "Observations nocturnes";
-
-            applyScene(realState.type, realState.isDay);
-        })
-        .catch(function () {
-            fallbackDefault();
-        });
+            });
+    }
 
     function fallbackDefault() {
         var hour = new Date().getHours();
@@ -137,60 +196,115 @@ document.addEventListener("DOMContentLoaded", function () {
             isDay: isDay,
             temp: isDay ? 16 : 11,
             cond: isDay ? "Ensoleillé" : "Nuit claire étoilée",
-            city: defaultCity
+            city: defaultCity,
+            windSpeed: 10,
+            windDir: 210
         };
         if (tempEl) tempEl.textContent = realState.temp;
         if (condEl) condEl.textContent = realState.cond;
+        if (cityEl) cityEl.textContent = realState.city;
         if (subEl) subEl.textContent = isDay ? "Journée estimée" : "Nuit estimée";
+        if (windEl) windEl.textContent = "Vent 10 km/h SO";
         applyScene(realState.type, realState.isDay);
     }
 
-    // Sélecteur d'ambiances
-    pickerBtns.forEach(function (btn) {
-        btn.addEventListener("click", function () {
-            pickerBtns.forEach(function (b) { b.classList.remove("is-active"); });
-            btn.classList.add("is-active");
+    function reverseGeocodeAndFetch(uLat, uLon) {
+        var geoApi = "https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=" + uLat + "&longitude=" + uLon + "&localityLanguage=fr";
+        fetch(geoApi)
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) {
+                var detectedCity = defaultCity;
+                if (data && (data.city || data.locality)) {
+                    detectedCity = data.city || data.locality;
+                }
+                try {
+                    localStorage.setItem("wh_user_geo", JSON.stringify({ lat: uLat, lon: uLon, city: detectedCity }));
+                } catch (e) {}
+                fetchMeteo(uLat, uLon, detectedCity);
+            })
+            .catch(function () {
+                fetchMeteo(uLat, uLon, defaultCity);
+            });
+    }
 
-            var target = btn.getAttribute("data-scene");
-            if (target === "auto") {
-                if (tempEl) tempEl.textContent = realState.temp;
-                if (condEl) condEl.textContent = realState.cond;
-                if (subEl) subEl.textContent = realState.isDay ? "Observations du jour" : "Observations nocturnes";
-                applyScene(realState.type, realState.isDay);
-            } else {
-                var isDay = (currentDayNight === "day");
-                var descMap = {
-                    sunny: isDay ? "Plein soleil" : "Nuit claire étoilée",
-                    cloudy: isDay ? "Ciel couvert" : "Nuit couverte",
-                    rain: isDay ? "Pluie battante" : "Pluie de nuit",
-                    storm: isDay ? "Orage grondant" : "Orage de nuit",
-                    snow: isDay ? "Chute de neige" : "Neige de nuit",
-                    fog: isDay ? "Brouillard épais" : "Brume de nuit"
+    // 3. Chargement initial immédiat (sans bloquer l'affichage)
+    fetchMeteo(lat, lon, defaultCity);
+
+    // 4. Si le plugin météo est absent (autoGeo=true), demander automatiquement la géolocalisation
+    if (autoGeo && navigator.geolocation) {
+        var geoRefused = false;
+        try {
+            geoRefused = (localStorage.getItem("wh_geo_refused") === "1");
+        } catch (e) {}
+
+        // Si l'utilisateur n'a pas déjà refusé et n'a pas encore de position mémorisée
+        if (!geoRefused && (!savedGeo || !savedGeo.lat)) {
+            navigator.geolocation.getCurrentPosition(
+                function (pos) {
+                    var uLat = pos.coords.latitude;
+                    var uLon = pos.coords.longitude;
+                    reverseGeocodeAndFetch(uLat, uLon);
+                },
+                function (err) {
+                    try {
+                        localStorage.setItem("wh_geo_refused", "1");
+                    } catch (e) {}
+                },
+                { timeout: 8000, maximumAge: 3600000 }
+            );
+        }
+    }
+
+    // 5. Panneau de contrôle interactif (Admin uniquement)
+    if (pickerBtns.length > 0) {
+        pickerBtns.forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                pickerBtns.forEach(function (b) { b.classList.remove("is-active"); });
+                btn.classList.add("is-active");
+
+                var target = btn.getAttribute("data-scene");
+                if (target === "auto") {
+                    if (tempEl) tempEl.textContent = realState.temp;
+                    if (condEl) condEl.textContent = realState.cond;
+                    if (cityEl) cityEl.textContent = realState.city;
+                    if (subEl) subEl.textContent = realState.isDay ? "Observations du jour" : "Observations nocturnes";
+                    if (windEl) windEl.textContent = "Vent " + realState.windSpeed + " km/h " + getWindCardinal(realState.windDir);
+                    if (windArrowEl) windArrowEl.style.transform = "rotate(" + (realState.windDir + 180) + "deg)";
+                    applyScene(realState.type, realState.isDay);
+                    return;
+                }
+
+                var previews = {
+                    sunny: { temp: 22, cond: "Soleil radieux", dayOnly: true, wind: 8, dir: 180 },
+                    cloudy: { temp: 15, cond: "Ciel très nuageux", wind: 16, dir: 240 },
+                    rain: { temp: 12, cond: "Pluie battante", wind: 24, dir: 270 },
+                    storm: { temp: 18, cond: "Orage violent", wind: 45, dir: 315 },
+                    snow: { temp: -1, cond: "Neige abondante", wind: 12, dir: 45 },
+                    fog: { temp: 8, cond: "Brouillard épais", wind: 3, dir: 90 }
                 };
-                if (condEl) condEl.textContent = descMap[target] || target;
-                if (subEl) subEl.textContent = "Aperçu interactif";
-                applyScene(target, isDay);
-            }
-        });
-    });
 
-    // Bascule Jour / Nuit
+                var data = previews[target];
+                if (data) {
+                    var isDay = (currentDayNight === "day");
+                    if (data.dayOnly) isDay = true;
+                    if (tempEl) tempEl.textContent = data.temp;
+                    if (condEl) condEl.textContent = data.cond;
+                    if (subEl) subEl.textContent = "Simulation d'ambiance";
+                    if (windEl) windEl.textContent = "Vent " + data.wind + " km/h " + getWindCardinal(data.dir);
+                    if (windArrowEl) windArrowEl.style.transform = "rotate(" + (data.dir + 180) + "deg)";
+                    applyScene(target, isDay);
+                }
+            });
+        });
+    }
+
     if (timeBtn) {
         timeBtn.addEventListener("click", function () {
             var newIsDay = (currentDayNight !== "day");
             applyScene(currentWeatherType, newIsDay);
-
-            var descMap = {
-                sunny: newIsDay ? "Plein soleil" : "Nuit claire étoilée",
-                cloudy: newIsDay ? "Ciel couvert" : "Nuit couverte",
-                rain: newIsDay ? "Pluie battante" : "Pluie de nuit",
-                storm: newIsDay ? "Orage grondant" : "Orage de nuit",
-                snow: newIsDay ? "Chute de neige" : "Neige de nuit",
-                fog: newIsDay ? "Brouillard épais" : "Brume de nuit"
-            };
-            if (condEl) condEl.textContent = descMap[currentWeatherType] || currentWeatherType;
-            if (subEl) subEl.textContent = newIsDay ? "Ambiance Jour" : "Ambiance Nuit";
+            if (pickerBtns[0] && pickerBtns[0].classList.contains("is-active")) {
+                if (condEl) condEl.textContent = getWeatherDesc(realState.type === "sunny" ? 0 : 3, newIsDay);
+            }
         });
     }
 });
-

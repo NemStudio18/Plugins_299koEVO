@@ -155,15 +155,25 @@
                 right: 24px;
                 max-width: 440px;
                 width: calc(100% - 48px);
-                background: var(--section-bg-color, #ffffff);
-                color: var(--font-color, #16181d);
-                border: 1px solid var(--border-color, #e5e2da);
-                border-radius: var(--section-radius, 14px);
+                background: #ffffff;
+                color: #1e293b;
+                border: 1px solid #e2e8f0;
+                border-radius: 14px;
                 padding: 20px;
-                box-shadow: var(--dc-shadow-md, 0 16px 36px rgba(0, 0, 0, 0.16));
+                box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
                 z-index: 999999;
-                font-family: inherit;
+                font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                 animation: vbSlideUp 0.35s ease-out;
+            }
+            body.theme-dark #vb-privacy-toast,
+            body.theme-ebene #vb-privacy-toast,
+            body.theme-ignis #vb-privacy-toast,
+            body.theme-desktop-os #vb-privacy-toast,
+            [data-theme="dark"] #vb-privacy-toast {
+                background: #18181b;
+                color: #f4f4f5;
+                border: 1px solid #3f3f46;
+                box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
             }
             @keyframes vbSlideUp {
                 from { transform: translateY(30px); opacity: 0; }
@@ -176,13 +186,25 @@
                 margin-bottom: 8px;
                 font-size: 15px;
                 font-weight: 700;
-                color: var(--primary-color, #1d4ed8);
+                color: #2563eb;
+            }
+            body.theme-dark .vb-privacy-header,
+            body.theme-ebene .vb-privacy-header,
+            body.theme-ignis .vb-privacy-header,
+            body.theme-desktop-os .vb-privacy-header {
+                color: #60a5fa;
             }
             .vb-privacy-text {
                 font-size: 13px;
                 line-height: 1.5;
-                color: var(--font-secondary, #5a6070);
+                color: #64748b;
                 margin: 0 0 16px 0;
+            }
+            body.theme-dark .vb-privacy-text,
+            body.theme-ebene .vb-privacy-text,
+            body.theme-ignis .vb-privacy-text,
+            body.theme-desktop-os .vb-privacy-text {
+                color: #a1a1aa;
             }
             .vb-privacy-actions {
                 display: flex;
@@ -199,20 +221,28 @@
                 border: none;
             }
             .vb-btn-refuse {
-                background: var(--section-head-bg-color, #f3f1ec);
-                color: var(--font-color, #16181d);
-                border: 1px solid var(--border-color, #e5e2da);
+                background: #f1f5f9;
+                color: #334155;
+                border: 1px solid #cbd5e1;
             }
             .vb-btn-refuse:hover {
-                border-color: var(--primary-color, #1d4ed8);
+                border-color: #2563eb;
+            }
+            body.theme-dark .vb-btn-refuse,
+            body.theme-ebene .vb-btn-refuse,
+            body.theme-ignis .vb-btn-refuse,
+            body.theme-desktop-os .vb-btn-refuse {
+                background: #27272a;
+                color: #f4f4f5;
+                border: 1px solid #3f3f46;
             }
             .vb-btn-accept {
-                background: var(--primary-color, #1d4ed8);
-                color: var(--primary-inverse-color, #ffffff);
-                box-shadow: 0 4px 12px var(--dc-accent-soft, rgba(29, 78, 216, 0.25));
+                background: #2563eb;
+                color: #ffffff;
+                box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
             }
             .vb-btn-accept:hover {
-                background: var(--primary-hover-color, #1e40af);
+                background: #1d4ed8;
                 transform: translateY(-1px);
             }
             @media (max-width: 600px) {

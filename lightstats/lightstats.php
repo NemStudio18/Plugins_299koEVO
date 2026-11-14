@@ -27,9 +27,11 @@ class Hooks
         echo '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>';
     }
 
-    public static function addFrontTracker(): void
+    public static function addFrontTracker($param = ''): string
     {
-        echo '<script src="/plugin/lightstats/assets/js/privacy-tracker.js" defer></script>';
+        $output = (string)$param;
+        $output .= '<script src="/plugin/lightstats/assets/js/privacy-tracker.js" defer></script>' . "\n";
+        return $output;
     }
 
     /**

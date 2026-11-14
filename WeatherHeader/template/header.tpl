@@ -1,4 +1,4 @@
-<div class="weather-living-scene ws-time-day weather-state-sunny" id="meteo_living_scene" data-city="{{defaultCity}}" data-country="{{defaultCountry}}" data-lat="{{latitude}}" data-lon="{{longitude}}">
+<div class="weather-living-scene ws-time-day weather-state-sunny" id="meteo_living_scene" data-city="{{defaultCity}}" data-country="{{defaultCountry}}" data-lat="{{latitude}}" data-lon="{{longitude}}" data-auto-geo="{% if autoGeolocate %}1{% else %}0{% endif %}">
     <!-- 1. Couche du Ciel dynamique -->
     <div class="ws-sky-layer" aria-hidden="true"></div>
 
@@ -38,7 +38,7 @@
             <circle cx="1340" cy="75" r="1.5" class="ws-star ws-star-4"/>
         </g>
 
-        <!-- Astre Solaire (Jour) -->
+        <!-- Astre Solaire (Jour) - Placé à gauche -->
         <g class="ws-sun-group">
             <circle cx="220" cy="90" r="80" fill="url(#wsSunGlow)" class="ws-sun-halo"/>
             <circle cx="220" cy="90" r="32" fill="#fef08a" class="ws-sun-disc"/>
@@ -54,7 +54,7 @@
             </g>
         </g>
 
-        <!-- Astre Lunaire (Nuit) -->
+        <!-- Astre Lunaire (Nuit) - Placé à gauche -->
         <g class="ws-moon-group">
             <circle cx="220" cy="90" r="60" fill="url(#wsMoonGlow)" class="ws-moon-halo"/>
             <path d="M210,65 C228,65 242,79 242,97 C242,115 228,129 210,129 C205,129 200,128 195,126 C206,121 214,110 214,97 C214,84 206,73 195,68 C200,66 205,65 210,65 Z" fill="#ffffff" class="ws-moon-crescent"/>
@@ -78,45 +78,50 @@
                 <circle cx="410" cy="220" r="11" class="ws-tree-crown"/>
                 <rect x="408" y="220" width="4" height="14" class="ws-tree-trunk"/>
                 
-                <polygon points="860,210 875,190 890,210" class="ws-roof-accent"/>
-                <rect x="863" y="200" width="24" height="15" class="ws-roof-accent"/>
-                <polygon points="873,195 875,170 877,195" class="ws-roof-accent"/>
+                <!-- Clocher village lointain -->
+                <polygon points="760,185 765,160 770,185" class="ws-spire"/>
+                <rect x="760" y="185" width="10" height="30" class="ws-spire-tower"/>
+                <rect x="772" y="195" width="22" height="20" class="ws-house"/>
+                <polygon points="770,195 783,185 796,195" class="ws-roof"/>
+                <rect x="740" y="198" width="18" height="17" class="ws-house"/>
+                <polygon points="738,198 749,188 760,198" class="ws-roof"/>
                 
-                <circle cx="1060" cy="180" r="13" class="ws-tree-crown"/>
-                <rect x="1058" y="180" width="4" height="14" class="ws-tree-trunk"/>
-                <circle cx="1085" cy="185" r="16" class="ws-tree-crown"/>
-                <rect x="1083" y="185" width="4" height="16" class="ws-tree-trunk"/>
+                <circle cx="820" cy="212" r="13" class="ws-tree-crown"/>
+                <rect x="818" y="212" width="4" height="15" class="ws-tree-trunk"/>
+                <circle cx="1050" cy="195" r="16" class="ws-tree-crown"/>
+                <rect x="1048" y="195" width="4" height="18" class="ws-tree-trunk"/>
             </g>
         </g>
 
         <!-- Nuages en dérive Parallaxe avant -->
         <g class="ws-clouds-front">
-            <path class="ws-cloud" d="M220,130 Q270,95 320,125 Q370,85 430,120 Q470,110 500,135 L220,135 Z"/>
-            <path class="ws-cloud" d="M920,120 Q970,85 1020,115 Q1070,75 1130,110 Q1170,100 1200,125 L920,125 Z"/>
+            <path class="ws-cloud" d="M-50,140 Q0,105 50,135 Q100,95 160,135 Q200,120 230,150 L-50,150 Z"/>
+            <path class="ws-cloud" d="M480,130 Q530,95 580,125 Q640,85 710,125 Q750,110 780,140 L480,140 Z"/>
+            <path class="ws-cloud" d="M1020,135 Q1070,100 1120,130 Q1180,90 1250,130 Q1290,115 1320,145 L1020,145 Z"/>
         </g>
 
-        <!-- Éclair d'Orage -->
-        <g class="ws-storm-lightning">
-            <path class="ws-bolt" d="M720,40 L695,110 L725,120 L680,190 L710,180 L670,240" stroke="#fef08a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Éclair et Foudre (Orage) -->
+        <g class="ws-lightning-group">
+            <polygon class="ws-bolt" points="750,20 730,90 745,90 720,165 770,85 750,85 765,20"/>
+            <circle cx="730" cy="100" r="60" class="ws-lightning-glow"/>
         </g>
 
-        <!-- Gouttes de Pluie -->
-        <g class="ws-rain-drops">
-            <line x1="140" y1="60" x2="125" y2="105" class="ws-drop ws-drop-1"/>
-            <line x1="280" y1="40" x2="265" y2="85" class="ws-drop ws-drop-2"/>
-            <line x1="420" y1="80" x2="405" y2="125" class="ws-drop ws-drop-3"/>
-            <line x1="560" y1="50" x2="545" y2="95" class="ws-drop ws-drop-1"/>
-            <line x1="700" y1="70" x2="685" y2="115" class="ws-drop ws-drop-2"/>
-            <line x1="840" y1="45" x2="825" y2="90" class="ws-drop ws-drop-3"/>
-            <line x1="980" y1="65" x2="965" y2="110" class="ws-drop ws-drop-1"/>
-            <line x1="1120" y1="35" x2="1105" y2="80" class="ws-drop ws-drop-2"/>
-            <line x1="1260" y1="75" x2="1245" y2="120" class="ws-drop ws-drop-3"/>
-            <line x1="1380" y1="55" x2="1365" y2="100" class="ws-drop ws-drop-1"/>
+        <!-- Rideau de Pluie -->
+        <g class="ws-rain-group">
+            <line x1="80" y1="20" x2="60" y2="80" class="ws-drop ws-drop-1"/>
+            <line x1="240" y1="50" x2="220" y2="110" class="ws-drop ws-drop-2"/>
+            <line x1="420" y1="10" x2="400" y2="70" class="ws-drop ws-drop-3"/>
+            <line x1="580" y1="40" x2="560" y2="100" class="ws-drop ws-drop-4"/>
+            <line x1="740" y1="15" x2="720" y2="75" class="ws-drop ws-drop-1"/>
+            <line x1="900" y1="60" x2="880" y2="120" class="ws-drop ws-drop-2"/>
+            <line x1="1100" y1="25" x2="1080" y2="85" class="ws-drop ws-drop-3"/>
+            <line x1="1280" y1="45" x2="1260" y2="105" class="ws-drop ws-drop-4"/>
+            <line x1="1400" y1="10" x2="1380" y2="70" class="ws-drop ws-drop-1"/>
         </g>
 
-        <!-- Flocons de Neige -->
-        <g class="ws-snow-flakes">
-            <circle cx="160" cy="50" r="3.5" class="ws-flake ws-flake-1"/>
+        <!-- Chute de Flocons de Neige -->
+        <g class="ws-snow-group">
+            <circle cx="160" cy="50" r="3.2" class="ws-flake ws-flake-1"/>
             <circle cx="340" cy="70" r="2.5" class="ws-flake ws-flake-2"/>
             <circle cx="520" cy="40" r="4.0" class="ws-flake ws-flake-3"/>
             <circle cx="700" cy="80" r="3.0" class="ws-flake ws-flake-4"/>
@@ -133,10 +138,10 @@
         </g>
     </svg>
 
-    <!-- Superposition Carte Météo Frosted Glass -->
+    <!-- Superposition Carte Météo Frosted Glass (Positionnée à droite pour dégager le Soleil et la Lune) -->
     <div class="ws-overlay-card">
         <div class="ws-card-badge">
-            <span class="ws-live-dot"></span>
+            <span class="ws-live-dot" aria-hidden="true"></span>
             <span class="ws-card-city" data-role="ws-city">{{defaultCity}}</span>
         </div>
         <div class="ws-card-main">
@@ -146,11 +151,20 @@
             </div>
             <div class="ws-condition-wrap">
                 <span class="ws-condition-text" data-role="ws-condition">Chargement...</span>
-                <span class="ws-condition-sub" data-role="ws-sub">En direct</span>
+                <div class="ws-meta-row">
+                    <span class="ws-condition-sub" data-role="ws-sub">En direct</span>
+                    <span class="ws-meta-sep" aria-hidden="true">·</span>
+                    <span class="ws-wind-wrap" data-role="ws-wind-wrap" title="Sens et vitesse du vent">
+                        <span class="ws-wind-arrow" data-role="ws-wind-arrow" aria-hidden="true">↑</span>
+                        <span class="ws-wind-text" data-role="ws-wind">Vent --</span>
+                    </span>
+                </div>
             </div>
         </div>
-        <!-- Sélecteur d'ambiances de prévisualisation interactif -->
-        <div class="ws-scene-picker" title="Tester les ambiances météo (Jour & Nuit)">
+
+        <!-- Sélecteur d'ambiances de simulation (RÉSERVÉ À L'ADMINISTRATEUR) -->
+        {% if isAdmin %}
+        <div class="ws-scene-picker" title="Simulation météo (Panneau Administrateur)">
             <button type="button" class="ws-pick-btn is-active" data-scene="auto" title="Météo réelle en direct">⚡ Réel</button>
             <span class="ws-pick-sep"></span>
             <button type="button" class="ws-pick-btn" data-scene="sunny" title="Ciel clair / Soleil">☀️</button>
@@ -162,5 +176,6 @@
             <span class="ws-pick-sep"></span>
             <button type="button" class="ws-pick-time-btn" id="ws_time_toggle" title="Basculer entre Jour et Nuit">🌙 Nuit</button>
         </div>
+        {% endif %}
     </div>
 </div>

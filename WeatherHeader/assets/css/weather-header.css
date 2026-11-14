@@ -566,7 +566,8 @@
 .ws-overlay-card {
     position: absolute;
     top: 24px;
-    left: 24px;
+    right: 28px;
+    left: auto;
     z-index: 10;
     background: rgba(15, 23, 42, 0.72);
     backdrop-filter: blur(20px) saturate(180%);
@@ -645,6 +646,36 @@
 .ws-condition-sub {
     font-size: 0.8rem;
     color: #94a3b8;
+}
+
+.ws-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.ws-meta-sep {
+    opacity: 0.4;
+    color: #94a3b8;
+    font-size: 0.75rem;
+}
+
+.ws-wind-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: #cbd5e1;
+}
+
+.ws-wind-arrow {
+    display: inline-block;
+    font-weight: 800;
+    font-size: 0.95rem;
+    line-height: 1;
+    color: #38bdf8;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Sélecteur d'ambiance rapide & Bascule Jour/Nuit */
