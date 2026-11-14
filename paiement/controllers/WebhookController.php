@@ -13,6 +13,8 @@ require_once PLUGINS . 'paiement/drivers/MollieDriver.php';
 
 class WebhookController extends PublicController
 {
+    protected bool $enforceCsrf = false;
+
     /**
      * Stripe webhook endpoint
      */
@@ -31,7 +33,12 @@ class WebhookController extends PublicController
         $driver = new StripeDriver();
         $event  = $driver->handleWebhook($payload, $headers);
 
-        if ($event && isset($event['type'])) {
+        if (!$event) {
+            http_response_code(400);
+            return new PublicResponse();
+        }
+
+        if (isset($event['type'])) {
             Core::getInstance()->getLogger()->log(Logger::LEVEL_INFO, 'Stripe webhook: ' . $event['type']);
 
             if ($event['type'] === 'checkout.session.completed') {

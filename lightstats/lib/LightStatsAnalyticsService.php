@@ -29,6 +29,9 @@ class LightStatsAnalyticsService
 
     protected function hasColumn(string $table, string $column): bool
     {
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $table) || !preg_match('/^[a-zA-Z0-9_]+$/', $column)) {
+            return false;
+        }
         $cacheKey = $table . '.' . $column;
         if (isset($this->columnCache[$cacheKey])) {
             return $this->columnCache[$cacheKey];

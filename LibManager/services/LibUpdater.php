@@ -302,6 +302,22 @@ class LibUpdater {
 
         try {
             $phar = new \PharData($archive);
+            $it = new \RecursiveIteratorIterator($phar, \RecursiveIteratorIterator::SELF_FIRST);
+            foreach ($it as $entry) {
+                $relPath = str_replace('\\', '/', $it->getSubPathName());
+                if (
+                    strpos($relPath, "\0") !== false ||
+                    str_starts_with($relPath, '/') ||
+                    preg_match('/^[a-zA-Z]:/', $relPath) ||
+                    $relPath === '..' ||
+                    str_starts_with($relPath, '../') ||
+                    str_contains($relPath, '/../') ||
+                    str_ends_with($relPath, '/..') ||
+                    $entry->isLink()
+                ) {
+                    throw new \RuntimeException('Entrée archive non sécurisée détectée : ' . $relPath);
+                }
+            }
             $phar->extractTo($extractDir);
         } catch (\Throwable $e) {
             if (is_dir($backup)) rename($backup, $dest);

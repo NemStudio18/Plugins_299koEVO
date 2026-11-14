@@ -338,7 +338,7 @@ class galerie {
         } else {
             foreach ($this->items as $k => $v) {
                 if ($id == $v->getId()) {
-                    $upload = Util::uploadFile('file', UPLOAD . 'galerie/', $obj->getId(), [['extensions' => ["gif", "png", "jpg", "jpeg"]]]);
+                    $upload = Util::uploadFile('file', UPLOAD . 'galerie/', $obj->getId(), ['extensions' => ["gif", "png", "jpg", "jpeg"]]);
                     if ($upload == 'success') {
                         $ext = "." . Util::getFileExtension($_FILES['file']['name']);
                         $obj->setImg($obj->getId() . $ext);

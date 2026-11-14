@@ -72,7 +72,10 @@
         form.action = prefix + '/pelleditor/export';
         form.target = '_blank';
         
-        const fields = { 'format': format, 'html': instance.content.innerHTML, 'title': 'Document' };
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+            || document.querySelector('input[name="_csrf"]')?.value
+            || '';
+        const fields = { 'format': format, 'html': instance.content.innerHTML, 'title': 'Document', '_csrf': csrfToken };
         for (const [name, value] of Object.entries(fields)) {
             const input = document.createElement('input');
             input.type = 'hidden'; input.name = name; input.value = value;

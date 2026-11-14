@@ -208,21 +208,33 @@ class BugTrackerService
     }
 
     /**
-     * Sauvegarde une image uploadée
+     * Sauvegarde une image uploadée (validation stricte MIME binaire + getimagesize)
      */
     public function saveImage(array $file): ?array
     {
-        if (!isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
-            return null;
-        }
-
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (!in_array($file['type'] ?? '', $allowedTypes)) {
+        if (!isset($file['tmp_name'], $file['size']) || !is_uploaded_file($file['tmp_name'])) {
             return null;
         }
 
         $maxSize = 5 * 1024 * 1024; // 5 MB
-        if ($file['size'] > $maxSize) {
+        if ((int)$file['size'] <= 0 || (int)$file['size'] > $maxSize) {
+            return null;
+        }
+
+        $mimeToExt = [
+            'image/jpeg' => 'jpg',
+            'image/png'  => 'png',
+            'image/gif'  => 'gif',
+            'image/webp' => 'webp',
+        ];
+
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $realMime = $finfo->file($file['tmp_name']);
+        if (!isset($mimeToExt[$realMime])) {
+            return null;
+        }
+
+        if (@getimagesize($file['tmp_name']) === false) {
             return null;
         }
 
@@ -231,7 +243,15 @@ class BugTrackerService
             mkdir($uploadDir, 0755, true);
         }
 
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $htaccessPath = $uploadDir . DS . '.htaccess';
+        if (!file_exists($htaccessPath)) {
+            @file_put_contents(
+                $htaccessPath,
+                "<FilesMatch \"\\.(php|phtml|php3|php4|php5|php7|php8|phar|pl|py|cgi|sh)\$\">\n    Require all denied\n</FilesMatch>\nOptions -ExecCGI\n"
+            );
+        }
+
+        $extension = $mimeToExt[$realMime];
         $filename = uniqid('bug_', true) . '.' . $extension;
         $filepath = $uploadDir . DS . $filename;
 
@@ -239,8 +259,8 @@ class BugTrackerService
             return [
                 'path' => $filepath,
                 'url' => 'data/plugin/BugTracker/images/' . $filename,
-                'name' => $file['name'],
-                'size' => $file['size'],
+                'name' => basename((string)($file['name'] ?? $filename)),
+                'size' => (int)$file['size'],
             ];
         }
 

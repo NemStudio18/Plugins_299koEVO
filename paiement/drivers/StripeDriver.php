@@ -84,28 +84,51 @@ class StripeDriver implements PaymentDriverInterface
         $sigHeader = $headers['Stripe-Signature'] ?? ($headers['stripe-signature'] ?? '');
 
         if (empty($this->webhookSecret) || empty($sigHeader)) {
-            // No signature verification (dev mode)
-            $event = json_decode($payload, true);
-            return $event ?: false;
+            return false;
         }
 
         // Signature verification
         $parts     = explode(',', $sigHeader);
         $timestamp = null;
-        $signature = null;
+        $signatures = [];
 
         foreach ($parts as $part) {
+            $part = trim($part);
+            if (strpos($part, '=') === false) {
+                continue;
+            }
             [$key, $val] = explode('=', $part, 2);
-            if ($key === 't') $timestamp = $val;
-            if ($key === 'v1') $signature = $val;
+            if ($key === 't') {
+                $timestamp = $val;
+            }
+            if ($key === 'v1') {
+                $signatures[] = $val;
+            }
         }
 
-        if (!$timestamp || !$signature) return false;
+        if (!$timestamp || !ctype_digit((string)$timestamp) || empty($signatures)) {
+            return false;
+        }
+
+        // Anti-replay window (300 seconds)
+        if (abs(time() - (int)$timestamp) > 300) {
+            return false;
+        }
 
         $signed = $timestamp . '.' . $payload;
         $expected = hash_hmac('sha256', $signed, $this->webhookSecret);
 
-        if (!hash_equals($expected, $signature)) return false;
+        $matched = false;
+        foreach ($signatures as $sig) {
+            if (hash_equals($expected, $sig)) {
+                $matched = true;
+                break;
+            }
+        }
+
+        if (!$matched) {
+            return false;
+        }
 
         return json_decode($payload, true) ?: false;
     }
