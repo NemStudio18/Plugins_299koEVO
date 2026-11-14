@@ -1,3 +1,6 @@
+<link rel="stylesheet" href="{{ leafletCss }}">
+<script src="{{ leafletJs }}"></script>
+
 <section class="module-card">
     <header><i class="fa-solid fa-map-location-dot"></i> Cartographie &amp; Points d'Intérêt (SearchMaps)</header>
 

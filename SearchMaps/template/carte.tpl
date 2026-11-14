@@ -1,3 +1,6 @@
+<link rel="stylesheet" href="{{ leafletCss }}">
+<script src="{{ leafletJs }}"></script>
+
 <section class="carte-interactive-page">
     <header class="carte-header">
         <h1><i class="fa-solid fa-map-location-dot"></i> {{ pageTitle }}</h1>

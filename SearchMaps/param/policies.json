@@ -7,6 +7,15 @@
                 "value": "admin"
             }
         ]
+    },
+    "search-maps:admin": {
+        "logic": "OR",
+        "conditions": [
+            {
+                "type": "role",
+                "value": "admin"
+            }
+        ]
     }
 }
 

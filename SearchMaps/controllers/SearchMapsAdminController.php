@@ -15,7 +15,9 @@ class SearchMapsAdminController extends BaseAdminController
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);
         
-        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('search-maps:admin'), $ctx)) {
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('searchmaps:admin'), $ctx)
+            && !$evaluator->canAccess(new \Core\Navigation\GenericResource('search-maps:admin'), $ctx)
+            && !$evaluator->isAdmin($ctx)) {
             \Utils\Show::msg('Permissions insuffisantes.', 'error');
             $this->core->redirect($this->router->generate('admin-home'));
             return;
@@ -39,6 +41,8 @@ class SearchMapsAdminController extends BaseAdminController
         $tpl->set('poisCount', count($pois));
         $tpl->set('poisJson', json_encode($pois, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP));
         $tpl->set('csrfToken', \Core\Security\Csrf::token());
+        $tpl->set('leafletCss', \Utils\Util::urlBuild('plugin/SearchMaps/assets/vendor/leaflet.css'));
+        $tpl->set('leafletJs', \Utils\Util::urlBuild('plugin/SearchMaps/assets/vendor/leaflet.js'));
         $response->addTemplate($tpl);
         return $response;
     }
@@ -48,7 +52,9 @@ class SearchMapsAdminController extends BaseAdminController
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);
         
-        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('search-maps:admin'), $ctx)) {
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('searchmaps:admin'), $ctx)
+            && !$evaluator->canAccess(new \Core\Navigation\GenericResource('search-maps:admin'), $ctx)
+            && !$evaluator->isAdmin($ctx)) {
             \Utils\Show::msg('Permissions insuffisantes.', 'error');
             $this->core->redirect($this->router->generate('admin-home'));
             return;
@@ -85,7 +91,9 @@ class SearchMapsAdminController extends BaseAdminController
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);
         
-        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('search-maps:admin'), $ctx)) {
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('searchmaps:admin'), $ctx)
+            && !$evaluator->canAccess(new \Core\Navigation\GenericResource('search-maps:admin'), $ctx)
+            && !$evaluator->isAdmin($ctx)) {
             \Utils\Show::msg('Permissions insuffisantes.', 'error');
             $this->core->redirect($this->router->generate('admin-home'));
             return;
@@ -126,7 +134,9 @@ class SearchMapsAdminController extends BaseAdminController
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);
         
-        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('search-maps:admin'), $ctx)) {
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('searchmaps:admin'), $ctx)
+            && !$evaluator->canAccess(new \Core\Navigation\GenericResource('search-maps:admin'), $ctx)
+            && !$evaluator->isAdmin($ctx)) {
             \Utils\Show::msg('Permissions insuffisantes.', 'error');
             $this->core->redirect($this->router->generate('admin-home'));
             return;

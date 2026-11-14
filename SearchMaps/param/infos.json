@@ -1,11 +1,13 @@
 {
     "slug": "SearchMaps",
-    "name": "SearchMaps",
+    "name": "Cartes & POI",
     "icon": "fa-solid fa-map-location-dot",
-    "description": "Cartographie OpenStreetMap et Leaflet pour intégration d'itinéraires et points géolocalisés.",
-    "version": "1.0.1",
+    "description": "Gestionnaire de points d'intérêt (POI), carte interactive plein écran (/carte) et shortcodes [map] pour articles et pages.",
+    "version": "1.0.2",
     "author": "299Ko Team",
     "authorEmail": "maximeblanc@flexcb.fr",
     "authorWebsite": "https://299ko.flexcb.fr",
-    "homeAdminMethod": "SearchMaps\\Controllers\\SearchMapsAdminController#home"
+    "adminCategory": "contenu",
+    "homeAdminMethod": "SearchMaps\\Controllers\\SearchMapsAdminController#home",
+    "homePublicMethod": "SearchMaps\\Controllers\\SearchMapsPublicController#publicMap"
 }
