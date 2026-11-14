@@ -65,6 +65,22 @@
     transition: fill 1.5s ease;
 }
 
+/* Éclairage réaliste des fenêtres du village le soir / la nuit */
+.ws-window-glow {
+    fill: rgba(255, 255, 255, 0.2);
+    transition: fill 1.5s ease, filter 1.5s ease;
+}
+
+.ws-time-night .ws-window-glow,
+.weather-state-night .ws-window-glow {
+    fill: #fef08a;
+    filter: drop-shadow(0 0 4px #f59e0b) drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
+}
+
+.ws-hill-front {
+    filter: drop-shadow(0 -3px 8px rgba(0, 0, 0, 0.25));
+}
+
 /* ==========================================================================
    ÉLÉMENTS CÉLESTES & PARTICULES
    ========================================================================== */
@@ -74,8 +90,18 @@
     transform-origin: 220px 90px;
 }
 
+.ws-sun-halo {
+    animation: wsSunPulse 7s ease-in-out infinite alternate;
+    transform-origin: 220px 90px;
+}
+
+@keyframes wsSunPulse {
+    0% { opacity: 0.75; transform: scale(0.96); }
+    100% { opacity: 1; transform: scale(1.08); }
+}
+
 .ws-sun-rays {
-    animation: wsSunRaySpin 30s linear infinite;
+    animation: wsSunRaySpin 36s linear infinite;
     transform-origin: 220px 90px;
 }
 
@@ -90,8 +116,28 @@
     transform-origin: 220px 90px;
 }
 
+.ws-moon-halo {
+    animation: wsMoonPulse 5s ease-in-out infinite alternate;
+    transform-origin: 220px 90px;
+}
+
+.ws-moon-halo-outer {
+    animation: wsMoonPulseOuter 9s ease-in-out infinite alternate;
+    transform-origin: 220px 90px;
+}
+
+@keyframes wsMoonPulse {
+    0% { opacity: 0.8; transform: scale(0.97); }
+    100% { opacity: 1; transform: scale(1.06); }
+}
+
+@keyframes wsMoonPulseOuter {
+    0% { opacity: 0.4; transform: scale(0.94); }
+    100% { opacity: 0.75; transform: scale(1.1); }
+}
+
 .ws-moon-crescent {
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.85));
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 24px rgba(186, 230, 253, 0.6));
 }
 
 .ws-stars-group {
@@ -138,7 +184,10 @@
 }
 
 /* Pluie */
+.ws-rain-group,
 .ws-rain-drops {
+    display: none;
+    opacity: 0;
     transition: opacity 0.8s ease;
 }
 
@@ -160,9 +209,19 @@
 }
 
 /* Foudre / Orage */
+.ws-lightning-group,
 .ws-storm-lightning {
+    display: none;
     opacity: 0;
     transition: opacity 0.2s ease;
+}
+
+.ws-lightning-group .ws-bolt {
+    fill: #fef08a;
+}
+
+.ws-lightning-group .ws-lightning-glow {
+    fill: rgba(254, 240, 138, 0.35);
 }
 
 @keyframes wsLightningBolt {
@@ -182,7 +241,10 @@
 }
 
 /* Neige */
+.ws-snow-group,
 .ws-snow-flakes {
+    display: none;
+    opacity: 0;
     transition: opacity 0.8s ease;
 }
 
@@ -207,6 +269,8 @@
 
 /* Brume / Brouillard */
 .ws-mist-group {
+    display: none;
+    opacity: 0;
     transition: opacity 1s ease;
 }
 
@@ -235,7 +299,9 @@
 /* Jour */
 .ws-time-day.weather-state-sunny .ws-sky-layer,
 .weather-state-sunny:not(.ws-time-night) .ws-sky-layer {
-    background: linear-gradient(180deg, #0284c7 0%, #38bdf8 35%, #7dd3fc 70%, #fef08a 100%);
+    background:
+        radial-gradient(circle at 16% 28%, rgba(254, 240, 138, 0.35) 0%, transparent 45%),
+        linear-gradient(180deg, #0284c7 0%, #38bdf8 35%, #7dd3fc 68%, #fde68a 100%);
 }
 .ws-time-day.weather-state-sunny,
 .weather-state-sunny:not(.ws-time-night) {
@@ -269,7 +335,10 @@
 .ws-time-night.weather-state-sunny .ws-sky-layer,
 .ws-time-night.weather-state-clear .ws-sky-layer,
 .weather-state-night .ws-sky-layer {
-    background: linear-gradient(180deg, #050811 0%, #0c1222 40%, #1e1b4b 75%, #312e81 100%);
+    background:
+        radial-gradient(circle at 15% 28%, rgba(224, 231, 255, 0.16) 0%, transparent 40%),
+        radial-gradient(circle at 75% 18%, rgba(129, 140, 248, 0.12) 0%, transparent 50%),
+        linear-gradient(180deg, #020617 0%, #080e1d 35%, #0f172a 70%, #1e1b4b 100%);
 }
 .ws-time-night.weather-state-sunny,
 .ws-time-night.weather-state-clear,
@@ -561,42 +630,52 @@
 .ws-time-night.weather-state-fog .ws-mist-group { opacity: 1; }
 
 /* ==========================================================================
-   CARTE D'INFORMATIONS MÉTÉO EN VERRE DÉPOLI (FROSTED GLASS CARD)
+   CARTE D'INFORMATIONS MÉTÉO COMPACTE & DISCRÈTE (EN HAUT À DROITE)
    ========================================================================== */
 .ws-overlay-card {
     position: absolute;
-    top: 24px;
-    left: 24px;
+    top: 12px;
+    right: 16px;
+    left: auto;
     z-index: 10;
-    background: rgba(15, 23, 42, 0.72);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
     border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 14px;
-    padding: 16px 20px;
+    border-radius: var(--evo-radius-md, 10px);
+    padding: 7px 12px;
     color: #ffffff;
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
-    max-width: 440px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    width: auto;
+    max-width: 230px;
+    box-sizing: border-box;
+}
+
+.ws-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 2px;
 }
 
 .ws-card-badge {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
+    gap: 5px;
+    font-size: 0.76rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #38bdf8;
-    margin-bottom: 6px;
+    color: var(--evo-accent, #38bdf8);
 }
 
 .ws-live-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: #22c55e;
-    box-shadow: 0 0 10px #22c55e;
+    box-shadow: 0 0 6px #22c55e;
     animation: wsPulse 2s infinite;
 }
 
@@ -606,10 +685,16 @@
     100% { transform: scale(0.9); opacity: 0.8; }
 }
 
-.ws-card-main {
+.ws-condition-sub {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.ws-card-body {
     display: flex;
     align-items: baseline;
-    gap: 16px;
+    gap: 8px;
+    margin-bottom: 4px;
 }
 
 .ws-temp-wrap {
@@ -618,89 +703,62 @@
 }
 
 .ws-temp-value {
-    font-size: 2.8rem;
+    font-size: 1.7rem;
     font-weight: 800;
     line-height: 1;
     letter-spacing: -0.02em;
+    color: #ffffff;
 }
 
 .ws-temp-unit {
-    font-size: 1.2rem;
+    font-size: 0.85rem;
     font-weight: 600;
-    color: #94a3b8;
-    margin-left: 2px;
-}
-
-.ws-condition-wrap {
-    display: flex;
-    flex-direction: column;
+    color: rgba(255, 255, 255, 0.7);
+    margin-left: 1px;
 }
 
 .ws-condition-text {
-    font-size: 1.15rem;
-    font-weight: 700;
+    font-size: 0.86rem;
+    font-weight: 600;
     color: #f8fafc;
+    line-height: 1.15;
 }
 
-.ws-condition-sub {
-    font-size: 0.8rem;
-    color: #94a3b8;
+/* Micro-indicateurs météo précis (2 colonnes) */
+.ws-metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 8px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.8);
 }
 
-/* Sélecteur d'ambiance rapide & Bascule Jour/Nuit */
-.ws-scene-picker {
+.ws-metric-item {
     display: flex;
     align-items: center;
     gap: 4px;
-    margin-top: 14px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    flex-wrap: wrap;
+    white-space: nowrap;
 }
 
-.ws-pick-sep {
-    display: inline-block;
-    width: 1px;
-    height: 18px;
-    background: rgba(255, 255, 255, 0.2);
-    margin: 0 3px;
-}
-
-.ws-pick-btn {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 6px;
-    color: #ffffff;
-    font-size: 0.82rem;
-    padding: 3px 6px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.ws-pick-btn:hover,
-.ws-pick-btn.is-active {
-    background: #38bdf8;
-    border-color: #38bdf8;
-    color: #020617;
-    transform: translateY(-1px);
-}
-
-.ws-pick-time-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 6px;
-    color: #fef08a;
+.ws-metric-icon {
     font-size: 0.78rem;
-    font-weight: 600;
-    padding: 3px 8px;
-    cursor: pointer;
-    transition: all 0.15s ease;
+    line-height: 1;
+    opacity: 0.9;
 }
 
-.ws-pick-time-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+.ws-wind-arrow {
+    display: inline-block;
+    font-weight: 800;
+    font-size: 0.8rem;
+    color: var(--evo-accent, #38bdf8);
+    transition: transform 0.4s ease;
+}
+
+.ws-metric-val {
+    font-weight: 500;
     color: #ffffff;
-    transform: translateY(-1px);
 }
 
 @media (max-width: 640px) {
@@ -709,17 +767,14 @@
         min-height: 240px;
     }
     .ws-overlay-card {
-        top: 12px;
-        left: 12px;
-        right: 12px;
-        max-width: none;
-        padding: 12px 14px;
+        top: 10px;
+        right: 10px;
+        left: auto;
+        max-width: 210px;
+        padding: 6px 10px;
     }
     .ws-temp-value {
-        font-size: 2.2rem;
-    }
-    .ws-scene-picker {
-        display: none;
+        font-size: 1.4rem;
     }
 }
 

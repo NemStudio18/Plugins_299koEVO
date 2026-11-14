@@ -1,3 +1,5 @@
+@layer evo-plugins {
+
 /* Demo Plugin Public Styles */
 
 /* Cible le lien dans la navigation avec une spécificité plus forte */
@@ -24,4 +26,6 @@ a.demo-nav-link:hover {
 a.demo-nav-link i {
     color: #ff9800;
     margin-right: 5px;
+}
+
 }

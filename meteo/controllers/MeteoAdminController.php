@@ -21,7 +21,7 @@ class MeteoAdminController extends AdminController
         
         $plugin = PluginsManager::getInstance()->getPlugin('meteo');
         
-        $tpl->set('defaultCity', $plugin->getConfigVal('defaultCity') ?? 'Paris');
+        $tpl->set('defaultCity', $plugin->getConfigVal('defaultCity') ?? 'Bourges');
         $tpl->set('defaultCountry', $plugin->getConfigVal('defaultCountry') ?? 'FR');
         $tpl->set('latitude', $plugin->getConfigVal('latitude') ?? '');
         $tpl->set('longitude', $plugin->getConfigVal('longitude') ?? '');
@@ -54,7 +54,7 @@ class MeteoAdminController extends AdminController
         $plugin = PluginsManager::getInstance()->getPlugin('meteo');
         
         $config = [
-            'defaultCity' => trim($_POST['default_city'] ?? 'Paris'),
+            'defaultCity' => trim($_POST['default_city'] ?? 'Bourges'),
             'defaultCountry' => strtoupper(trim($_POST['default_country'] ?? 'FR')),
             'latitude' => $this->sanitizeCoordinate($_POST['latitude'] ?? ''),
             'longitude' => $this->sanitizeCoordinate($_POST['longitude'] ?? ''),

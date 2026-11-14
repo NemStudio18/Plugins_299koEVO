@@ -143,7 +143,7 @@ namespace Meteo {
             $router = \Core\Router\Router::getInstance();
             $tpl = new \Template\Template($templateFile);
             $tpl->set('apiCurrentUrl', $router->generate('meteo-api-current'));
-            $tpl->set('defaultCity', !empty($city) ? $city : ($plugin->getConfigVal('defaultCity') ?? 'Paris'));
+            $tpl->set('defaultCity', !empty($city) ? $city : ($plugin->getConfigVal('defaultCity') ?? 'Bourges'));
             $tpl->set('defaultCountry', !empty($country) ? $country : ($plugin->getConfigVal('defaultCountry') ?? 'FR'));
 
             return $tpl->output();

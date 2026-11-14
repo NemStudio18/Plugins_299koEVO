@@ -18,7 +18,7 @@ class WeatherService
 
     public function __construct(array $options = [])
     {
-        $this->defaultCity = trim($options['defaultCity'] ?? 'Paris');
+        $this->defaultCity = trim($options['defaultCity'] ?? 'Bourges');
         $this->defaultCountry = trim($options['defaultCountry'] ?? 'FR');
         $this->latitude = $this->toFloatOrNull($options['latitude'] ?? null);
         $this->longitude = $this->toFloatOrNull($options['longitude'] ?? null);

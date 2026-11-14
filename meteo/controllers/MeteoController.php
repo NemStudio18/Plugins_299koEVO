@@ -43,7 +43,7 @@ class MeteoController extends PublicController
         }
 
         return new \Meteo\Entities\WeatherService([
-            'defaultCity' => $plugin->getConfigVal('defaultCity') ?? 'Paris',
+            'defaultCity' => $plugin->getConfigVal('defaultCity') ?? 'Bourges',
             'defaultCountry' => $plugin->getConfigVal('defaultCountry') ?? 'FR',
             'latitude' => $plugin->getConfigVal('latitude'),
             'longitude' => $plugin->getConfigVal('longitude'),
@@ -68,7 +68,7 @@ class MeteoController extends PublicController
         $tpl->set('apiForecastUrl', $router->generate('meteo-api-forecast'));
         $tpl->set('showForecast', true);
         $tpl->set('showForecastFlag', '1');
-        $tpl->set('defaultCity', $plugin->getConfigVal('defaultCity') ?? 'Paris');
+        $tpl->set('defaultCity', $plugin->getConfigVal('defaultCity') ?? 'Bourges');
         $tpl->set('defaultCountry', $plugin->getConfigVal('defaultCountry') ?? 'FR');
         $tpl->set('units', $plugin->getConfigVal('units') ?? 'metric');
         $tpl->set('language', $plugin->getConfigVal('language') ?? 'fr');
@@ -102,7 +102,7 @@ class MeteoController extends PublicController
         
         if (empty($city)) {
             $plugin = PluginsManager::getInstance()->getPlugin('meteo');
-            $city = $plugin->getConfigVal('defaultCity') ?? 'Paris';
+            $city = $plugin->getConfigVal('defaultCity') ?? 'Bourges';
             $country = $plugin->getConfigVal('defaultCountry') ?? 'FR';
             if ($latitude === null) {
                 $latitude = $this->toFloatOrNull($plugin->getConfigVal('latitude'));
@@ -190,7 +190,7 @@ class MeteoController extends PublicController
         
         if (empty($city)) {
             $plugin = PluginsManager::getInstance()->getPlugin('meteo');
-            $city = $plugin->getConfigVal('defaultCity') ?? 'Paris';
+            $city = $plugin->getConfigVal('defaultCity') ?? 'Bourges';
             $country = $plugin->getConfigVal('defaultCountry') ?? 'FR';
             if ($latitude === null) {
                 $latitude = $this->toFloatOrNull($plugin->getConfigVal('latitude'));

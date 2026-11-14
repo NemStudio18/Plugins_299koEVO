@@ -1,3 +1,5 @@
+@layer evo-plugins {
+
 
 .meteo-widget__title-link {
     text-decoration: none;
@@ -123,4 +125,7 @@
     left: 0;
     z-index: 2;
     box-shadow: var(--evo-shadow-sm);
+}
+
+
 }

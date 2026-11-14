@@ -1,3 +1,5 @@
+@layer evo-plugins {
+
 .blog-author {
     display: flex;
 }
@@ -114,10 +116,10 @@
 /* Styles spécifiques pour la TOC du wiki - Surcharge du CSS d'origine */
 .wiki-toc .toc-container {
     /* Annuler le float et la largeur du CSS d'origine */
-    float: none !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    margin: 0 !important;
+    float: none;
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
 }
 
 .wiki-toc .toc-container summary {
@@ -258,9 +260,9 @@
 /* Responsive pour mobile */
 @media only screen and (max-width: 960px) {
     .wiki-toc .toc-container {
-        float: none !important;
-        max-width: 100% !important;
-        margin: 0 0 20px 0 !important;
+        float: none;
+        max-width: 100%;
+        margin: 0 0 20px 0;
     }
     
     .wiki-toc .toc-level-2 {
@@ -284,3 +286,6 @@
     }
 }
 
+
+
+}
