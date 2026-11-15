@@ -86,3 +86,4 @@ class AgendaFeedProvider implements FeedProviderInterface {
         }
     }
 }
+

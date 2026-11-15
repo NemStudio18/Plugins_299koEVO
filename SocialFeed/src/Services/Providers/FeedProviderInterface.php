@@ -44,3 +44,4 @@ interface FeedProviderInterface {
      */
     public function fetchItems(?int $currentUserId, int $page = 1, int $limit = 20, array $options = []): array;
 }
+

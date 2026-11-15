@@ -60,3 +60,4 @@ class MeteoFeedProvider implements FeedProviderInterface {
         ]];
     }
 }
+

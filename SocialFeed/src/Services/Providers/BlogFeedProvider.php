@@ -108,3 +108,4 @@ class BlogFeedProvider implements FeedProviderInterface {
         return array_slice($items, $offset, $limit);
     }
 }
+

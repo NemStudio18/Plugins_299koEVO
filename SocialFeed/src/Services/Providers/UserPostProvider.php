@@ -111,3 +111,4 @@ class UserPostProvider implements FeedProviderInterface {
         }
     }
 }
+

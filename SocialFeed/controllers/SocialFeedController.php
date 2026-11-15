@@ -266,32 +266,34 @@ class SocialFeedController {
     }
 
     /**
-     * Traitement de l'upload d'image pour un post
+     * Traitement de l'upload de média (Photos, Vidéos / Reels)
      */
     private function handleMediaUpload(array $file): ?string {
-        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mime = finfo_file($finfo, $file['tmp_name']);
-        finfo_close($finfo);
-
-        if (!in_array($mime, $allowedMimes)) {
-            return null;
-        }
-
-        $ext = match ($mime) {
+        $allowedMimes = [
             'image/jpeg' => 'jpg',
             'image/png' => 'png',
             'image/webp' => 'webp',
             'image/gif' => 'gif',
-            default => 'jpg'
-        };
+            'video/mp4' => 'mp4',
+            'video/webm' => 'webm',
+            'video/quicktime' => 'mp4'
+        ];
 
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+
+        if (!isset($allowedMimes[$mime])) {
+            return null;
+        }
+
+        $ext = $allowedMimes[$mime];
         $uploadDir = (defined('DATA') ? DATA : dirname(__DIR__, 4) . '/data/') . 'upload/social/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
 
-        $fileName = 'post_' . uniqid() . '.' . $ext;
+        $fileName = 'media_' . uniqid() . '.' . $ext;
         $target = $uploadDir . $fileName;
 
         if (move_uploaded_file($file['tmp_name'], $target)) {

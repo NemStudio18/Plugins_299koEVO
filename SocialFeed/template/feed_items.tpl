@@ -50,8 +50,21 @@
                 <div class="card-content">
                     <p class="post-text"><?= nl2br(htmlspecialchars($item['content'] ?? '')) ?></p>
                     <?php if (!empty($item['media_url'])): ?>
+                        <?php 
+                            $mUrl = $item['media_url'];
+                            $isVideoFile = (bool)preg_match('/\.(mp4|webm|mov|ogg)(\?.*)?$/i', $mUrl);
+                            $isYoutube = (bool)preg_match('/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i', $mUrl, $ytMatches);
+                        ?>
                         <div class="post-media-wrap">
-                            <img src="<?= htmlspecialchars($item['media_url']) ?>" alt="Média partagé" class="post-media-img" loading="lazy" />
+                            <?php if ($isVideoFile): ?>
+                                <video class="post-video-player" controls preload="metadata" playsinline src="<?= htmlspecialchars($mUrl) ?>"></video>
+                            <?php elseif ($isYoutube && !empty($ytMatches[1])): ?>
+                                <div class="video-embed-responsive">
+                                    <iframe src="https://www.youtube-nocookie.com/embed/<?= htmlspecialchars($ytMatches[1]) ?>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+                                </div>
+                            <?php else: ?>
+                                <img src="<?= htmlspecialchars($mUrl) ?>" alt="Média partagé" class="post-media-img" loading="lazy" />
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>

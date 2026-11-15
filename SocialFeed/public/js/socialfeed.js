@@ -1,26 +1,116 @@
 /**
- * SocialFeed - Client-side Interactive Logic
+ * SocialFeed - Client-side Interactive Logic (Facebook / X / Bluesky Style)
  */
 document.addEventListener('DOMContentLoaded', () => {
 
     const feedContainer = document.getElementById('social-feed-container');
     const publishForm = document.getElementById('social-publish-form');
+    const postTextarea = document.getElementById('social-post-content');
     const mediaFileInput = document.getElementById('media-file-input');
     const mediaPreview = document.getElementById('media-preview-container');
     const mediaPreviewImg = document.getElementById('media-preview-img');
+    const mediaPreviewVideo = document.getElementById('media-preview-video');
     const btnRemoveMedia = document.getElementById('btn-remove-media');
     const btnToggleMediaUrl = document.getElementById('btn-toggle-media-url');
     const mediaUrlWrap = document.getElementById('media-url-wrap');
+    const mediaUrlInput = document.getElementById('media-url-input');
 
-    // 1. GESTION DES MÉDIAS (PHOTO / URL)
+    // Tiroirs Emojis & GIFs
+    const btnToggleEmoji = document.getElementById('btn-toggle-emoji');
+    const emojiDrawer = document.getElementById('emoji-drawer');
+    const btnCloseEmoji = document.getElementById('btn-close-emoji');
+
+    const btnToggleGif = document.getElementById('btn-toggle-gif');
+    const gifDrawer = document.getElementById('gif-drawer');
+    const btnCloseGif = document.getElementById('btn-close-gif');
+
+    // 1. TEXTAREA AUTO-EXPAND (Comme X / Facebook)
+    if (postTextarea) {
+        postTextarea.addEventListener('input', () => {
+            postTextarea.style.height = 'auto';
+            postTextarea.style.height = Math.max(80, postTextarea.scrollHeight) + 'px';
+        });
+    }
+
+    // 2. GESTION DES TIROIRS EMOJIS & GIFS
+    if (btnToggleEmoji && emojiDrawer) {
+        btnToggleEmoji.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (gifDrawer) gifDrawer.style.display = 'none';
+            emojiDrawer.style.display = emojiDrawer.style.display === 'none' ? 'block' : 'none';
+        });
+    }
+
+    if (btnCloseEmoji && emojiDrawer) {
+        btnCloseEmoji.addEventListener('click', () => {
+            emojiDrawer.style.display = 'none';
+        });
+    }
+
+    // Insertion emoji à la position du curseur
+    document.addEventListener('click', (e) => {
+        const emojiBtn = e.target.closest('.emoji-item');
+        if (emojiBtn && postTextarea) {
+            const emoji = emojiBtn.dataset.emoji;
+            const start = postTextarea.selectionStart || 0;
+            const end = postTextarea.selectionEnd || 0;
+            const text = postTextarea.value;
+            postTextarea.value = text.substring(0, start) + emoji + text.substring(end);
+            postTextarea.selectionStart = postTextarea.selectionEnd = start + emoji.length;
+            postTextarea.focus();
+            postTextarea.dispatchEvent(new Event('input'));
+        }
+    });
+
+    if (btnToggleGif && gifDrawer) {
+        btnToggleGif.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (emojiDrawer) emojiDrawer.style.display = 'none';
+            gifDrawer.style.display = gifDrawer.style.display === 'none' ? 'block' : 'none';
+        });
+    }
+
+    if (btnCloseGif && gifDrawer) {
+        btnCloseGif.addEventListener('click', () => {
+            gifDrawer.style.display = 'none';
+        });
+    }
+
+    // Sélection d'un GIF
+    document.addEventListener('click', (e) => {
+        const gifBtn = e.target.closest('.gif-item');
+        if (gifBtn) {
+            const gifUrl = gifBtn.dataset.gifUrl;
+            if (mediaUrlInput) mediaUrlInput.value = gifUrl;
+            if (mediaPreview && mediaPreviewImg) {
+                mediaPreviewImg.src = gifUrl;
+                mediaPreviewImg.style.display = 'block';
+                if (mediaPreviewVideo) mediaPreviewVideo.style.display = 'none';
+                mediaPreview.style.display = 'block';
+            }
+            if (gifDrawer) gifDrawer.style.display = 'none';
+        }
+    });
+
+    // 3. GESTION DES MÉDIAS (PHOTO / VIDÉO / REEL)
     if (mediaFileInput) {
         mediaFileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
+                const isVideo = file.type.startsWith('video/');
                 const reader = new FileReader();
+
                 reader.onload = (re) => {
-                    mediaPreviewImg.src = re.target.result;
-                    mediaPreview.style.display = 'block';
+                    if (isVideo && mediaPreviewVideo) {
+                        mediaPreviewVideo.src = re.target.result;
+                        mediaPreviewVideo.style.display = 'block';
+                        if (mediaPreviewImg) mediaPreviewImg.style.display = 'none';
+                    } else if (mediaPreviewImg) {
+                        mediaPreviewImg.src = re.target.result;
+                        mediaPreviewImg.style.display = 'block';
+                        if (mediaPreviewVideo) mediaPreviewVideo.style.display = 'none';
+                    }
+                    if (mediaPreview) mediaPreview.style.display = 'block';
                 };
                 reader.readAsDataURL(file);
             }
@@ -30,10 +120,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnRemoveMedia) {
         btnRemoveMedia.addEventListener('click', () => {
             if (mediaFileInput) mediaFileInput.value = '';
-            const urlInput = document.getElementById('media-url-input');
-            if (urlInput) urlInput.value = '';
-            mediaPreviewImg.src = '';
-            mediaPreview.style.display = 'none';
+            if (mediaUrlInput) mediaUrlInput.value = '';
+            if (mediaPreviewImg) {
+                mediaPreviewImg.src = '';
+                mediaPreviewImg.style.display = 'none';
+            }
+            if (mediaPreviewVideo) {
+                mediaPreviewVideo.src = '';
+                mediaPreviewVideo.style.display = 'none';
+            }
+            if (mediaPreview) mediaPreview.style.display = 'none';
         });
     }
 
@@ -41,11 +137,72 @@ document.addEventListener('DOMContentLoaded', () => {
         btnToggleMediaUrl.addEventListener('click', () => {
             if (mediaUrlWrap) {
                 mediaUrlWrap.style.display = mediaUrlWrap.style.display === 'none' ? 'block' : 'none';
+                if (mediaUrlWrap.style.display === 'block' && mediaUrlInput) {
+                    mediaUrlInput.focus();
+                }
             }
         });
     }
 
-    // 2. PUBLICATION D'UN POST EN AJAX
+    // Prévisualisation instantanée lien vidéo/image externe
+    if (mediaUrlInput) {
+        mediaUrlInput.addEventListener('change', () => {
+            const val = mediaUrlInput.value.trim();
+            if (val && mediaPreview) {
+                if (val.match(/\.(mp4|webm|mov)(\?.*)?$/i) && mediaPreviewVideo) {
+                    mediaPreviewVideo.src = val;
+                    mediaPreviewVideo.style.display = 'block';
+                    if (mediaPreviewImg) mediaPreviewImg.style.display = 'none';
+                } else if (mediaPreviewImg) {
+                    mediaPreviewImg.src = val;
+                    mediaPreviewImg.style.display = 'block';
+                    if (mediaPreviewVideo) mediaPreviewVideo.style.display = 'none';
+                }
+                mediaPreview.style.display = 'block';
+            }
+        });
+    }
+
+    // 4. FERMETURE AU CLIC EXTÉRIEUR (DROPDOWNS, EMOJIS, GIFS)
+    document.addEventListener('click', (e) => {
+        // Dropdown menus
+        const isDropdownBtn = e.target.closest('.btn-post-options');
+        const isInsideDropdown = e.target.closest('.dropdown-menu');
+        if (!isDropdownBtn && !isInsideDropdown) {
+            document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+        }
+
+        // Drawers
+        const isEmojiToggle = e.target.closest('#btn-toggle-emoji');
+        const isInsideEmoji = e.target.closest('#emoji-drawer');
+        if (!isEmojiToggle && !isInsideEmoji && emojiDrawer) {
+            emojiDrawer.style.display = 'none';
+        }
+
+        const isGifToggle = e.target.closest('#btn-toggle-gif');
+        const isInsideGif = e.target.closest('#gif-drawer');
+        if (!isGifToggle && !isInsideGif && gifDrawer) {
+            gifDrawer.style.display = 'none';
+        }
+    });
+
+    // Toggle dropdown 3-points
+    document.addEventListener('click', (e) => {
+        const btnOptions = e.target.closest('.btn-post-options');
+        if (btnOptions) {
+            e.stopPropagation();
+            const menu = btnOptions.nextElementSibling;
+            if (menu) {
+                // Fermer les autres d'abord
+                document.querySelectorAll('.dropdown-menu.show').forEach(m => {
+                    if (m !== menu) m.classList.remove('show');
+                });
+                menu.classList.toggle('show');
+            }
+        }
+    });
+
+    // 5. PUBLICATION D'UN POST EN AJAX
     if (publishForm) {
         publishForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -65,10 +222,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (data.status === 'success') {
                     publishForm.reset();
+                    if (postTextarea) postTextarea.style.height = 'auto';
                     if (mediaPreview) mediaPreview.style.display = 'none';
                     if (mediaUrlWrap) mediaUrlWrap.style.display = 'none';
+                    if (emojiDrawer) emojiDrawer.style.display = 'none';
+                    if (gifDrawer) gifDrawer.style.display = 'none';
 
-                    // Recharger les posts en tête de fil
+                    // Recharger le flux
                     reloadFeed();
                 } else {
                     alert(data.message || 'Erreur lors de la publication.');
@@ -83,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 3. ACTIONS GLOBALES DÉLÉGUÉES (LIKES, COMMENTAIRES, SUPPRESSION)
+    // 6. ACTIONS GLOBALES (LIKES, COMMENTAIRES, SUPPRESSION)
     document.addEventListener('click', async (e) => {
         // A. LIKE
         const btnLike = e.target.closest('.btn-like');
@@ -168,13 +328,15 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.source-chip').forEach(c => c.classList.remove('active'));
             chip.classList.add('active');
             const filter = chip.dataset.filter;
-            feedContainer.dataset.filter = filter;
-            feedContainer.dataset.page = '1';
+            if (feedContainer) {
+                feedContainer.dataset.filter = filter;
+                feedContainer.dataset.page = '1';
+            }
             reloadFeed(filter);
         }
     });
 
-    // 4. CHARGEMENT ET ENVOI DE COMMENTAIRES
+    // 7. COMMENTAIRES (CHARGEMENT & AJOUT)
     async function loadComments(postId) {
         const listContainer = document.getElementById(`comments-list-${postId}`);
         if (!listContainer) return;
@@ -187,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (data.status === 'success') {
                 if (data.comments.length === 0) {
-                    listContainer.innerHTML = '<span class="empty-hint">Aucun commentaire pour le moment.</span>';
+                    listContainer.innerHTML = '<span class="empty-hint" style="color:var(--sf-text-muted);font-size:0.85rem;">Soyez le premier à commenter !</span>';
                 } else {
                     listContainer.innerHTML = data.comments.map(c => `
                         <div class="comment-item" id="comment-${c.id}">
@@ -195,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="comment-bubble">
                                 <span class="comment-author">${c.author_name}</span>
                                 <span class="comment-body">${c.content}</span>
-                                <time class="post-time">${c.time_ago}</time>
+                                <time class="post-time" style="display:block;margin-top:2px;">${c.time_ago}</time>
                             </div>
                         </div>
                     `).join('');
@@ -230,7 +392,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.status === 'success') {
                     input.value = '';
                     loadComments(postId);
-                    // Incrémenter le compteur visuel
                     const postCard = document.getElementById(`post-${postId}`);
                     const countSpan = postCard?.querySelector('.comments-count');
                     if (countSpan) {
@@ -245,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 5. RECHARGEMENT DU FLUX (FILTRE / REFRESH)
+    // 8. RECHARGEMENT DU FLUX
     async function reloadFeed(filter = null) {
         if (!feedContainer) return;
         const currentFilter = filter !== null ? filter : (feedContainer.dataset.filter || 'all');
