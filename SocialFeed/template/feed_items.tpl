@@ -1,4 +1,4 @@
-<?php
+de<?php
 if (!function_exists('formatSocialText')) {
     function formatSocialText(string $raw): string {
         $escaped = htmlspecialchars($raw, ENT_QUOTES, 'UTF-8');

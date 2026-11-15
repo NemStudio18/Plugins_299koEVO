@@ -802,6 +802,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // GESTION TEMPORISÉE DU SURVOL ET TOUCHER DES RÉACTIONS (ANTI-DISPARITION)
+    let reactionLeaveTimers = new Map();
+
+    document.addEventListener('mouseover', (e) => {
+        const wrap = e.target.closest('.reaction-container, .comment-reaction-wrap');
+        if (wrap) {
+            const timer = reactionLeaveTimers.get(wrap);
+            if (timer) {
+                clearTimeout(timer);
+                reactionLeaveTimers.delete(wrap);
+            }
+            wrap.classList.add('is-open');
+        }
+    });
+
+    document.addEventListener('mouseout', (e) => {
+        const wrap = e.target.closest('.reaction-container, .comment-reaction-wrap');
+        if (wrap) {
+            if (wrap.contains(e.relatedTarget)) return;
+
+            // Délais de grâce confortable de 500ms avant de fermer
+            const timer = setTimeout(() => {
+                wrap.classList.remove('is-open');
+                reactionLeaveTimers.delete(wrap);
+            }, 500);
+            reactionLeaveTimers.set(wrap, timer);
+        }
+    });
+
     // HELPER RÉACTIONS STYLE FACEBOOK
     const REACTION_CONFIG = {
         'like': { emoji: '👍', label: 'J\'aime', color: '#1d9bf0' },
@@ -812,6 +841,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     async function applyPostReaction(postId, reaction, btnLike) {
+        btnLike.closest('.reaction-container')?.classList.remove('is-open');
         const formData = new FormData();
         formData.append('reaction', reaction);
         const token = document.querySelector('input[name="token"]')?.value || window.socialCsrfToken || '';
@@ -846,6 +876,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function applyCommentReaction(commentId, reaction, btnCommentLike) {
+        btnCommentLike.closest('.comment-reaction-wrap')?.classList.remove('is-open');
         const formData = new FormData();
         formData.append('reaction', reaction);
         const token = document.querySelector('input[name="token"]')?.value || window.socialCsrfToken || '';
