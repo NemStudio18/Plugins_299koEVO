@@ -9,12 +9,20 @@
             <img src="<?= htmlspecialchars($avatar) ?>" alt="<?= htmlspecialchars($userName) ?>" class="user-avatar-sm" />
             <div class="user-info">
                 <strong><?= htmlspecialchars($userName) ?></strong>
-                <span class="publish-badge-audience"><i class="fa-solid fa-globe"></i> Public</span>
+                <div class="audience-selector-wrap">
+                    <select class="audience-select" id="publish-audience-select" onchange="var el = document.getElementById('hidden-visibility-input'); if(el) el.value = this.value;">
+                        <option value="public" selected>🌐 Public</option>
+                        <option value="friends">👥 Amis</option>
+                        <option value="followers">🔔 Abonnés</option>
+                        <option value="only_me">🔒 Moi uniquement</option>
+                    </select>
+                </div>
             </div>
         </div>
 
         <form id="social-publish-form" action="/social/publish" method="POST" enctype="multipart/form-data" class="social-publish-form">
             <input type="hidden" name="token" value="<?= htmlspecialchars($csrfToken ?? '') ?>" />
+            <input type="hidden" name="visibility" id="hidden-visibility-input" value="public" />
 
             <!-- BARRE DE FORMATAGE RAPIDE (GRAS, ITALIQUE, SOULIGNÉ) : Masquée si non replié -->
             <div class="publish-format-bar">

@@ -101,14 +101,19 @@ class SocialFeedService {
     /**
      * Crée une publication membre (sur fil public ou dans un groupe/page)
      */
-    public function createPost(int $userId, string $content, ?string $mediaUrl = null, string $postType = 'post', ?int $parentId = null, ?int $groupId = null): int {
+    public function createPost(int $userId, string $content, ?string $mediaUrl = null, string $postType = 'post', ?int $parentId = null, ?int $groupId = null, string $visibility = 'public'): int {
         $content = trim($content);
         if (empty($content) && empty($mediaUrl)) {
             throw new \InvalidArgumentException("Le message ne peut pas être vide.");
         }
 
-        $sql = "INSERT INTO social_posts (user_id, post_type, content, media_url, parent_id, group_id, status, created_at, updated_at)
-                VALUES (:uid, :type, :content, :media, :parent, :gid, 'published', :now, :now)";
+        $validVisibilities = ['public', 'friends', 'followers', 'only_me'];
+        if (!in_array($visibility, $validVisibilities, true)) {
+            $visibility = 'public';
+        }
+
+        $sql = "INSERT INTO social_posts (user_id, post_type, content, media_url, parent_id, group_id, visibility, status, created_at, updated_at)
+                VALUES (:uid, :type, :content, :media, :parent, :gid, :vis, 'published', :now, :now)";
 
         $now = date('Y-m-d H:i:s');
         $this->db->query($sql, [
@@ -118,6 +123,7 @@ class SocialFeedService {
             ':media' => $mediaUrl,
             ':parent' => $parentId,
             ':gid' => $groupId,
+            ':vis' => $visibility,
             ':now' => $now
         ]);
 
@@ -163,14 +169,36 @@ class SocialFeedService {
      * Bascule Like / Unlike
      */
     public function toggleLike(int $postId, int $userId, string $reactionType = 'like'): array {
-        $sqlCheck = "SELECT id FROM social_likes WHERE post_id = :pid AND user_id = :uid";
+        $allowed = ['like', 'love', 'haha', 'sad', 'angry'];
+        if (!in_array($reactionType, $allowed)) {
+            $reactionType = 'like';
+        }
+
+        $sqlCheck = "SELECT id, reaction_type FROM social_likes WHERE post_id = :pid AND user_id = :uid";
         $existing = $this->db->query($sqlCheck, [':pid' => $postId, ':uid' => $userId]);
 
         $hasLiked = false;
+        $currentReaction = null;
+
         if (!empty($existing)) {
-            $this->db->query("DELETE FROM social_likes WHERE post_id = :pid AND user_id = :uid", [':pid' => $postId, ':uid' => $userId]);
-            $this->db->query("UPDATE social_posts SET likes_count = MAX(0, likes_count - 1) WHERE id = :pid", [':pid' => $postId]);
-            $hasLiked = false;
+            $row = (array)$existing[0];
+            $prevReaction = $row['reaction_type'] ?? 'like';
+            if ($prevReaction === $reactionType) {
+                // Même réaction cliquée -> on retire la réaction (unlike)
+                $this->db->query("DELETE FROM social_likes WHERE post_id = :pid AND user_id = :uid", [':pid' => $postId, ':uid' => $userId]);
+                $this->db->query("UPDATE social_posts SET likes_count = MAX(0, likes_count - 1) WHERE id = :pid", [':pid' => $postId]);
+                $hasLiked = false;
+                $currentReaction = null;
+            } else {
+                // Réaction différente cliquée -> on change la réaction
+                $this->db->query("UPDATE social_likes SET reaction_type = :type WHERE post_id = :pid AND user_id = :uid", [
+                    ':type' => $reactionType,
+                    ':pid' => $postId,
+                    ':uid' => $userId
+                ]);
+                $hasLiked = true;
+                $currentReaction = $reactionType;
+            }
         } else {
             $this->db->query(
                 "INSERT INTO social_likes (post_id, user_id, reaction_type, created_at) VALUES (:pid, :uid, :type, :now)",
@@ -178,13 +206,60 @@ class SocialFeedService {
             );
             $this->db->query("UPDATE social_posts SET likes_count = likes_count + 1 WHERE id = :pid", [':pid' => $postId]);
             $hasLiked = true;
+            $currentReaction = $reactionType;
         }
 
         // Compteur frais
         $countRows = $this->db->query("SELECT likes_count FROM social_posts WHERE id = :pid", [':pid' => $postId]);
         $likesCount = !empty($countRows) ? (int)((array)$countRows[0])['likes_count'] : 0;
 
-        return ['has_liked' => $hasLiked, 'likes_count' => $likesCount];
+        return ['has_liked' => $hasLiked, 'likes_count' => $likesCount, 'reaction' => $currentReaction];
+    }
+
+    /**
+     * Bascule la réaction/like sur un commentaire
+     */
+    public function toggleCommentLike(int $commentId, int $userId, string $reactionType = 'like'): array {
+        $allowed = ['like', 'love', 'haha', 'sad', 'angry'];
+        if (!in_array($reactionType, $allowed)) {
+            $reactionType = 'like';
+        }
+
+        $sqlCheck = "SELECT id, reaction_type FROM social_comment_likes WHERE comment_id = :cid AND user_id = :uid";
+        $existing = $this->db->query($sqlCheck, [':cid' => $commentId, ':uid' => $userId]);
+
+        $hasLiked = false;
+        $currentReaction = null;
+
+        if (!empty($existing)) {
+            $row = (array)$existing[0];
+            $prevReaction = $row['reaction_type'] ?? 'like';
+            if ($prevReaction === $reactionType) {
+                $this->db->query("DELETE FROM social_comment_likes WHERE comment_id = :cid AND user_id = :uid", [':cid' => $commentId, ':uid' => $userId]);
+                $hasLiked = false;
+                $currentReaction = null;
+            } else {
+                $this->db->query("UPDATE social_comment_likes SET reaction_type = :type WHERE comment_id = :cid AND user_id = :uid", [
+                    ':type' => $reactionType,
+                    ':cid' => $commentId,
+                    ':uid' => $userId
+                ]);
+                $hasLiked = true;
+                $currentReaction = $reactionType;
+            }
+        } else {
+            $this->db->query(
+                "INSERT INTO social_comment_likes (comment_id, user_id, reaction_type, created_at) VALUES (:cid, :uid, :type, :now)",
+                [':cid' => $commentId, ':uid' => $userId, ':type' => $reactionType, ':now' => date('Y-m-d H:i:s')]
+            );
+            $hasLiked = true;
+            $currentReaction = $reactionType;
+        }
+
+        $countRows = $this->db->query("SELECT COUNT(*) as c FROM social_comment_likes WHERE comment_id = :cid", [':cid' => $commentId]);
+        $likesCount = !empty($countRows) ? (int)((array)$countRows[0])['c'] : 0;
+
+        return ['has_liked' => $hasLiked, 'likes_count' => $likesCount, 'reaction' => $currentReaction];
     }
 
     /**
@@ -222,14 +297,16 @@ class SocialFeedService {
     /**
      * Récupère les commentaires d'un post
      */
-    public function getComments(int $postId): array {
-        $sql = "SELECT c.*, u.username, u.email
+    public function getComments(int $postId, ?int $currentUserId = null): array {
+        $sql = "SELECT c.*, u.username, u.email,
+                       (SELECT COUNT(*) FROM social_comment_likes cl WHERE cl.comment_id = c.id) as likes_count,
+                       (SELECT cl2.reaction_type FROM social_comment_likes cl2 WHERE cl2.comment_id = c.id AND cl2.user_id = :uid) as user_reaction
                 FROM social_comments c
                 LEFT JOIN users u ON u.id = c.user_id
                 WHERE c.post_id = :pid AND c.status = 'published'
                 ORDER BY c.created_at ASC";
 
-        $rows = $this->db->query($sql, [':pid' => $postId]);
+        $rows = $this->db->query($sql, [':pid' => $postId, ':uid' => $currentUserId ?? 0]);
         if (!is_array($rows)) {
             return [];
         }
@@ -247,6 +324,9 @@ class SocialFeedService {
                 'author_avatar' => $avatar,
                 'content' => $r['content'],
                 'parent_id' => $r['parent_id'] ? (int)$r['parent_id'] : null,
+                'likes_count' => (int)($r['likes_count'] ?? 0),
+                'has_liked' => !empty($r['user_reaction']),
+                'user_reaction' => $r['user_reaction'] ?? null,
                 'created_at' => $r['created_at'],
                 'time_ago' => $this->timeElapsedString($r['created_at'])
             ];
@@ -713,5 +793,104 @@ class SocialFeedService {
             ];
         }
         return $items;
+    }
+
+    /* =========================================================================
+     * GESTION DES AMIS (STYLE FACEBOOK : DEMANDES, ACCEPTATION, AMITIÉS)
+     * ========================================================================= */
+
+    public function sendFriendRequest(int $userId, int $targetId): array {
+        if ($userId === $targetId) {
+            return ['status' => 'error', 'message' => 'Impossible de s\'ajouter soi-même.'];
+        }
+
+        // Vérifier si une relation existe déjà
+        $sql = "SELECT id, user_id, friend_id, status FROM social_friends 
+                WHERE (user_id = :u1 AND friend_id = :t1) OR (user_id = :t2 AND friend_id = :u2)";
+        $rows = $this->db->query($sql, [':u1' => $userId, ':t1' => $targetId, ':t2' => $targetId, ':u2' => $userId]);
+
+        if (!empty($rows)) {
+            $r = (array)$rows[0];
+            if ($r['status'] === 'accepted') {
+                return ['status' => 'info', 'state' => 'friends', 'message' => 'Vous êtes déjà amis.'];
+            }
+            if ($r['user_id'] == $userId && $r['status'] === 'pending') {
+                return ['status' => 'info', 'state' => 'pending_sent', 'message' => 'Demande déjà envoyée.'];
+            }
+            if ($r['friend_id'] == $userId && $r['status'] === 'pending') {
+                $this->db->query("UPDATE social_friends SET status = 'accepted', updated_at = :now WHERE id = :id", [
+                    ':now' => date('Y-m-d H:i:s'),
+                    ':id' => $r['id']
+                ]);
+                return ['status' => 'success', 'state' => 'friends', 'message' => 'Demande acceptée ! Vous êtes maintenant amis.'];
+            }
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $this->db->query(
+            "INSERT INTO social_friends (user_id, friend_id, status, created_at, updated_at) VALUES (:u, :f, 'pending', :now, :now)",
+            [':u' => $userId, ':f' => $targetId, ':now' => $now]
+        );
+
+        return ['status' => 'success', 'state' => 'pending_sent', 'message' => 'Demande d\'ami envoyée.'];
+    }
+
+    public function acceptFriendRequest(int $userId, int $requesterId): array {
+        $sql = "UPDATE social_friends SET status = 'accepted', updated_at = :now 
+                WHERE user_id = :req AND friend_id = :u AND status = 'pending'";
+        $this->db->query($sql, [':now' => date('Y-m-d H:i:s'), ':req' => $requesterId, ':u' => $userId]);
+
+        return ['status' => 'success', 'state' => 'friends', 'message' => 'Demande d\'ami acceptée !'];
+    }
+
+    public function removeFriend(int $userId, int $targetId): array {
+        $sql = "DELETE FROM social_friends 
+                WHERE (user_id = :u1 AND friend_id = :t1) OR (user_id = :t2 AND friend_id = :u2)";
+        $this->db->query($sql, [':u1' => $userId, ':t1' => $targetId, ':t2' => $targetId, ':u2' => $userId]);
+
+        return ['status' => 'success', 'state' => 'none', 'message' => 'Ami retiré.'];
+    }
+
+    public function getFriendshipStatus(int $userId, int $targetId): string {
+        if ($userId === $targetId) {
+            return 'self';
+        }
+        $sql = "SELECT user_id, friend_id, status FROM social_friends 
+                WHERE (user_id = :u1 AND friend_id = :t1) OR (user_id = :t2 AND friend_id = :u2)";
+        $rows = $this->db->query($sql, [':u1' => $userId, ':t1' => $targetId, ':t2' => $targetId, ':u2' => $userId]);
+        if (empty($rows)) {
+            return 'none';
+        }
+        $r = (array)$rows[0];
+        if ($r['status'] === 'accepted') {
+            return 'friends';
+        }
+        if ($r['status'] === 'pending') {
+            return ($r['user_id'] == $userId) ? 'pending_sent' : 'pending_received';
+        }
+        return 'none';
+    }
+
+    public function getFriends(int $userId): array {
+        $sql = "SELECT u.id, u.username, u.email, f.created_at as friendship_date
+                FROM social_friends f
+                JOIN users u ON (u.id = CASE WHEN f.user_id = :uid THEN f.friend_id ELSE f.user_id END)
+                WHERE (f.user_id = :uid2 OR f.friend_id = :uid3) AND f.status = 'accepted'
+                ORDER BY u.username ASC";
+        $rows = $this->db->query($sql, [':uid' => $userId, ':uid2' => $userId, ':uid3' => $userId]);
+        if (!is_array($rows)) return [];
+
+        $friends = [];
+        foreach ($rows as $row) {
+            $r = (array)$row;
+            $email = $r['email'] ?? '';
+            $friends[] = [
+                'id' => (int)$r['id'],
+                'username' => $r['username'],
+                'avatar' => 'https://www.gravatar.com/avatar/' . md5(strtolower(trim($email))) . '?d=mp&s=100',
+                'url' => '/social/user/' . (int)$r['id']
+            ];
+        }
+        return $friends;
     }
 }

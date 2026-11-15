@@ -1660,3 +1660,168 @@
 .comment-reply-indicator .btn-cancel-reply:hover {
     color: #ef4444;
 }
+
+/* SÉLECTEUR D'AUDIENCE (STYLE FACEBOOK) */
+.audience-selector-wrap {
+    margin-top: 0.15rem;
+}
+
+.audience-select {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--sf-border);
+    color: var(--sf-text);
+    border-radius: 9999px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    transition: background 0.2s;
+}
+
+.audience-select:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.audience-select option {
+    background: #0d131f;
+    color: #fff;
+}
+
+.post-time-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    color: var(--sf-text-muted);
+}
+
+.post-visibility-sep {
+    color: var(--sf-text-muted);
+}
+
+.post-visibility-badge i {
+    font-size: 0.75rem;
+    color: var(--sf-text-muted);
+}
+
+/* POPOVER RÉACTIONS STYLE FACEBOOK (POST) */
+.reaction-container {
+    position: relative;
+    display: inline-flex;
+}
+
+.reactions-popover {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    padding: 0.3rem 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(8px) scale(0.9);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 50;
+}
+
+.reaction-container:hover .reactions-popover,
+.reactions-popover:hover {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.btn-react {
+    background: none;
+    border: none;
+    font-size: 1.45rem;
+    line-height: 1;
+    padding: 0.2rem;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-react:hover {
+    transform: scale(1.4) translateY(-3px);
+}
+
+.reaction-emoji {
+    font-size: 1.1rem;
+    margin-right: 0.2rem;
+    display: inline-block;
+}
+
+/* RÉACTIONS SUR LES COMMENTAIRES */
+.comment-reaction-wrap {
+    position: relative;
+    display: inline-flex;
+}
+
+.btn-comment-like {
+    background: none;
+    border: none;
+    color: var(--sf-text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: color 0.15s;
+}
+
+.btn-comment-like:hover {
+    color: var(--sf-primary);
+}
+
+.btn-comment-like.liked {
+    color: var(--sf-primary);
+}
+
+.comment-reactions-popover {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 0;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    padding: 0.2rem 0.45rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(4px) scale(0.9);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 50;
+}
+
+.comment-reaction-wrap:hover .comment-reactions-popover,
+.comment-reactions-popover:hover {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.btn-comment-react {
+    background: none;
+    border: none;
+    font-size: 1.15rem;
+    line-height: 1;
+    padding: 0.1rem;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.btn-comment-react:hover {
+    transform: scale(1.35);
+}

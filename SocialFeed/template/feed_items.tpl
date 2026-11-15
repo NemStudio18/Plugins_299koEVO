@@ -45,9 +45,21 @@ if (!function_exists('formatSocialText')) {
                                 <span class="badge-pinned"><i class="fa-solid fa-thumbtack"></i> Épinglé</span>
                             <?php endif; ?>
                         </div>
-                        <time class="post-time" datetime="<?= htmlspecialchars($item['created_at']) ?>">
-                            <?= htmlspecialchars($item['time_ago'] ?? $item['created_at']) ?>
-                        </time>
+                        <div class="post-time-row">
+                            <time class="post-time" datetime="<?= htmlspecialchars($item['created_at']) ?>">
+                                <?= htmlspecialchars($item['time_ago'] ?? $item['created_at']) ?>
+                            </time>
+                            <span class="post-visibility-sep">·</span>
+                            <span class="post-visibility-badge">
+                                <?php 
+                                    $vis = $item['visibility'] ?? 'public';
+                                    if ($vis === 'friends') echo '<i class="fa-solid fa-user-group" title="Amis"></i>';
+                                    elseif ($vis === 'followers') echo '<i class="fa-solid fa-bell" title="Abonnés"></i>';
+                                    elseif ($vis === 'only_me') echo '<i class="fa-solid fa-lock" title="Moi uniquement"></i>';
+                                    else echo '<i class="fa-solid fa-globe" title="Public"></i>';
+                                ?>
+                            </span>
+                        </div>
                     </div>
 
                     <?php 
@@ -108,10 +120,33 @@ if (!function_exists('formatSocialText')) {
                 </div>
 
                 <div class="card-actions">
-                    <button class="action-btn btn-like <?= !empty($item['has_liked']) ? 'liked' : '' ?>" data-post-id="<?= (int)$item['id'] ?>" title="J'aime">
-                        <i class="<?= !empty($item['has_liked']) ? 'fa-solid' : 'fa-regular' ?> fa-heart heart-icon"></i>
-                        <span class="count likes-count"><?= (int)($item['likes_count'] ?? 0) ?></span>
-                    </button>
+                    <div class="reaction-container" data-post-id="<?= (int)$item['id'] ?>">
+                        <div class="reactions-popover">
+                            <button type="button" class="btn-react" data-reaction="like" title="J'aime">👍</button>
+                            <button type="button" class="btn-react" data-reaction="love" title="J'adore">❤️</button>
+                            <button type="button" class="btn-react" data-reaction="haha" title="Haha">😂</button>
+                            <button type="button" class="btn-react" data-reaction="sad" title="Triste">😢</button>
+                            <button type="button" class="btn-react" data-reaction="angry" title="Grr">😡</button>
+                        </div>
+                        <button class="action-btn btn-like <?= !empty($item['has_liked']) ? 'liked reaction-' . htmlspecialchars($item['user_reaction'] ?? 'like') : '' ?>" data-post-id="<?= (int)$item['id'] ?>" data-current-reaction="<?= htmlspecialchars($item['user_reaction'] ?? '') ?>" title="Réagir">
+                            <?php 
+                                $r = $item['user_reaction'] ?? '';
+                                $iconMap = [
+                                    'love' => '<span class="reaction-emoji">❤️</span> <span class="like-label">J\'adore</span>',
+                                    'haha' => '<span class="reaction-emoji">😂</span> <span class="like-label">Haha</span>',
+                                    'sad' => '<span class="reaction-emoji">😢</span> <span class="like-label">Triste</span>',
+                                    'angry' => '<span class="reaction-emoji">😡</span> <span class="like-label">Grr</span>',
+                                    'like' => '<span class="reaction-emoji">👍</span> <span class="like-label">J\'aime</span>'
+                                ];
+                                if (!empty($item['has_liked']) && isset($iconMap[$r])) {
+                                    echo $iconMap[$r];
+                                } else {
+                                    echo '<i class="fa-regular fa-thumbs-up"></i> <span class="like-label">J\'aime</span>';
+                                }
+                            ?>
+                            <span class="count likes-count"><?= (int)($item['likes_count'] ?? 0) ?></span>
+                        </button>
+                    </div>
 
                     <button class="action-btn btn-toggle-comments" data-post-id="<?= (int)$item['id'] ?>" title="Commentaires">
                         <i class="fa-regular fa-comment"></i>

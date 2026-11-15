@@ -15,7 +15,13 @@ $router->map("POST|DELETE", "/social/post/[i:id]/delete", "SocialFeed\\Controlle
 // Interactions sociales (Likes, Réactions)
 $router->map("POST", "/social/react", "SocialFeed\\Controllers\\SocialFeedController#react", "socialfeed-react");
 $router->map("POST", "/social/post/[i:id]/like", "SocialFeed\\Controllers\\SocialFeedController#toggleLike", "socialfeed-post-like");
+$router->map("POST", "/social/comment/[i:id]/like", "SocialFeed\\Controllers\\SocialFeedController#toggleCommentLike", "socialfeed-comment-like");
 $router->map("POST", "/social/post/[i:id]/share", "SocialFeed\\Controllers\\SocialFeedController#recordShare", "socialfeed-post-share");
+
+// Gestion des Amis (Style Facebook)
+$router->map("POST", "/social/friend/[i:id]/request", "SocialFeed\\Controllers\\SocialFeedController#requestFriend", "socialfeed-friend-request");
+$router->map("POST", "/social/friend/[i:id]/accept", "SocialFeed\\Controllers\\SocialFeedController#acceptFriend", "socialfeed-friend-accept");
+$router->map("POST", "/social/friend/[i:id]/remove", "SocialFeed\\Controllers\\SocialFeedController#removeFriend", "socialfeed-friend-remove");
 
 // Commentaires
 $router->map("GET", "/social/post/[i:id]/comments", "SocialFeed\\Controllers\\SocialFeedController#getComments", "socialfeed-post-comments");

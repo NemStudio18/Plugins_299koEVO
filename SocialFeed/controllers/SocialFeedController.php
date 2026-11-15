@@ -126,9 +126,10 @@ class SocialFeedController {
         }
 
         $groupId = !empty($_POST['group_id']) ? (int)$_POST['group_id'] : null;
+        $visibility = !empty($_POST['visibility']) ? trim($_POST['visibility']) : 'public';
 
         try {
-            $postId = $this->feedService->createPost((int)$user->id, $content, $mediaUrl, $postType, null, $groupId);
+            $postId = $this->feedService->createPost((int)$user->id, $content, $mediaUrl, $postType, null, $groupId, $visibility);
             echo json_encode([
                 'status' => 'success',
                 'message' => 'Publication réussie !',
@@ -169,14 +170,14 @@ class SocialFeedController {
     }
 
     /**
-     * Like / Unlike
+     * Like / Reactions sur un post (style Facebook : like, love, haha, sad, angry)
      */
     public function toggleLike(int $id) {
         header('Content-Type: application/json; charset=utf-8');
 
         $user = UsersManager::getCurrentUser();
         if (!$user) {
-            echo json_encode(['status' => 'error', 'message' => 'Connexion requise pour aimer ce post.']);
+            echo json_encode(['status' => 'error', 'message' => 'Connexion requise pour réagir.']);
             exit;
         }
 
@@ -187,6 +188,88 @@ class SocialFeedController {
         } catch (\Throwable $e) {
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
+        exit;
+    }
+
+    /**
+     * Like / Reactions sur un commentaire
+     */
+    public function toggleCommentLike(int $id) {
+        header('Content-Type: application/json; charset=utf-8');
+
+        $user = UsersManager::getCurrentUser();
+        if (!$user) {
+            echo json_encode(['status' => 'error', 'message' => 'Connexion requise.']);
+            exit;
+        }
+
+        $reactionType = $_POST['reaction'] ?? 'like';
+        try {
+            $res = $this->feedService->toggleCommentLike($id, (int)$user->id, $reactionType);
+            echo json_encode(['status' => 'success'] + $res);
+        } catch (\Throwable $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
+     * Demande d'ami
+     */
+    public function requestFriend(int $id) {
+        header('Content-Type: application/json; charset=utf-8');
+        $user = UsersManager::getCurrentUser();
+        if (!$user) {
+            echo json_encode(['status' => 'error', 'message' => 'Connexion requise.']);
+            exit;
+        }
+        $token = $_POST['token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        if (!$this->isValidToken($token, $user)) {
+            echo json_encode(['status' => 'error', 'message' => 'Session expirée.']);
+            exit;
+        }
+        $res = $this->feedService->sendFriendRequest((int)$user->id, $id);
+        echo json_encode($res);
+        exit;
+    }
+
+    /**
+     * Accepter une demande d'ami
+     */
+    public function acceptFriend(int $id) {
+        header('Content-Type: application/json; charset=utf-8');
+        $user = UsersManager::getCurrentUser();
+        if (!$user) {
+            echo json_encode(['status' => 'error', 'message' => 'Connexion requise.']);
+            exit;
+        }
+        $token = $_POST['token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        if (!$this->isValidToken($token, $user)) {
+            echo json_encode(['status' => 'error', 'message' => 'Session expirée.']);
+            exit;
+        }
+        $res = $this->feedService->acceptFriendRequest((int)$user->id, $id);
+        echo json_encode($res);
+        exit;
+    }
+
+    /**
+     * Retirer un ami
+     */
+    public function removeFriend(int $id) {
+        header('Content-Type: application/json; charset=utf-8');
+        $user = UsersManager::getCurrentUser();
+        if (!$user) {
+            echo json_encode(['status' => 'error', 'message' => 'Connexion requise.']);
+            exit;
+        }
+        $token = $_POST['token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        if (!$this->isValidToken($token, $user)) {
+            echo json_encode(['status' => 'error', 'message' => 'Session expirée.']);
+            exit;
+        }
+        $res = $this->feedService->removeFriend((int)$user->id, $id);
+        echo json_encode($res);
         exit;
     }
 
@@ -210,7 +293,9 @@ class SocialFeedController {
      */
     public function getComments(int $id) {
         header('Content-Type: application/json; charset=utf-8');
-        $comments = $this->feedService->getComments($id);
+        $user = UsersManager::getCurrentUser();
+        $currentUserId = $user ? (int)($user->id ?? 0) : null;
+        $comments = $this->feedService->getComments($id, $currentUserId);
         echo json_encode(['status' => 'success', 'comments' => $comments]);
         exit;
     }

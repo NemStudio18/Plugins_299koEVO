@@ -590,31 +590,50 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // D. LIKE
+        // D. RÉACTIONS STYLE FACEBOOK (POST)
+        const btnReact = e.target.closest('.btn-react');
+        if (btnReact) {
+            e.preventDefault();
+            const reaction = btnReact.dataset.reaction || 'like';
+            const container = btnReact.closest('.reaction-container');
+            const postId = container?.dataset.postId;
+            const btnLike = container?.querySelector('.btn-like');
+            if (postId && btnLike) {
+                applyPostReaction(postId, reaction, btnLike);
+            }
+            return;
+        }
+
         const btnLike = e.target.closest('.btn-like');
         if (btnLike) {
             e.preventDefault();
             const postId = btnLike.dataset.postId;
-            try {
-                const res = await fetch(`/social/post/${postId}/like`, {
-                    method: 'POST',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await res.json();
-                if (data.status === 'success') {
-                    btnLike.classList.toggle('liked', data.has_liked);
-                    const icon = btnLike.querySelector('i');
-                    if (icon) {
-                        icon.className = (data.has_liked ? 'fa-solid' : 'fa-regular') + ' fa-heart heart-icon';
-                    }
-                    const countSpan = btnLike.querySelector('.likes-count');
-                    if (countSpan) countSpan.textContent = data.likes_count;
-                } else if (data.message) {
-                    alert(data.message);
-                }
-            } catch (err) {
-                console.error(err);
+            const currentReaction = btnLike.dataset.currentReaction;
+            const reaction = currentReaction || 'like';
+            applyPostReaction(postId, reaction, btnLike);
+            return;
+        }
+
+        // RÉACTIONS STYLE FACEBOOK (COMMENTAIRE)
+        const btnCommentReact = e.target.closest('.btn-comment-react');
+        if (btnCommentReact) {
+            e.preventDefault();
+            const commentId = btnCommentReact.dataset.commentId;
+            const reaction = btnCommentReact.dataset.reaction || 'like';
+            const wrap = btnCommentReact.closest('.comment-reaction-wrap');
+            const btnCmtLike = wrap?.querySelector('.btn-comment-like');
+            if (commentId && btnCmtLike) {
+                applyCommentReaction(commentId, reaction, btnCmtLike);
             }
+            return;
+        }
+
+        const btnCommentLike = e.target.closest('.btn-comment-like');
+        if (btnCommentLike) {
+            e.preventDefault();
+            const commentId = btnCommentLike.dataset.commentId;
+            const reaction = btnCommentLike.dataset.reaction || 'like';
+            applyCommentReaction(commentId, reaction, btnCommentLike);
             return;
         }
 
@@ -783,6 +802,80 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // HELPER RÉACTIONS STYLE FACEBOOK
+    const REACTION_CONFIG = {
+        'like': { emoji: '👍', label: 'J\'aime', color: '#1d9bf0' },
+        'love': { emoji: '❤️', label: 'J\'adore', color: '#f91880' },
+        'haha': { emoji: '😂', label: 'Haha', color: '#f59e0b' },
+        'sad': { emoji: '😢', label: 'Triste', color: '#eab308' },
+        'angry': { emoji: '😡', label: 'Grr', color: '#ef4444' }
+    };
+
+    async function applyPostReaction(postId, reaction, btnLike) {
+        const formData = new FormData();
+        formData.append('reaction', reaction);
+        const token = document.querySelector('input[name="token"]')?.value || window.socialCsrfToken || '';
+        formData.append('token', token);
+
+        try {
+            const res = await fetch(`/social/post/${postId}/like`, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                btnLike.classList.toggle('liked', data.has_liked);
+                btnLike.dataset.currentReaction = data.reaction || '';
+                
+                const countSpan = btnLike.querySelector('.likes-count');
+                if (countSpan) countSpan.textContent = data.likes_count;
+
+                if (data.has_liked && data.reaction && REACTION_CONFIG[data.reaction]) {
+                    const cfg = REACTION_CONFIG[data.reaction];
+                    btnLike.innerHTML = `<span class="reaction-emoji">${cfg.emoji}</span> <span class="like-label" style="color:${cfg.color}">${cfg.label}</span> <span class="count likes-count">${data.likes_count}</span>`;
+                } else {
+                    btnLike.innerHTML = `<i class="fa-regular fa-thumbs-up"></i> <span class="like-label">J'aime</span> <span class="count likes-count">${data.likes_count}</span>`;
+                }
+            } else if (data.message) {
+                alert(data.message);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async function applyCommentReaction(commentId, reaction, btnCommentLike) {
+        const formData = new FormData();
+        formData.append('reaction', reaction);
+        const token = document.querySelector('input[name="token"]')?.value || window.socialCsrfToken || '';
+        formData.append('token', token);
+
+        try {
+            const res = await fetch(`/social/comment/${commentId}/like`, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                btnCommentLike.classList.toggle('liked', data.has_liked);
+                btnCommentLike.dataset.reaction = data.reaction || '';
+                const countStr = data.likes_count > 0 ? ` ${data.likes_count}` : '';
+
+                if (data.has_liked && data.reaction && REACTION_CONFIG[data.reaction]) {
+                    btnCommentLike.innerHTML = `${REACTION_CONFIG[data.reaction].emoji}<span class="comment-likes-count">${countStr}</span>`;
+                } else {
+                    btnCommentLike.innerHTML = `<i class="fa-regular fa-thumbs-up"></i><span class="comment-likes-count">${countStr}</span>`;
+                }
+            } else if (data.message) {
+                alert(data.message);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
     // 7. COMMENTAIRES (CHARGEMENT & AJOUT)
     async function loadComments(postId) {
         const listContainer = document.getElementById(`comments-list-${postId}`);
@@ -798,7 +891,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.comments.length === 0) {
                     listContainer.innerHTML = '<span class="empty-hint" style="color:var(--sf-text-muted);font-size:0.85rem;">Soyez le premier à commenter !</span>';
                 } else {
-                    listContainer.innerHTML = data.comments.map(c => `
+                    listContainer.innerHTML = data.comments.map(c => {
+                        const reactionEmoji = c.user_reaction && REACTION_CONFIG[c.user_reaction] 
+                            ? REACTION_CONFIG[c.user_reaction].emoji 
+                            : (c.has_liked ? '👍' : '<i class="fa-regular fa-thumbs-up"></i>');
+                        const countStr = c.likes_count > 0 ? ` ${c.likes_count}` : '';
+
+                        return `
                         <div class="comment-item ${c.parent_id ? 'comment-reply' : ''}" id="comment-${c.id}">
                             <img src="${c.author_avatar}" class="user-avatar-sm" alt="${c.author_name}" />
                             <div class="comment-bubble">
@@ -806,11 +905,23 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="comment-body">${c.content}</span>
                                 <div class="comment-footer-actions">
                                     <time class="post-time">${c.time_ago}</time>
+                                    <div class="comment-reaction-wrap">
+                                        <button type="button" class="btn-comment-like ${c.has_liked ? 'liked' : ''}" data-comment-id="${c.id}" data-reaction="${c.user_reaction || 'like'}">
+                                            ${reactionEmoji}<span class="comment-likes-count">${countStr}</span>
+                                        </button>
+                                        <div class="comment-reactions-popover">
+                                            <button type="button" class="btn-comment-react" data-comment-id="${c.id}" data-reaction="like" title="J'aime">👍</button>
+                                            <button type="button" class="btn-comment-react" data-comment-id="${c.id}" data-reaction="love" title="J'adore">❤️</button>
+                                            <button type="button" class="btn-comment-react" data-comment-id="${c.id}" data-reaction="haha" title="Haha">😂</button>
+                                            <button type="button" class="btn-comment-react" data-comment-id="${c.id}" data-reaction="sad" title="Triste">😢</button>
+                                            <button type="button" class="btn-comment-react" data-comment-id="${c.id}" data-reaction="angry" title="Grr">😡</button>
+                                        </div>
+                                    </div>
                                     <button type="button" class="btn-reply-comment" data-post-id="${postId}" data-comment-id="${c.id}" data-author="${c.author_name}">Répondre</button>
                                 </div>
                             </div>
                         </div>
-                    `).join('');
+                    `;}).join('');
                 }
             }
         } catch (err) {

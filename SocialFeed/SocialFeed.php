@@ -45,6 +45,7 @@ class SocialFeed extends Plugin {
                     comments_count INTEGER DEFAULT 0,
                     status TEXT DEFAULT 'published',
                     group_id INTEGER NULL,
+                    visibility TEXT DEFAULT 'public',
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )",
@@ -94,6 +95,17 @@ class SocialFeed extends Plugin {
                 )",
                 "CREATE INDEX IF NOT EXISTS idx_social_likes_user ON social_likes(user_id)",
 
+                "CREATE TABLE IF NOT EXISTS social_comment_likes (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    comment_id INTEGER NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    reaction_type TEXT DEFAULT 'like',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(comment_id, user_id)
+                )",
+                "CREATE INDEX IF NOT EXISTS idx_social_comment_likes_cid ON social_comment_likes(comment_id)",
+                "CREATE INDEX IF NOT EXISTS idx_social_comment_likes_user ON social_comment_likes(user_id)",
+
                 "CREATE TABLE IF NOT EXISTS social_comments (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     post_id INTEGER NOT NULL,
@@ -116,7 +128,19 @@ class SocialFeed extends Plugin {
                     UNIQUE(follower_id, following_id)
                 )",
                 "CREATE INDEX IF NOT EXISTS idx_social_follows_follower ON social_follows(follower_id)",
-                "CREATE INDEX IF NOT EXISTS idx_social_follows_following ON social_follows(following_id)"
+                "CREATE INDEX IF NOT EXISTS idx_social_follows_following ON social_follows(following_id)",
+
+                "CREATE TABLE IF NOT EXISTS social_friends (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    friend_id INTEGER NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'pending',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, friend_id)
+                )",
+                "CREATE INDEX IF NOT EXISTS idx_social_friends_user ON social_friends(user_id, status)",
+                "CREATE INDEX IF NOT EXISTS idx_social_friends_friend ON social_friends(friend_id, status)"
             ];
             try {
                 foreach ($statements as $sql) {
@@ -144,6 +168,7 @@ class SocialFeed extends Plugin {
                 comments_count INT DEFAULT 0,
                 status VARCHAR(20) DEFAULT 'published',
                 group_id BIGINT UNSIGNED NULL,
+                visibility VARCHAR(20) DEFAULT 'public',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 INDEX idx_user_date (user_id, created_at),
@@ -193,6 +218,17 @@ class SocialFeed extends Plugin {
                 INDEX idx_user (user_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 
+            "CREATE TABLE IF NOT EXISTS social_comment_likes (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                comment_id BIGINT UNSIGNED NOT NULL,
+                user_id INT NOT NULL,
+                reaction_type VARCHAR(20) DEFAULT 'like',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_comment_user (comment_id, user_id),
+                INDEX idx_comment (comment_id),
+                INDEX idx_user (user_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
             "CREATE TABLE IF NOT EXISTS social_comments (
                 id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                 post_id BIGINT UNSIGNED NOT NULL,
@@ -215,6 +251,18 @@ class SocialFeed extends Plugin {
                 UNIQUE KEY uniq_follow (follower_id, following_id),
                 INDEX idx_follower (follower_id),
                 INDEX idx_following (following_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+            "CREATE TABLE IF NOT EXISTS social_friends (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                friend_id INT NOT NULL,
+                status VARCHAR(20) NOT NULL DEFAULT 'pending',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_friends (user_id, friend_id),
+                INDEX idx_user_status (user_id, status),
+                INDEX idx_friend_status (friend_id, status)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         ];
 
@@ -233,3 +281,4 @@ class SocialFeed extends Plugin {
         return true;
     }
 }
+
