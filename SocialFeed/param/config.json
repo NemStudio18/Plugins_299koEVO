@@ -1,0 +1,9 @@
+{
+    "activate": 1,
+    "enable_member_posts": 1,
+    "enable_blog_feed": 1,
+    "enable_agenda_feed": 1,
+    "enable_meteo_feed": 1,
+    "enable_ecommerce_feed": 1,
+    "posts_per_page": 15
+}

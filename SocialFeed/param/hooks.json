@@ -1,0 +1,4 @@
+{
+    "endMainNavigation": "SocialFeed\\Hooks\\SocialFeedHooks::onEndMainNavigation",
+    "user:after-delete": "SocialFeed\\Hooks\\SocialFeedHooks::onUserDeleted"
+}
