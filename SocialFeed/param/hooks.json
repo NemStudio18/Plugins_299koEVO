@@ -1,4 +1,9 @@
 {
     "endMainNavigation": "SocialFeed\\Hooks\\SocialFeedHooks::onEndMainNavigation",
-    "user:after-delete": "SocialFeed\\Hooks\\SocialFeedHooks::onUserDeleted"
+    "user:after-delete": "SocialFeed\\Hooks\\SocialFeedHooks::onUserDeleted",
+    "user:profile-tabs": "SocialFeed\\Hooks\\SocialFeedHooks::userProfileTabs",
+    "user:profile-edit-dynamic-fields": "SocialFeed\\Hooks\\SocialFeedHooks::userProfileEditDynamicFields",
+    "user:profile-save": "SocialFeed\\Hooks\\SocialFeedHooks::userProfileSave",
+    "user:profile-dynamic-fields": "SocialFeed\\Hooks\\SocialFeedHooks::userProfileDynamicFields",
+    "user:profile-stats": "SocialFeed\\Hooks\\SocialFeedHooks::userProfileStats"
 }

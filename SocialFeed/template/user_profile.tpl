@@ -1,7 +1,7 @@
 <div class="social-profile-wrapper">
     <!-- 1. BANNIÈRE & EN-TÊTE DU PROFIL (FACEBOOK / X STYLE) -->
     <div class="profile-header-card">
-        <div class="profile-cover-banner">
+        <div class="profile-cover-banner" <?php if (!empty($profile['cover_image'])): ?>style="background-image: url('<?= htmlspecialchars($profile['cover_image']) ?>'); background-size: cover; background-position: center;"<?php endif; ?>>
             <div class="cover-gradient-overlay"></div>
         </div>
 
@@ -12,7 +12,7 @@
 
             <div class="profile-action-btn-wrap">
                 <?php if (!empty($profile['is_self'])): ?>
-                    <a href="/profile" class="btn btn-profile-edit">
+                    <a href="/profile/edit" class="btn btn-profile-edit">
                         <i class="fa-solid fa-user-pen"></i> Modifier mon profil
                     </a>
                 <?php else: ?>
@@ -34,7 +34,17 @@
             </div>
             <span class="profile-handle">@<?= htmlspecialchars($profile['username']) ?></span>
 
+            <?php if (!empty($profile['bio'])): ?>
+                <p class="profile-bio-text"><?= nl2br(htmlspecialchars($profile['bio'])) ?></p>
+            <?php endif; ?>
+
             <div class="profile-meta-row">
+                <?php if (!empty($profile['location'])): ?>
+                    <span><i class="fa-solid fa-location-dot"></i> <?= htmlspecialchars($profile['location']) ?></span>
+                <?php endif; ?>
+                <?php if (!empty($profile['website'])): ?>
+                    <span><i class="fa-solid fa-link"></i> <a href="<?= htmlspecialchars($profile['website']) ?>" target="_blank" rel="noopener nofollow"><?= htmlspecialchars(preg_replace('#^https?://#', '', $profile['website'])) ?></a></span>
+                <?php endif; ?>
                 <span><i class="fa-regular fa-calendar"></i> A rejoint en <?= htmlspecialchars($profile['joined_date']) ?></span>
             </div>
 
@@ -67,7 +77,3 @@
         </div>
     </div>
 </div>
-
-<link rel="stylesheet" href="/plugin/SocialFeed/public/css/socialfeed.css?v=4" />
-<script src="/plugin/SocialFeed/public/js/socialfeed.js?v=4" defer></script>
-

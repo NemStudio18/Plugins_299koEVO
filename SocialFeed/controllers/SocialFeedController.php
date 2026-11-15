@@ -312,7 +312,7 @@ class SocialFeedController {
     }
 
     /**
-     * Traitement de l'upload de média (Photos, Vidéos / Reels)
+     * Traitement de l'upload de média (Photos optimisées WebP, Vidéos / Reels)
      */
     private function handleMediaUpload(array $file): ?string {
         $allowedMimes = [
@@ -325,6 +325,16 @@ class SocialFeedController {
             'video/quicktime' => 'mp4'
         ];
 
+        if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+            return null;
+        }
+
+        // Limite taille : max 35 Mo pour vidéo, 15 Mo pour photo
+        $maxSizeBytes = 35 * 1024 * 1024;
+        if (($file['size'] ?? 0) > $maxSizeBytes) {
+            return null;
+        }
+
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime = finfo_file($finfo, $file['tmp_name']);
         finfo_close($finfo);
@@ -333,13 +343,30 @@ class SocialFeedController {
             return null;
         }
 
-        $ext = $allowedMimes[$mime];
         $uploadDir = (defined('DATA') ? DATA : dirname(__DIR__, 4) . '/data/') . 'upload/social/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
 
-        $fileName = 'media_' . uniqid() . '.' . $ext;
+        // Optimisation automatique des images JPEG/PNG/WebP via ImageOptimizer
+        if (in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            $fileName = 'img_' . uniqid() . '.webp';
+            $target = $uploadDir . $fileName;
+
+            if (class_exists('\\Utils\\ImageOptimizer')) {
+                // Redimensionnement max 1200x1200px, compression WebP 82%, correction EXIF
+                $optimized = \Utils\ImageOptimizer::optimizeImage($file['tmp_name'], $target, 1200, 1200, 82);
+                if ($optimized && file_exists($target)) {
+                    @unlink($file['tmp_name']);
+                    return '/data/upload/social/' . $fileName;
+                }
+            }
+        }
+
+        // Fallback pour GIF animés et Vidéos MP4/WebM
+        $ext = $allowedMimes[$mime];
+        $prefix = (strpos($mime, 'video/') === 0) ? 'video_' : 'media_';
+        $fileName = $prefix . uniqid() . '.' . $ext;
         $target = $uploadDir . $fileName;
 
         if (move_uploaded_file($file['tmp_name'], $target)) {

@@ -333,6 +333,14 @@ class SocialFeedService {
             $isFollowing = !empty($check);
         }
 
+        // Récupération des attributs sociaux (bio, localisation, site, couverture)
+        $userObj = class_exists('\\Core\\Auth\\User') ? \Core\Auth\User::findPK($profileUserId) : null;
+        $attrs = $userObj ? $userObj->attributes : [];
+        $bio = $attrs['bio'] ?? ($attrs['social_bio'] ?? '');
+        $location = $attrs['location'] ?? ($attrs['social_location'] ?? '');
+        $website = $attrs['website'] ?? ($attrs['social_website'] ?? '');
+        $coverImage = $attrs['cover_image'] ?? ($attrs['social_cover'] ?? '');
+
         return [
             'id' => (int)$u['id'],
             'username' => !empty($u['username']) ? $u['username'] : 'Membre #' . $u['id'],
@@ -344,7 +352,11 @@ class SocialFeedService {
             'followers_count' => $followersCount,
             'following_count' => $followingCount,
             'is_following' => $isFollowing,
-            'is_self' => $currentUserId === $profileUserId
+            'is_self' => $currentUserId === $profileUserId,
+            'bio' => $bio,
+            'location' => $location,
+            'website' => $website,
+            'cover_image' => $coverImage
         ];
     }
 
