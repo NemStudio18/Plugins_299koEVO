@@ -87,8 +87,24 @@ class PoiManager
     public static function delete(string $id): bool
     {
         $pois = self::getAll();
-        $filtered = array_values(array_filter($pois, fn($item) => ($item['id'] ?? '') !== $id));
-        return (bool)file_put_contents(self::getFilePath(), json_encode($filtered, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        $initialCount = count($pois);
+        $filtered = array_values(array_filter($pois, fn($item) => (string)($item['id'] ?? '') !== (string)$id));
+        
+        // Si aucun POI n'a été retiré, ne rien modifier
+        if (count($filtered) === $initialCount) {
+            return false;
+        }
+
+        $saved = (bool)file_put_contents(self::getFilePath(), json_encode($filtered, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        
+        if ($saved) {
+            // Déclenchement de l'événement système de cascade applicative (ex: LocalFeed)
+            if (class_exists('\\Core\\Core')) {
+                \Core\Core::getInstance()->callHook('poi:after-delete', is_numeric($id) ? (int)$id : $id);
+            }
+        }
+
+        return $saved;
     }
 
     /**
