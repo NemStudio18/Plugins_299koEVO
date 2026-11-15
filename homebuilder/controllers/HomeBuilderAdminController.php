@@ -140,6 +140,20 @@ class HomeBuilderAdminController extends AdminController
         $tpl->set('latest_articles_count', 3);
         $tpl->set('latest_sondages_count', 2);
         $tpl->set('guestbook_button_text', "Signer le livre d'or");
+        $tpl->set('hero_subtitle', '');
+        $tpl->set('hero_btn1_text', '');
+        $tpl->set('hero_btn1_url', '');
+        $tpl->set('hero_btn2_text', '');
+        $tpl->set('hero_btn2_url', '');
+        $tpl->set('hero_image', '');
+        for ($i = 1; $i <= 3; $i++) {
+            $tpl->set("col_{$i}_icon", 'fa-solid fa-star');
+            $tpl->set("col_{$i}_title", '');
+            $tpl->set("col_{$i}_text", '');
+        }
+        $tpl->set('searchmaps_height', '400px');
+        $tpl->set('prordv_button_text', 'Prendre rendez-vous en ligne');
+        $tpl->set('prordv_url', '/rendez-vous');
 
         $response->addTemplate($tpl);
         $response->setTitle('Ajouter un bloc');
@@ -225,6 +239,22 @@ class HomeBuilderAdminController extends AdminController
         $tpl->set('latest_articles_count', $block->getType() === 'latest_articles' ? ($options['count'] ?? 3) : 3);
         $tpl->set('latest_sondages_count', $block->getType() === 'latest_sondages' ? ($options['count'] ?? 2) : 2);
         $tpl->set('guestbook_button_text', $block->getType() === 'guestbook_cta' ? ($options['button_text'] ?? "Signer le livre d'or") : "Signer le livre d'or");
+        $tpl->set('hero_subtitle', $options['subtitle'] ?? '');
+        $tpl->set('hero_btn1_text', $options['btn1_text'] ?? '');
+        $tpl->set('hero_btn1_url', $options['btn1_url'] ?? '');
+        $tpl->set('hero_btn2_text', $options['btn2_text'] ?? '');
+        $tpl->set('hero_btn2_url', $options['btn2_url'] ?? '');
+        $tpl->set('hero_image', $options['image'] ?? '');
+        $cols = $options['columns'] ?? [];
+        for ($i = 1; $i <= 3; $i++) {
+            $idx = $i - 1;
+            $tpl->set("col_{$i}_icon", $cols[$idx]['icon'] ?? 'fa-solid fa-star');
+            $tpl->set("col_{$i}_title", $cols[$idx]['title'] ?? '');
+            $tpl->set("col_{$i}_text", $cols[$idx]['text'] ?? '');
+        }
+        $tpl->set('searchmaps_height', $options['height'] ?? '400px');
+        $tpl->set('prordv_button_text', $options['button_text'] ?? 'Prendre rendez-vous en ligne');
+        $tpl->set('prordv_url', $options['url'] ?? '/rendez-vous');
 
         $response->addTemplate($tpl);
         $response->setTitle('Modifier le bloc');
@@ -436,9 +466,26 @@ class HomeBuilderAdminController extends AdminController
         // Préparer les variables booléennes pour les sélections
         $templateData = [
             'block' => $block,
+            'block_id' => $block->getId(),
+            'block_title' => $block->getTitle(),
+            'block_type' => $block->getType(),
+            'block_html' => $block->render(),
             'styles' => $styles,
-            'edit_link' => $this->router->generate('admin-homebuilder-styles-send', ['id' => $block->getId()])
+            'edit_link' => $this->router->generate('admin-homebuilder-styles-send', ['id' => $block->getId()]),
+            'back_link' => $this->router->generate('admin-homebuilder')
         ];
+
+        // Variables booléennes pour le type de fond
+        $bgType = $styles['container']['backgroundType'] ?? 'solid';
+        $templateData['isSolid'] = ($bgType === 'solid');
+        $templateData['isGradient'] = ($bgType === 'gradient');
+        $gradDir = $styles['container']['gradientDirection'] ?? 'to bottom';
+        $templateData['gradToBottom'] = ($gradDir === 'to bottom');
+        $templateData['gradToTop'] = ($gradDir === 'to top');
+        $templateData['gradToRight'] = ($gradDir === 'to right');
+        $templateData['gradToLeft'] = ($gradDir === 'to left');
+        $templateData['grad45deg'] = ($gradDir === '45deg');
+        $templateData['grad135deg'] = ($gradDir === '135deg');
         
         // Variables booléennes pour les sélections du titre
         $templateData['titleFontWeightNormal'] = ($styles['title']['fontWeight'] ?? 'bold') === 'normal';
@@ -529,6 +576,34 @@ class HomeBuilderAdminController extends AdminController
                 $options['alt'] = $postData['image_alt'] ?? '';
                 $options['width'] = $postData['image_width'] ?? '';
                 $options['height'] = $postData['image_height'] ?? '';
+                break;
+            case 'hero':
+                $options['subtitle'] = $postData['hero_subtitle'] ?? '';
+                $options['btn1_text'] = $postData['hero_btn1_text'] ?? '';
+                $options['btn1_url'] = $postData['hero_btn1_url'] ?? '';
+                $options['btn2_text'] = $postData['hero_btn2_text'] ?? '';
+                $options['btn2_url'] = $postData['hero_btn2_url'] ?? '';
+                $options['image'] = $postData['hero_image'] ?? '';
+                break;
+            case 'columns':
+                $cols = [];
+                for ($i = 1; $i <= 3; $i++) {
+                    if (!empty($postData["col_{$i}_title"]) || !empty($postData["col_{$i}_text"])) {
+                        $cols[] = [
+                            'icon' => $postData["col_{$i}_icon"] ?? 'fa-solid fa-check',
+                            'title' => $postData["col_{$i}_title"] ?? '',
+                            'text' => $postData["col_{$i}_text"] ?? ''
+                        ];
+                    }
+                }
+                $options['columns'] = $cols;
+                break;
+            case 'searchmaps_map':
+                $options['height'] = $postData['searchmaps_height'] ?? '400px';
+                break;
+            case 'prordv_cta':
+                $options['button_text'] = $postData['prordv_button_text'] ?? 'Prendre rendez-vous en ligne';
+                $options['url'] = $postData['prordv_url'] ?? '/rendez-vous';
                 break;
             case 'latest_articles':
                 $options['count'] = max(1, (int)($postData['latest_articles_count'] ?? 3));

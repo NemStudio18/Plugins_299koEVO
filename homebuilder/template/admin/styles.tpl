@@ -1,1090 +1,895 @@
-{% INCLUDE admin/header %}
-
-<div class="container">
-    <h1>{% IF isCreating %}Créer un nouveau bloc{% ELSE %}Styles du bloc : {{ block.getTitle() }}{% ENDIF %}</h1>
-    
-    <div class="styles-editor">
-        <form method="POST" action="{{ edit_link }}">
-            
-            <!-- Section de prévisualisation avec drag & drop -->
-            <div class="preview-section">
-                <h3>Aperçu en temps réel</h3>
-                <div class="preview-container">
-                    <div id="preview-block" class="homepage-block homepage-block-{{ block.getType() }}">
-                        <div class="block-elements" id="block-elements">
-                            <h2 class="element" data-type="title" data-id="title-1">{{ block.getTitle() }}</h2>
-                            <div class="content element" data-type="content" data-id="content-1">{{ block.getContent() }}</div>
-                            <h3 class="element" data-type="subtitle" data-id="subtitle-1">Sous-titre</h3>
-                            <div class="content element" data-type="content" data-id="content-2">Contenu secondaire</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Contrôles des éléments -->
-                <div class="elements-controls">
-                    <h4>Gestion des éléments</h4>
-                    <div class="elements-list">
-                        <div class="element-item" data-element-id="title-1">
-                            <span class="element-name">Titre principal</span>
-                            <div class="element-actions">
-                                <button type="button" class="btn-edit" data-action="edit">Éditer</button>
-                                <button type="button" class="btn-toggle" data-action="toggle">Masquer</button>
-                                <button type="button" class="btn-delete" data-action="delete">Supprimer</button>
-                            </div>
-                        </div>
-                        <div class="element-item" data-element-id="content-1">
-                            <span class="element-name">Contenu principal</span>
-                            <div class="element-actions">
-                                <button type="button" class="btn-edit" data-action="edit">Éditer</button>
-                                <button type="button" class="btn-toggle" data-action="toggle">Masquer</button>
-                                <button type="button" class="btn-delete" data-action="delete">Supprimer</button>
-                            </div>
-                        </div>
-                        <div class="element-item" data-element-id="subtitle-1">
-                            <span class="element-name">Sous-titre</span>
-                            <div class="element-actions">
-                                <button type="button" class="btn-edit" data-action="edit">Éditer</button>
-                                <button type="button" class="btn-toggle" data-action="toggle">Masquer</button>
-                                <button type="button" class="btn-delete" data-action="delete">Supprimer</button>
-                            </div>
-                        </div>
-                        <div class="element-item" data-element-id="content-2">
-                            <span class="element-name">Contenu secondaire</span>
-                            <div class="element-actions">
-                                <button type="button" class="btn-edit" data-action="edit">Éditer</button>
-                                <button type="button" class="btn-toggle" data-action="toggle">Masquer</button>
-                                <button type="button" class="btn-delete" data-action="delete">Supprimer</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Boutons d'ajout d'éléments -->
-                    <div class="add-elements">
-                        <h5>Ajouter un élément</h5>
-                        <div class="add-buttons">
-                            <button type="button" class="btn-add" data-type="title">+ Titre</button>
-                            <button type="button" class="btn-add" data-type="subtitle">+ Sous-titre</button>
-                            <button type="button" class="btn-add" data-type="content">+ Contenu</button>
-                            <button type="button" class="btn-add" data-type="button">+ Bouton</button>
-                            <button type="button" class="btn-add" data-type="image">+ Image</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Modal d'édition d'élément -->
-                <div id="edit-modal" class="modal" style="display: none;">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3>Éditer l'élément</h3>
-                            <button type="button" class="close-modal">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label>Type d'élément</label>
-                                <select id="edit-element-type">
-                                    <option value="title">Titre</option>
-                                    <option value="subtitle">Sous-titre</option>
-                                    <option value="content">Contenu</option>
-                                    <option value="button">Bouton</option>
-                                    <option value="image">Image</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Contenu</label>
-                                <textarea id="edit-element-content" rows="4" placeholder="Entrez le contenu..."></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Position</label>
-                                <select id="edit-element-position">
-                                    <option value="vertical">Vertical (empilé)</option>
-                                    <option value="horizontal">Horizontal (côte à côte)</option>
-                                </select>
-                            </div>
-                            <div class="form-group button-options" style="display: none;">
-                                <label>URL du bouton</label>
-                                <input type="text" id="edit-button-url" placeholder="https://...">
-                            </div>
-                            <div class="form-group image-options" style="display: none;">
-                                <label>URL de l'image</label>
-                                <input type="text" id="edit-image-url" placeholder="https://...">
-                                <label>Texte alternatif</label>
-                                <input type="text" id="edit-image-alt" placeholder="Description de l'image">
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" id="cancel-edit">Annuler</button>
-                            <button type="button" class="btn btn-primary" id="save-edit">Sauvegarder</button>
-                        </div>
-                    </div>
-                </div>
+<section class="overflow-auto">
+    <header class="hb-studio-header">
+        <div class="hb-header-title">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <div>
+                <h2>Studio de Design : {{ block_title }}</h2>
+                <span class="hb-badge-type">Section {{ block_type }} • #block-{{ block_id }}</span>
             </div>
-            
-            <!-- Styles du conteneur (layout uniquement) -->
-            <div class="style-section">
-                <h3>Styles du conteneur (Layout)</h3>
-                <div class="style-grid">
-                    <div class="style-group">
-                        <label>Couleur de fond</label>
-                        <div class="color-control">
-                            <input type="color" name="container_backgroundColor" value="{{ styles.container.backgroundColor }}" data-target="#preview-block" data-property="backgroundColor">
-                            <select name="container_backgroundType" data-target="#preview-block" data-property="backgroundType">
-                                <option value="solid">Couleur unie</option>
-                                <option value="gradient">Dégradé</option>
+        </div>
+        <div class="hb-header-actions">
+            <a href="{{ back_link }}" class="button secondary">
+                <i class="fa-solid fa-arrow-left"></i> Retour au HomeBuilder
+            </a>
+            <button type="submit" form="styles-form" class="button">
+                <i class="fa-solid fa-floppy-disk"></i> Enregistrer les styles
+            </button>
+        </div>
+    </header>
+
+    <div class="hb-studio-layout">
+        <!-- Colonne GAUCHE : Contrôles de style -->
+        <div class="hb-studio-controls">
+            <form id="styles-form" method="POST" action="{{ edit_link }}">
+
+                <!-- PANNEAU 1 : ARRIÈRE-PLAN -->
+                <div class="hb-control-panel">
+                    <div class="hb-panel-title">
+                        <i class="fa-solid fa-palette"></i> Arrière-plan
+                    </div>
+                    <div class="hb-panel-body">
+                        <div class="hb-form-group">
+                            <label for="container_backgroundType">Type d'arrière-plan</label>
+                            <select id="container_backgroundType" name="container_backgroundType" class="hb-select">
+                                <option value="solid" {% IF isSolid %}selected{% ENDIF %}>Couleur unie</option>
+                                <option value="gradient" {% IF isGradient %}selected{% ENDIF %}>Dégradé moderne</option>
                             </select>
                         </div>
-                    </div>
-                    
-                                         <!-- Contrôles de dégradé (masqués par défaut) -->
-                     <div class="gradient-controls" style="display: none;">
-                         <div class="style-group">
-                             <label>Couleur de début</label>
-                             <input type="color" name="container_gradientStart" value="{{ styles.container.gradientStart }}" data-target="#preview-block" data-property="gradientStart">
-                         </div>
-                         <div class="style-group">
-                             <label>Couleur de fin</label>
-                             <input type="color" name="container_gradientEnd" value="{{ styles.container.gradientEnd }}" data-target="#preview-block" data-property="gradientEnd">
-                         </div>
-                        <div class="style-group">
-                            <label>Direction</label>
-                            <select name="container_gradientDirection" data-target="#preview-block" data-property="gradientDirection">
-                                <option value="to bottom">Vers le bas</option>
-                                <option value="to top">Vers le haut</option>
-                                <option value="to right">Vers la droite</option>
-                                <option value="to left">Vers la gauche</option>
-                                <option value="45deg">Diagonale</option>
-                            </select>
+
+                        <!-- Fond uni -->
+                        <div id="solid-controls" class="hb-form-group" {% IF isGradient %}style="display:none;"{% ENDIF %}>
+                            <label for="container_backgroundColor">Couleur de fond</label>
+                            <div class="hb-color-picker-wrap">
+                                <input type="color" id="container_backgroundColor" name="container_backgroundColor" value="{{ styles.container.backgroundColor }}" class="hb-color-input">
+                                <input type="text" id="container_backgroundColor_hex" value="{{ styles.container.backgroundColor }}" class="hb-hex-input" placeholder="#ffffff">
+                            </div>
+                        </div>
+
+                        <!-- Fond dégradé -->
+                        <div id="gradient-controls" class="hb-gradient-grid" {% IF isSolid %}style="display:none;"{% ENDIF %}>
+                            <div class="hb-form-group">
+                                <label for="container_gradientStart">Couleur départ</label>
+                                <div class="hb-color-picker-wrap">
+                                    <input type="color" id="container_gradientStart" name="container_gradientStart" value="{{ styles.container.gradientStart }}" class="hb-color-input">
+                                    <input type="text" id="container_gradientStart_hex" value="{{ styles.container.gradientStart }}" class="hb-hex-input" placeholder="#ffffff">
+                                </div>
+                            </div>
+                            <div class="hb-form-group">
+                                <label for="container_gradientEnd">Couleur arrivée</label>
+                                <div class="hb-color-picker-wrap">
+                                    <input type="color" id="container_gradientEnd" name="container_gradientEnd" value="{{ styles.container.gradientEnd }}" class="hb-color-input">
+                                    <input type="text" id="container_gradientEnd_hex" value="{{ styles.container.gradientEnd }}" class="hb-hex-input" placeholder="#f0f0f0">
+                                </div>
+                            </div>
+                            <div class="hb-form-group" style="grid-column: 1 / -1;">
+                                <label for="container_gradientDirection">Direction</label>
+                                <select id="container_gradientDirection" name="container_gradientDirection" class="hb-select">
+                                    <option value="to bottom" {% IF gradToBottom %}selected{% ENDIF %}>Vers le bas ↓</option>
+                                    <option value="to right" {% IF gradToRight %}selected{% ENDIF %}>Vers la droite →</option>
+                                    <option value="to top" {% IF gradToTop %}selected{% ENDIF %}>Vers le haut ↑</option>
+                                    <option value="to left" {% IF gradToLeft %}selected{% ENDIF %}>Vers la gauche ←</option>
+                                    <option value="45deg" {% IF grad45deg %}selected{% ENDIF %}>Diagonale 45° ↗</option>
+                                    <option value="135deg" {% IF grad135deg %}selected{% ENDIF %}>Diagonale 135° ↘</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="style-group">
-                        <label>Padding</label>
-                        <input type="text" name="container_padding" value="{{ styles.container.padding }}" placeholder="20px" data-target="#preview-block" data-property="padding">
+                </div>
+
+                <!-- PANNEAU 2 : ESPACEMENTS & GÉOMÉTRIE -->
+                <div class="hb-control-panel">
+                    <div class="hb-panel-title">
+                        <i class="fa-solid fa-maximize"></i> Espacements & Forme
                     </div>
-                    <div class="style-group">
-                        <label>Margin</label>
-                        <input type="text" name="container_margin" value="{{ styles.container.margin }}" placeholder="10px 0" data-target="#preview-block" data-property="margin">
-                    </div>
-                    <div class="style-group">
-                        <label>Rayon de bordure</label>
-                        <input type="text" name="container_borderRadius" value="{{ styles.container.borderRadius }}" placeholder="8px" data-target="#preview-block" data-property="borderRadius">
-                    </div>
-                    <div class="style-group">
-                        <label>Bordure</label>
-                        <input type="text" name="container_border" value="{{ styles.container.border }}" placeholder="1px solid #e0e0e0" data-target="#preview-block" data-property="border">
-                    </div>
-                    <div class="style-group">
-                        <label>Ombre</label>
-                        <input type="text" name="container_boxShadow" value="{{ styles.container.boxShadow }}" placeholder="0 2px 4px rgba(0,0,0,0.1)" data-target="#preview-block" data-property="boxShadow">
-                    </div>
-                    <div class="style-group">
-                        <label>Largeur</label>
-                        <input type="text" name="container_width" value="{{ styles.container.width }}" placeholder="100%" data-target="#preview-block" data-property="width">
-                    </div>
-                    <div class="style-group">
-                        <label>Largeur max</label>
-                        <input type="text" name="container_maxWidth" value="{{ styles.container.maxWidth }}" placeholder="none" data-target="#preview-block" data-property="maxWidth">
+                    <div class="hb-panel-body">
+                        <div class="hb-form-group">
+                            <div class="hb-label-with-presets">
+                                <label for="container_padding">Padding intérieur</label>
+                                <div class="hb-preset-chips">
+                                    <button type="button" class="hb-chip" data-set-input="container_padding" data-val="15px">15px</button>
+                                    <button type="button" class="hb-chip" data-set-input="container_padding" data-val="30px 20px">30px</button>
+                                    <button type="button" class="hb-chip" data-set-input="container_padding" data-val="50px 24px">50px</button>
+                                    <button type="button" class="hb-chip" data-set-input="container_padding" data-val="80px 30px">80px</button>
+                                </div>
+                            </div>
+                            <input type="text" id="container_padding" name="container_padding" value="{{ styles.container.padding }}" placeholder="30px 20px" class="hb-text-input">
+                        </div>
+
+                        <div class="hb-form-group">
+                            <div class="hb-label-with-presets">
+                                <label for="container_borderRadius">Rayon d'arrondi (coins)</label>
+                                <div class="hb-preset-chips">
+                                    <button type="button" class="hb-chip" data-set-input="container_borderRadius" data-val="0px">0</button>
+                                    <button type="button" class="hb-chip" data-set-input="container_borderRadius" data-val="8px">8px</button>
+                                    <button type="button" class="hb-chip" data-set-input="container_borderRadius" data-val="16px">16px</button>
+                                    <button type="button" class="hb-chip" data-set-input="container_borderRadius" data-val="28px">28px</button>
+                                </div>
+                            </div>
+                            <input type="text" id="container_borderRadius" name="container_borderRadius" value="{{ styles.container.borderRadius }}" placeholder="12px" class="hb-text-input">
+                        </div>
+
+                        <div class="hb-form-group">
+                            <div class="hb-label-with-presets">
+                                <label for="container_margin">Marge extérieure</label>
+                                <div class="hb-preset-chips">
+                                    <button type="button" class="hb-chip" data-set-input="container_margin" data-val="0px">0</button>
+                                    <button type="button" class="hb-chip" data-set-input="container_margin" data-val="20px 0">20px</button>
+                                    <button type="button" class="hb-chip" data-set-input="container_margin" data-val="40px 0">40px</button>
+                                </div>
+                            </div>
+                            <input type="text" id="container_margin" name="container_margin" value="{{ styles.container.margin }}" placeholder="20px 0" class="hb-text-input">
+                        </div>
+
+                        <div class="hb-form-group">
+                            <div class="hb-label-with-presets">
+                                <label for="container_border">Bordure</label>
+                                <div class="hb-preset-chips">
+                                    <button type="button" class="hb-chip" data-set-input="container_border" data-val="none">Aucune</button>
+                                    <button type="button" class="hb-chip" data-set-input="container_border" data-val="1px solid rgba(0,0,0,0.08)">Fine</button>
+                                    <button type="button" class="hb-chip" data-set-input="container_border" data-val="2px solid var(--evo-primary,#0ea5e9)">Accent</button>
+                                </div>
+                            </div>
+                            <input type="text" id="container_border" name="container_border" value="{{ styles.container.border }}" placeholder="1px solid rgba(0,0,0,0.08)" class="hb-text-input">
+                        </div>
+
+                        <div class="hb-form-group">
+                            <div class="hb-label-with-presets">
+                                <label for="container_boxShadow">Ombre portée</label>
+                                <div class="hb-preset-chips">
+                                    <button type="button" class="hb-chip" data-set-input="container_boxShadow" data-val="none">Aucune</button>
+                                    <button type="button" class="hb-chip" data-set-input="container_boxShadow" data-val="0 4px 15px rgba(0,0,0,0.05)">Douce</button>
+                                    <button type="button" class="hb-chip" data-set-input="container_boxShadow" data-val="0 10px 30px rgba(0,0,0,0.12)">Prononcée</button>
+                                </div>
+                            </div>
+                            <input type="text" id="container_boxShadow" name="container_boxShadow" value="{{ styles.container.boxShadow }}" placeholder="0 4px 15px rgba(0,0,0,0.05)" class="hb-text-input">
+                        </div>
+
+                        <div class="hb-form-group">
+                            <label for="container_maxWidth">Largeur maximale</label>
+                            <input type="text" id="container_maxWidth" name="container_maxWidth" value="{{ styles.container.maxWidth }}" placeholder="100% ou 1200px" class="hb-text-input">
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Styles des titres -->
-            <div class="style-section">
-                <h3>Styles des titres</h3>
-                <div class="style-grid">
-                    <div class="style-group">
-                        <label>Couleur</label>
-                        <input type="color" name="title_color" value="{{ styles.title.color }}" data-target="#preview-block h2, #preview-block h3" data-property="color">
+                <!-- PANNEAU 3 : TYPOGRAPHIE -->
+                <div class="hb-control-panel">
+                    <div class="hb-panel-title">
+                        <i class="fa-solid fa-font"></i> Typographie
                     </div>
-                    <div class="style-group">
-                        <label>Taille de police</label>
-                        <input type="text" name="title_fontSize" value="{{ styles.title.fontSize }}" placeholder="24px" data-target="#preview-block h2, #preview-block h3" data-property="fontSize">
-                    </div>
-                    <div class="style-group">
-                        <label>Poids de police</label>
-                        <select name="title_fontWeight" data-target="#preview-block h2, #preview-block h3" data-property="fontWeight">
-                            <option value="normal" {% IF titleFontWeightNormal %}selected{% ENDIF %}>Normal</option>
-                            <option value="bold" {% IF titleFontWeightBold %}selected{% ENDIF %}>Gras</option>
-                            <option value="lighter" {% IF titleFontWeightLighter %}selected{% ENDIF %}>Fin</option>
-                        </select>
-                    </div>
-                    <div class="style-group">
-                        <label>Margin bottom</label>
-                        <input type="text" name="title_marginBottom" value="{{ styles.title.marginBottom }}" placeholder="15px" data-target="#preview-block h2, #preview-block h3" data-property="marginBottom">
-                    </div>
-                    <div class="style-group">
-                        <label>Alignement</label>
-                        <select name="title_textAlign" data-target="#preview-block h2, #preview-block h3" data-property="textAlign">
-                            <option value="left" {% IF titleTextAlignLeft %}selected{% ENDIF %}>Gauche</option>
-                            <option value="center" {% IF titleTextAlignCenter %}selected{% ENDIF %}>Centre</option>
-                            <option value="right" {% IF titleTextAlignRight %}selected{% ENDIF %}>Droite</option>
-                        </select>
+                    <div class="hb-panel-body">
+                        <!-- Titre -->
+                        <div class="hb-subgroup-title">Titres (H1, H2, H3)</div>
+                        <div class="hb-form-group">
+                            <label for="title_color">Couleur du titre</label>
+                            <div class="hb-color-picker-wrap">
+                                <input type="color" id="title_color" name="title_color" value="{{ styles.title.color }}" class="hb-color-input">
+                                <input type="text" id="title_color_hex" value="{{ styles.title.color }}" class="hb-hex-input" placeholder="#333333">
+                            </div>
+                        </div>
+
+                        <div class="hb-field-pair">
+                            <div class="hb-form-group">
+                                <label for="title_fontSize">Taille</label>
+                                <input type="text" id="title_fontSize" name="title_fontSize" value="{{ styles.title.fontSize }}" placeholder="28px" class="hb-text-input">
+                            </div>
+                            <div class="hb-form-group">
+                                <label for="title_fontWeight">Graisse</label>
+                                <select id="title_fontWeight" name="title_fontWeight" class="hb-select">
+                                    <option value="normal" {% IF titleFontWeightNormal %}selected{% ENDIF %}>Normal (400)</option>
+                                    <option value="bold" {% IF titleFontWeightBold %}selected{% ENDIF %}>Gras (700)</option>
+                                    <option value="lighter" {% IF titleFontWeightLighter %}selected{% ENDIF %}>Fin (300)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="hb-field-pair">
+                            <div class="hb-form-group">
+                                <label for="title_textAlign">Alignement</label>
+                                <select id="title_textAlign" name="title_textAlign" class="hb-select">
+                                    <option value="left" {% IF titleTextAlignLeft %}selected{% ENDIF %}>Gauche</option>
+                                    <option value="center" {% IF titleTextAlignCenter %}selected{% ENDIF %}>Centré</option>
+                                    <option value="right" {% IF titleTextAlignRight %}selected{% ENDIF %}>Droite</option>
+                                </select>
+                            </div>
+                            <div class="hb-form-group">
+                                <label for="title_marginBottom">Marge basse</label>
+                                <input type="text" id="title_marginBottom" name="title_marginBottom" value="{{ styles.title.marginBottom }}" placeholder="16px" class="hb-text-input">
+                            </div>
+                        </div>
+
+                        <!-- Contenu texte -->
+                        <div class="hb-subgroup-title" style="margin-top: 16px;">Texte et paragraphes</div>
+                        <div class="hb-form-group">
+                            <label for="content_color">Couleur du texte</label>
+                            <div class="hb-color-picker-wrap">
+                                <input type="color" id="content_color" name="content_color" value="{{ styles.content.color }}" class="hb-color-input">
+                                <input type="text" id="content_color_hex" value="{{ styles.content.color }}" class="hb-hex-input" placeholder="#666666">
+                            </div>
+                        </div>
+
+                        <div class="hb-field-pair">
+                            <div class="hb-form-group">
+                                <label for="content_fontSize">Taille texte</label>
+                                <input type="text" id="content_fontSize" name="content_fontSize" value="{{ styles.content.fontSize }}" placeholder="16px" class="hb-text-input">
+                            </div>
+                            <div class="hb-form-group">
+                                <label for="content_lineHeight">Hauteur de ligne</label>
+                                <input type="text" id="content_lineHeight" name="content_lineHeight" value="{{ styles.content.lineHeight }}" placeholder="1.6" class="hb-text-input">
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Styles du contenu -->
-            <div class="style-section">
-                <h3>Styles du contenu</h3>
-                <div class="style-grid">
-                    <div class="style-group">
-                        <label>Couleur</label>
-                        <input type="color" name="content_color" value="{{ styles.content.color }}" data-target="#preview-block .content" data-property="color">
+                <!-- PANNEAU 4 : BOUTONS & LIENS -->
+                <div class="hb-control-panel">
+                    <div class="hb-panel-title">
+                        <i class="fa-solid fa-square-arrow-up-right"></i> Boutons & Liens
                     </div>
-                    <div class="style-group">
-                        <label>Taille de police</label>
-                        <input type="text" name="content_fontSize" value="{{ styles.content.fontSize }}" placeholder="16px" data-target="#preview-block .content" data-property="fontSize">
-                    </div>
-                    <div class="style-group">
-                        <label>Hauteur de ligne</label>
-                        <input type="text" name="content_lineHeight" value="{{ styles.content.lineHeight }}" placeholder="1.6" data-target="#preview-block .content" data-property="lineHeight">
-                    </div>
-                    <div class="style-group">
-                        <label>Margin bottom</label>
-                        <input type="text" name="content_marginBottom" value="{{ styles.content.marginBottom }}" placeholder="15px" data-target="#preview-block .content" data-property="marginBottom">
+                    <div class="hb-panel-body">
+                        <div class="hb-field-pair">
+                            <div class="hb-form-group">
+                                <label for="button_backgroundColor">Fond bouton</label>
+                                <div class="hb-color-picker-wrap">
+                                    <input type="color" id="button_backgroundColor" name="button_backgroundColor" value="{{ styles.button.backgroundColor }}" class="hb-color-input">
+                                    <input type="text" id="button_backgroundColor_hex" value="{{ styles.button.backgroundColor }}" class="hb-hex-input" placeholder="#0ea5e9">
+                                </div>
+                            </div>
+                            <div class="hb-form-group">
+                                <label for="button_color">Texte bouton</label>
+                                <div class="hb-color-picker-wrap">
+                                    <input type="color" id="button_color" name="button_color" value="{{ styles.button.color }}" class="hb-color-input">
+                                    <input type="text" id="button_color_hex" value="{{ styles.button.color }}" class="hb-hex-input" placeholder="#ffffff">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="hb-field-pair">
+                            <div class="hb-form-group">
+                                <label for="button_borderRadius">Arrondi bouton</label>
+                                <input type="text" id="button_borderRadius" name="button_borderRadius" value="{{ styles.button.borderRadius }}" placeholder="8px" class="hb-text-input">
+                            </div>
+                            <div class="hb-form-group">
+                                <label for="button_padding">Padding bouton</label>
+                                <input type="text" id="button_padding" name="button_padding" value="{{ styles.button.padding }}" placeholder="10px 20px" class="hb-text-input">
+                            </div>
+                        </div>
+
+                        <div class="hb-form-group">
+                            <label for="links_color">Couleur des liens</label>
+                            <div class="hb-color-picker-wrap">
+                                <input type="color" id="links_color" name="links_color" value="{{ styles.links.color }}" class="hb-color-input">
+                                <input type="text" id="links_color_hex" value="{{ styles.links.color }}" class="hb-hex-input" placeholder="#0ea5e9">
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">{% IF isCreating %}Créer le bloc{% ELSE %}Appliquer les styles{% ENDIF %}</button>
-                <a href="{{ ROUTER.generate("admin-homebuilder") }}" class="btn btn-secondary">Annuler</a>
+                <!-- PANNEAU 5 : PRESETS EN 1 CLIC -->
+                <div class="hb-control-panel">
+                    <div class="hb-panel-title">
+                        <i class="fa-solid fa-sparkles"></i> Thèmes pré-configurés (1 clic)
+                    </div>
+                    <div class="hb-panel-body">
+                        <div class="hb-presets-grid">
+                            <button type="button" class="hb-preset-card" data-preset="clean-white">
+                                <span class="hb-preset-badge" style="background:#f8fafc; border:1px solid #cbd5e1;"></span>
+                                <div><strong>Clair Épuré</strong><small>Fond blanc, texte sombre, ombre douce</small></div>
+                            </button>
+                            <button type="button" class="hb-preset-card" data-preset="dark-navy">
+                                <span class="hb-preset-badge" style="background:#0f172a;"></span>
+                                <div><strong>Dark Nuit</strong><small>Bleu profond, texte blanc, contrasté</small></div>
+                            </button>
+                            <button type="button" class="hb-preset-card" data-preset="gradient-sunset">
+                                <span class="hb-preset-badge" style="background:linear-gradient(135deg, #4f46e5, #ec4899);"></span>
+                                <div><strong>Vibrant Sunset</strong><small>Dégradé violet-rose moderne</small></div>
+                            </button>
+                            <button type="button" class="hb-preset-card" data-preset="gradient-ocean">
+                                <span class="hb-preset-badge" style="background:linear-gradient(135deg, #0284c7, #0d9488);"></span>
+                                <div><strong>Océan & Émeraude</strong><small>Dégradé bleu azur vers vert d'eau</small></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hb-submit-box">
+                    <button type="submit" class="button" style="width: 100%; justify-content: center; padding: 12px;">
+                        <i class="fa-solid fa-floppy-disk"></i> Enregistrer les styles
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Colonne DROITE : Prévisualisation en direct (Sticky) -->
+        <div class="hb-studio-preview-col">
+            <div class="hb-preview-card">
+                <div class="hb-preview-toolbar">
+                    <div class="hb-preview-title">
+                        <span class="hb-live-dot"></span> Aperçu en direct
+                    </div>
+                    <div class="hb-device-switcher">
+                        <button type="button" class="hb-device-btn active" data-width="100%" title="Ordinateur">
+                            <i class="fa-solid fa-desktop"></i>
+                        </button>
+                        <button type="button" class="hb-device-btn" data-width="768px" title="Tablette">
+                            <i class="fa-solid fa-tablet-screen-button"></i>
+                        </button>
+                        <button type="button" class="hb-device-btn" data-width="375px" title="Mobile">
+                            <i class="fa-solid fa-mobile-screen"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="hb-preview-viewport">
+                    <div id="hb-device-canvas" style="width: 100%; transition: width 0.3s ease; margin: 0 auto;">
+                        <div id="hb-rendered-block-container">
+                            {{ block_html | raw }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hb-preview-footer">
+                    <small><i class="fa-solid fa-circle-info"></i> L'aperçu reflète fidèlement le rendu sur votre page d'accueil.</small>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
-</div>
+</section>
+
+<!-- Balise CSS dynamique pour la mise à jour en direct -->
+<style id="hb-dynamic-live-css"></style>
 
 <style>
-.styles-editor {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.preview-section {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 30px;
-}
-
-.preview-section h3 {
-    margin-top: 0;
-    color: #333;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 10px;
-}
-
-.preview-container {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    min-height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#preview-block {
-    max-width: 100%;
-    width: 100%;
-}
-
-.block-elements {
-    position: relative;
-    min-height: 50px;
-}
-
-.element {
-    cursor: move;
-    padding: 5px;
-    margin: 5px 0;
-    border: 1px dashed #ccc;
-    background: rgba(255,255,255,0.8);
-    transition: all 0.3s ease;
-}
-
-.element:hover {
-    border-color: #007bff;
-    background: rgba(0,123,255,0.1);
-}
-
-.element.dragging {
-    opacity: 0.5;
-    transform: rotate(5deg);
-}
-
-.element.hidden {
-    display: none;
-}
-
-.elements-controls {
-    margin-top: 20px;
-    padding: 15px;
-    background: #fff;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-}
-
-.elements-controls h4 {
-    margin-top: 0;
-    color: #333;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-}
-
-.elements-list {
-    margin-bottom: 15px;
-}
-
-.element-item {
+.hb-studio-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
-    margin: 5px 0;
-    background: #f8f9fa;
-    border-radius: 4px;
-    border: 1px solid #e9ecef;
-}
-
-.element-name {
-    font-weight: 500;
-    color: #333;
-}
-
-.element-actions {
-    display: flex;
-    gap: 5px;
-}
-
-.btn-toggle, .btn-delete {
-    padding: 4px 8px;
-    font-size: 12px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-}
-
-.btn-edit {
-    padding: 4px 8px;
-    font-size: 12px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    background: #17a2b8;
-    color: white;
-}
-
-.btn-toggle {
-    background: #ffc107;
-    color: #000;
-}
-
-.btn-delete {
-    background: #dc3545;
-    color: white;
-}
-
-.add-elements {
-    margin-top: 20px;
-    padding: 15px;
-    background: #e9ecef;
-    border-radius: 8px;
-}
-
-.add-elements h5 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: #333;
-}
-
-.add-buttons {
-    display: flex;
     flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.hb-header-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.hb-header-title i {
+    font-size: 1.8rem;
+    color: var(--evo-primary, #0ea5e9);
+}
+.hb-header-title h2 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+.hb-badge-type {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--evo-surface-alt, #f1f5f9);
+    color: var(--evo-text-muted, #64748b);
+    margin-top: 4px;
+}
+.hb-header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Grille Studio */
+.hb-studio-layout {
+    display: grid;
+    grid-template-columns: 460px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+@media (max-width: 1080px) {
+    .hb-studio-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Panneaux de contrôle */
+.hb-control-panel {
+    background: var(--evo-card-bg, #ffffff);
+    border: 1px solid var(--evo-border, #e2e8f0);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+.hb-panel-title {
+    padding: 12px 18px;
+    background: var(--evo-surface-alt, #f8fafc);
+    border-bottom: 1px solid var(--evo-border, #e2e8f0);
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--evo-text, #1e293b);
+}
+.hb-panel-title i {
+    color: var(--evo-primary, #0ea5e9);
+}
+.hb-panel-body {
+    padding: 18px;
+}
+.hb-subgroup-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--evo-text-muted, #64748b);
+    margin-bottom: 12px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed var(--evo-border, #e2e8f0);
+}
+.hb-form-group {
+    margin-bottom: 14px;
+}
+.hb-form-group:last-child {
+    margin-bottom: 0;
+}
+.hb-form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--evo-text, #334155);
+}
+.hb-field-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.hb-gradient-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* Inputs & Sélecteurs */
+.hb-select, .hb-text-input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--evo-border, #cbd5e1);
+    background: var(--evo-card-bg, #ffffff);
+    color: var(--evo-text, #1e293b);
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
+.hb-select:focus, .hb-text-input:focus {
+    outline: none;
+    border-color: var(--evo-primary, #0ea5e9);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+}
+
+/* Color Picker */
+.hb-color-picker-wrap {
+    display: flex;
+    align-items: center;
     gap: 8px;
 }
-
-.btn-add {
-    padding: 6px 12px;
-    font-size: 12px;
-    border: 1px solid #007bff;
-    background: #007bff;
-    color: white;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.btn-add:hover {
-    background: #0056b3;
-    border-color: #0056b3;
-}
-
-/* Modal styles */
-.modal {
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 20px;
+.hb-color-input {
+    width: 38px;
+    height: 38px;
     padding: 0;
+    border: 1px solid var(--evo-border, #cbd5e1);
     border-radius: 8px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 90vh;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
+    cursor: pointer;
+    background: transparent;
+}
+.hb-hex-input {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--evo-border, #cbd5e1);
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: var(--evo-text, #1e293b);
+    background: var(--evo-card-bg, #ffffff);
 }
 
-/* Responsive pour petits écrans */
-@media (max-width: 768px) {
-    .modal-content {
-        width: 95%;
-        max-width: none;
-        margin: 10px;
-        max-height: 95vh;
-    }
-    
-    .modal-body {
-        padding: 15px;
-    }
-    
-    .modal-footer {
-        padding: 15px;
-    }
-    
-    .modal-footer .btn {
-        padding: 8px 16px;
-        font-size: 13px;
-    }
-}
-
-.modal-header {
-    padding: 20px;
-    border-bottom: 1px solid #dee2e6;
+/* Presets Chips */
+.hb-label-with-presets {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-shrink: 0;
+    margin-bottom: 6px;
 }
-
-.modal-header h3 {
-    margin: 0;
-    color: #333;
+.hb-label-with-presets label {
+    margin-bottom: 0;
 }
-
-.close-modal {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: #666;
-}
-
-.close-modal:hover {
-    color: #333;
-}
-
-.modal-body {
-    padding: 20px;
-    overflow-y: auto;
-    flex: 1;
-}
-
-.modal-footer {
-    padding: 20px;
-    border-top: 1px solid #dee2e6;
+.hb-preset-chips {
     display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    flex-shrink: 0;
-    background: #fefefe;
-    border-radius: 0 0 8px 8px;
+    gap: 4px;
 }
-
-.modal-footer .btn {
-    padding: 10px 20px;
-    font-size: 14px;
+.hb-chip {
+    background: var(--evo-surface-alt, #f1f5f9);
+    border: 1px solid var(--evo-border, #cbd5e1);
     border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.72rem;
     cursor: pointer;
-    border: none;
-    transition: all 0.3s ease;
+    color: var(--evo-text-muted, #475569);
+    transition: all 0.15s;
+}
+.hb-chip:hover {
+    background: var(--evo-primary-soft, #e0f2fe);
+    color: var(--evo-primary, #0284c7);
+    border-color: var(--evo-primary, #0ea5e9);
 }
 
-.modal-footer .btn-primary {
-    background: #007bff;
-    color: white;
-}
-
-.modal-footer .btn-primary:hover {
-    background: #0056b3;
-}
-
-.modal-footer .btn-secondary {
-    background: #6c757d;
-    color: white;
-}
-
-.modal-footer .btn-secondary:hover {
-    background: #545b62;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #333;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.form-group textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-/* Layout options */
-.layout-horizontal {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-}
-
-.layout-horizontal .element {
-    flex: 1;
-    min-width: 0;
-}
-
-.color-control {
-    display: flex;
+/* Presets 1 clic */
+.hb-presets-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
+}
+.hb-preset-card {
+    display: flex;
     align-items: center;
-}
-
-.color-control input[type="color"] {
-    width: 50px;
-    height: 35px;
-}
-
-.color-control select {
-    flex: 1;
-}
-
-.gradient-controls {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    padding: 15px;
-    background: #f8f9fa;
+    gap: 10px;
+    padding: 10px;
+    background: var(--evo-surface-alt, #f8fafc);
+    border: 1px solid var(--evo-border, #e2e8f0);
     border-radius: 8px;
-    margin-top: 15px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.hb-preset-card:hover {
+    border-color: var(--evo-primary, #0ea5e9);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+}
+.hb-preset-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+.hb-preset-card strong {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--evo-text, #1e293b);
+}
+.hb-preset-card small {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--evo-text-muted, #64748b);
+    line-height: 1.2;
 }
 
-.style-section {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
+/* Bouton submit bas */
+.hb-submit-box {
+    margin-top: 16px;
+    position: sticky;
+    bottom: 20px;
+    z-index: 10;
 }
 
-.style-section h3 {
-    margin-top: 0;
-    color: #333;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 10px;
+/* Colonne Sticky Preview */
+.hb-studio-preview-col {
+    position: sticky;
+    top: 20px;
 }
-
-.style-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
-    margin-top: 15px;
+.hb-preview-card {
+    background: var(--evo-card-bg, #ffffff);
+    border: 1px solid var(--evo-border, #e2e8f0);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
 }
-
-.style-group {
+.hb-preview-toolbar {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+    background: var(--evo-surface-alt, #f8fafc);
+    border-bottom: 1px solid var(--evo-border, #e2e8f0);
 }
-
-.style-group label {
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #555;
+.hb-preview-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
-
-.style-group input,
-.style-group select {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+.hb-live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    animation: pulse 2s infinite;
 }
-
-.style-group input[type="color"] {
-    height: 40px;
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+.hb-device-switcher {
+    display: flex;
+    gap: 4px;
+    background: var(--evo-card-bg, #ffffff);
     padding: 2px;
+    border-radius: 6px;
+    border: 1px solid var(--evo-border, #cbd5e1);
 }
-
-.form-actions {
-    margin-top: 30px;
-    text-align: center;
-}
-
-.form-actions .btn {
-    margin: 0 10px;
-    padding: 12px 24px;
-    font-size: 16px;
-}
-
-.btn-primary {
-    background-color: #007bff;
-    color: white;
+.hb-device-btn {
     border: none;
+    background: transparent;
+    padding: 6px 10px;
     border-radius: 4px;
+    cursor: pointer;
+    color: var(--evo-text-muted, #64748b);
+    transition: all 0.15s;
 }
-
-.btn-secondary {
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    text-decoration: none;
-    display: inline-block;
+.hb-device-btn.active, .hb-device-btn:hover {
+    background: var(--evo-primary-soft, #e0f2fe);
+    color: var(--evo-primary, #0284c7);
 }
-
-.btn:hover {
-    opacity: 0.9;
+.hb-preview-viewport {
+    padding: 24px;
+    background: repeating-conic-gradient(rgba(0,0,0,0.02) 0% 25%, transparent 0% 50%) 50% / 20px 20px, var(--evo-surface-alt, #f8fafc);
+    min-height: 380px;
+    max-height: calc(100vh - 240px);
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+}
+.hb-preview-footer {
+    padding: 8px 16px;
+    background: var(--evo-surface-alt, #f8fafc);
+    border-top: 1px solid var(--evo-border, #e2e8f0);
+    color: var(--evo-text-muted, #64748b);
+    font-size: 0.8rem;
 }
 </style>
 
-{% INCLUDE admin/footer %}
-
 <script>
-// Variable globale pour éviter les initialisations multiples
-let isInitialized = false;
+document.addEventListener('DOMContentLoaded', function() {
+    var blockId = '{{ block_id }}';
+    var selector = '#block-' + blockId;
+    var styleTag = document.getElementById('hb-dynamic-live-css');
 
-// Attendre que le DOM soit complètement chargé
-function initPreviewStyles() {
-    // Éviter les initialisations multiples
-    if (isInitialized) {
-        console.log('Script déjà initialisé, sortie');
-        return;
-    }
-    
-    console.log('=== INITIALISATION PREVIEW STYLES ===');
-    
-    // Marquer comme initialisé
-    isInitialized = true;
-    
-    // Fonction pour nettoyer les événements existants
-    function cleanupExistingEvents() {
-        // Supprimer tous les événements sur les boutons d'ajout
-        const addButtons = document.querySelectorAll('.btn-add');
-        addButtons.forEach(btn => {
-            const newBtn = btn.cloneNode(true);
-            btn.parentNode.replaceChild(newBtn, btn);
+    // Synchronisation color picker <-> hex text input
+    function syncColor(pickerId, hexId) {
+        var picker = document.getElementById(pickerId);
+        var hex = document.getElementById(hexId);
+        if (!picker || !hex) return;
+        picker.addEventListener('input', function() {
+            hex.value = picker.value;
+            updateLivePreview();
         });
-        
-        // Supprimer tous les événements sur les inputs
-        const inputs = document.querySelectorAll('input[data-target], select[data-target]');
-        inputs.forEach(input => {
-            const newInput = input.cloneNode(true);
-            input.parentNode.replaceChild(newInput, input);
+        hex.addEventListener('input', function() {
+            if (/^#[0-9A-Fa-f]{6}$/.test(hex.value)) {
+                picker.value = hex.value;
+            }
+            updateLivePreview();
         });
     }
-    
-    // Nettoyer les événements existants
-    cleanupExistingEvents();
-    
-    // Fonction pour convertir camelCase en kebab-case
-    function camelToKebab(str) {
-        return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-    }
-    
-    // Fonction pour appliquer les styles en temps réel
-    function applyLiveStyle(input) {
-        const target = input.getAttribute('data-target');
-        const property = input.getAttribute('data-property');
-        const value = input.value;
-        
-        console.log('Application du style:', { target, property, value });
-        
-        if (target && property) {
-            const elements = document.querySelectorAll(target);
-            const cssProperty = camelToKebab(property);
-            
-            console.log('Éléments trouvés:', elements.length, 'Propriété CSS:', cssProperty);
-            
-            elements.forEach(element => {
-                element.style[cssProperty] = value;
-                console.log('Style appliqué à', element, ':', cssProperty, '=', value);
-            });
-        }
-    }
-    
-    // Gestion des dégradés
-    function updateGradientControls() {
-        const backgroundType = document.querySelector('select[name="container_backgroundType"]');
-        const gradientControls = document.querySelector('.gradient-controls');
-        
-        if (backgroundType.value === 'gradient') {
-            gradientControls.style.display = 'block';
-            applyGradient();
+
+    syncColor('container_backgroundColor', 'container_backgroundColor_hex');
+    syncColor('container_gradientStart', 'container_gradientStart_hex');
+    syncColor('container_gradientEnd', 'container_gradientEnd_hex');
+    syncColor('title_color', 'title_color_hex');
+    syncColor('content_color', 'content_color_hex');
+    syncColor('button_backgroundColor', 'button_backgroundColor_hex');
+    syncColor('button_color', 'button_color_hex');
+    syncColor('links_color', 'links_color_hex');
+
+    // Basculement Type de fond (Solid vs Gradient)
+    var bgTypeSelect = document.getElementById('container_backgroundType');
+    var solidControls = document.getElementById('solid-controls');
+    var gradientControls = document.getElementById('gradient-controls');
+
+    bgTypeSelect.addEventListener('change', function() {
+        if (this.value === 'gradient') {
+            solidControls.style.display = 'none';
+            gradientControls.style.display = 'grid';
         } else {
+            solidControls.style.display = 'block';
             gradientControls.style.display = 'none';
         }
-    }
-    
-    function applyGradient() {
-        const startColor = document.querySelector('input[name="container_gradientStart"]').value;
-        const endColor = document.querySelector('input[name="container_gradientEnd"]').value;
-        const direction = document.querySelector('select[name="container_gradientDirection"]').value;
-        
-        const previewBlock = document.querySelector('#preview-block');
-        if (previewBlock) {
-            previewBlock.style.background = `linear-gradient(${direction}, ${startColor}, ${endColor})`;
-        }
-    }
-    
-    // Gestion du drag & drop
-    function initDragAndDrop() {
-        const elements = document.querySelectorAll('.element');
-        const container = document.querySelector('.block-elements');
-        
-        elements.forEach(element => {
-            element.addEventListener('dragstart', function(e) {
-                this.classList.add('dragging');
-                e.dataTransfer.setData('text/plain', this.dataset.id);
-            });
-            
-            element.addEventListener('dragend', function() {
-                this.classList.remove('dragging');
-            });
-        });
-        
-        container.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            const draggingElement = document.querySelector('.dragging');
-            if (draggingElement) {
-                const afterElement = getDragAfterElement(container, e.clientY);
-                if (afterElement) {
-                    container.insertBefore(draggingElement, afterElement);
-                } else {
-                    container.appendChild(draggingElement);
-                }
-            }
-        });
-    }
-    
-    function getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('.element:not(.dragging)')];
-        
-        return draggableElements.reduce((closest, child) => {
-            const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
-            
-            if (offset < 0 && offset > closest.offset) {
-                return { offset: offset, element: child };
-            } else {
-                return closest;
-            }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
-    
-    // Gestion des éléments (masquer/supprimer)
-    function initElementControls() {
-        document.querySelectorAll('.btn-toggle').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const elementId = this.closest('.element-item').dataset.elementId;
-                const element = document.querySelector(`[data-id="${elementId}"]`);
-                const isHidden = element.classList.contains('hidden');
-                
-                if (isHidden) {
-                    element.classList.remove('hidden');
-                    this.textContent = 'Masquer';
-                } else {
-                    element.classList.add('hidden');
-                    this.textContent = 'Afficher';
-                }
-            });
-        });
-        
-        document.querySelectorAll('.btn-delete').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const elementId = this.closest('.element-item').dataset.elementId;
-                const element = document.querySelector(`[data-id="${elementId}"]`);
-                const elementItem = this.closest('.element-item');
-                
-                if (confirm('Supprimer cet élément ?')) {
-                    element.remove();
-                    elementItem.remove();
-                }
-            });
-        });
-        
-        // Gestion de l'édition
-        document.querySelectorAll('.btn-edit').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const elementId = this.closest('.element-item').dataset.elementId;
-                openEditModal(elementId);
-            });
-        });
-        
-        // Gestion de l'ajout d'éléments
-        document.querySelectorAll('.btn-add').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const elementType = this.dataset.type;
-                addNewElement(elementType);
-            });
-        });
-    }
-    
-    // Fonction pour ouvrir la modal d'édition
-    function openEditModal(elementId) {
-        const element = document.querySelector(`[data-id="${elementId}"]`);
-        const modal = document.getElementById('edit-modal');
-        
-        if (element && modal) {
-            // Remplir la modal avec les données actuelles
-            const elementType = element.dataset.type;
-            const content = element.textContent.trim();
-            
-            document.getElementById('edit-element-type').value = elementType;
-            document.getElementById('edit-element-content').value = content;
-            
-            // Afficher les options spécifiques selon le type
-            toggleElementOptions(elementType);
-            
-            // Stocker l'ID de l'élément en cours d'édition
-            modal.dataset.editingElement = elementId;
-            
-            // Afficher la modal
-            modal.style.display = 'block';
-        }
-    }
-    
-    // Fonction pour fermer la modal
-    function closeEditModal() {
-        const modal = document.getElementById('edit-modal');
-        modal.style.display = 'none';
-        modal.dataset.editingElement = '';
-    }
-    
-    // Fonction pour basculer les options selon le type d'élément
-    function toggleElementOptions(elementType) {
-        const buttonOptions = document.querySelector('.button-options');
-        const imageOptions = document.querySelector('.image-options');
-        
-        buttonOptions.style.display = 'none';
-        imageOptions.style.display = 'none';
-        
-        if (elementType === 'button') {
-            buttonOptions.style.display = 'block';
-        } else if (elementType === 'image') {
-            imageOptions.style.display = 'block';
-        }
-    }
-    
-    // Fonction pour ajouter un nouvel élément
-    function addNewElement(elementType) {
-        console.log('Ajout d\'élément:', elementType);
-        
-        const container = document.querySelector('.block-elements');
-        const elementId = 'element-' + Date.now();
-        
-        let elementHTML = '';
-        let elementName = '';
-        
-        switch (elementType) {
-            case 'title':
-                elementHTML = `<h2 class="element" data-type="title" data-id="${elementId}">Nouveau titre</h2>`;
-                elementName = 'Nouveau titre';
-                break;
-            case 'subtitle':
-                elementHTML = `<h3 class="element" data-type="subtitle" data-id="${elementId}">Nouveau sous-titre</h3>`;
-                elementName = 'Nouveau sous-titre';
-                break;
-            case 'content':
-                elementHTML = `<div class="content element" data-type="content" data-id="${elementId}">Nouveau contenu</div>`;
-                elementName = 'Nouveau contenu';
-                break;
-            case 'button':
-                elementHTML = `<button class="btn element" data-type="button" data-id="${elementId}">Nouveau bouton</button>`;
-                elementName = 'Nouveau bouton';
-                break;
-            case 'image':
-                elementHTML = `<img class="element" data-type="image" data-id="${elementId}" src="https://via.placeholder.com/300x200" alt="Nouvelle image">`;
-                elementName = 'Nouvelle image';
-                break;
-        }
-        
-        // Ajouter l'élément au conteneur
-        container.insertAdjacentHTML('beforeend', elementHTML);
-        
-        // Ajouter l'élément à la liste de contrôle
-        const elementsList = document.querySelector('.elements-list');
-        const elementItemHTML = `
-            <div class="element-item" data-element-id="${elementId}">
-                <span class="element-name">${elementName}</span>
-                <div class="element-actions">
-                    <button type="button" class="btn-edit" data-action="edit">Éditer</button>
-                    <button type="button" class="btn-toggle" data-action="toggle">Masquer</button>
-                    <button type="button" class="btn-delete" data-action="delete">Supprimer</button>
-                </div>
-            </div>
-        `;
-        elementsList.insertAdjacentHTML('beforeend', elementItemHTML);
-        
-        // Réinitialiser les événements
-        initElementControls();
-        initDragAndDrop();
-        
-        console.log('Élément ajouté avec succès:', elementId);
-    }
-    
-    // Gestion des événements de la modal
-    function initModalEvents() {
-        const modal = document.getElementById('edit-modal');
-        const closeBtn = modal.querySelector('.close-modal');
-        const cancelBtn = document.getElementById('cancel-edit');
-        const saveBtn = document.getElementById('save-edit');
-        const elementTypeSelect = document.getElementById('edit-element-type');
-        
-        // Fermer la modal
-        closeBtn.addEventListener('click', closeEditModal);
-        cancelBtn.addEventListener('click', closeEditModal);
-        
-        // Fermer en cliquant à l'extérieur
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                closeEditModal();
-            }
-        });
-        
-        // Changer le type d'élément
-        elementTypeSelect.addEventListener('change', function() {
-            toggleElementOptions(this.value);
-        });
-        
-        // Sauvegarder les modifications
-        saveBtn.addEventListener('click', function() {
-            const elementId = modal.dataset.editingElement;
-            const element = document.querySelector(`[data-id="${elementId}"]`);
-            
-            if (element) {
-                const newType = document.getElementById('edit-element-type').value;
-                const newContent = document.getElementById('edit-element-content').value;
-                const newPosition = document.getElementById('edit-element-position').value;
-                
-                // Mettre à jour l'élément
-                element.dataset.type = newType;
-                element.textContent = newContent;
-                
-                // Changer la balise si nécessaire
-                if (newType === 'title' && element.tagName !== 'H2') {
-                    const newElement = document.createElement('h2');
-                    newElement.className = element.className;
-                    newElement.dataset.type = newType;
-                    newElement.dataset.id = elementId;
-                    newElement.textContent = newContent;
-                    element.replaceWith(newElement);
-                } else if (newType === 'subtitle' && element.tagName !== 'H3') {
-                    const newElement = document.createElement('h3');
-                    newElement.className = element.className;
-                    newElement.dataset.type = newType;
-                    newElement.dataset.id = elementId;
-                    newElement.textContent = newContent;
-                    element.replaceWith(newElement);
-                } else if (newType === 'content' && element.tagName !== 'DIV') {
-                    const newElement = document.createElement('div');
-                    newElement.className = element.className;
-                    newElement.dataset.type = newType;
-                    newElement.dataset.id = elementId;
-                    newElement.textContent = newContent;
-                    element.replaceWith(newElement);
-                }
-                
-                // Appliquer le positionnement
-                const container = document.querySelector('.block-elements');
-                if (newPosition === 'horizontal') {
-                    container.classList.add('layout-horizontal');
-                } else {
-                    container.classList.remove('layout-horizontal');
-                }
-                
-                // Mettre à jour le nom dans la liste
-                const elementItem = document.querySelector(`[data-element-id="${elementId}"]`);
-                const elementName = elementItem.querySelector('.element-name');
-                elementName.textContent = newContent || `Élément ${newType}`;
-            }
-            
-            closeEditModal();
-        });
-    }
-    
-    // Écouter les changements sur tous les inputs et selects
-    const inputs = document.querySelectorAll('input[data-target], select[data-target]');
-    console.log('Inputs trouvés:', inputs.length);
-    
-    inputs.forEach((input, index) => {
-        console.log(`Input ${index}:`, input.name, 'valeur:', input.value, 'target:', input.getAttribute('data-target'));
-        
-        // Appliquer le style initial
-        applyLiveStyle(input);
-        
-        // Écouter les changements
-        input.addEventListener('input', function() {
-            console.log('Changement input:', this.name, 'nouvelle valeur:', this.value);
-            applyLiveStyle(this);
-        });
-        
-        input.addEventListener('change', function() {
-            console.log('Changement select:', this.name, 'nouvelle valeur:', this.value);
-            applyLiveStyle(this);
-            
-            // Gestion spéciale pour le type de fond
-            if (this.name === 'container_backgroundType') {
-                updateGradientControls();
+        updateLivePreview();
+    });
+
+    // Chips boutons de presets (padding, border-radius, etc.)
+    document.querySelectorAll('[data-set-input]').forEach(function(chip) {
+        chip.addEventListener('click', function() {
+            var inputId = this.getAttribute('data-set-input');
+            var val = this.getAttribute('data-val');
+            var targetInput = document.getElementById(inputId);
+            if (targetInput) {
+                targetInput.value = val;
+                updateLivePreview();
             }
         });
     });
-    
-    // Initialiser les fonctionnalités
-    initDragAndDrop();
-    initElementControls();
-    initModalEvents();
-    updateGradientControls();
-}
 
-// Initialisation unique du script
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initPreviewStyles);
-} else {
-    initPreviewStyles();
-}
-</script> 
+    // Sélecteur d'appareil (Desktop, Tablet, Mobile)
+    var canvas = document.getElementById('hb-device-canvas');
+    document.querySelectorAll('.hb-device-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.hb-device-btn').forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            var width = this.getAttribute('data-width');
+            canvas.style.maxWidth = width;
+        });
+    });
+
+    // Moteur de rendu en direct (CSS Live Generator)
+    function updateLivePreview() {
+        var bgType = bgTypeSelect.value;
+        var css = '';
+
+        // Container
+        var containerRules = [];
+        if (bgType === 'gradient') {
+            var start = document.getElementById('container_gradientStart').value;
+            var end = document.getElementById('container_gradientEnd').value;
+            var dir = document.getElementById('container_gradientDirection').value;
+            containerRules.push('background: linear-gradient(' + dir + ', ' + start + ', ' + end + ') !important');
+        } else {
+            var bgCol = document.getElementById('container_backgroundColor').value;
+            if (bgCol) containerRules.push('background: ' + bgCol + ' !important');
+        }
+
+        var padding = document.getElementById('container_padding').value;
+        if (padding) containerRules.push('padding: ' + padding + ' !important');
+
+        var margin = document.getElementById('container_margin').value;
+        if (margin) containerRules.push('margin: ' + margin + ' !important');
+
+        var radius = document.getElementById('container_borderRadius').value;
+        if (radius) containerRules.push('border-radius: ' + radius + ' !important');
+
+        var border = document.getElementById('container_border').value;
+        if (border) containerRules.push('border: ' + border + ' !important');
+
+        var shadow = document.getElementById('container_boxShadow').value;
+        if (shadow) containerRules.push('box-shadow: ' + shadow + ' !important');
+
+        var maxWidth = document.getElementById('container_maxWidth').value;
+        if (maxWidth) containerRules.push('max-width: ' + maxWidth + ' !important');
+
+        css += selector + ' { ' + containerRules.join('; ') + ' }\n';
+
+        // Titres
+        var titleRules = [];
+        var titleCol = document.getElementById('title_color').value;
+        if (titleCol) titleRules.push('color: ' + titleCol + ' !important');
+        var titleSize = document.getElementById('title_fontSize').value;
+        if (titleSize) titleRules.push('font-size: ' + titleSize + ' !important');
+        var titleWeight = document.getElementById('title_fontWeight').value;
+        if (titleWeight) titleRules.push('font-weight: ' + titleWeight + ' !important');
+        var titleAlign = document.getElementById('title_textAlign').value;
+        if (titleAlign) titleRules.push('text-align: ' + titleAlign + ' !important');
+        var titleMb = document.getElementById('title_marginBottom').value;
+        if (titleMb) titleRules.push('margin-bottom: ' + titleMb + ' !important');
+
+        css += selector + ' h1, ' + selector + ' h2, ' + selector + ' h3, ' + selector + ' .hero-title, ' + selector + ' .section-title { ' + titleRules.join('; ') + ' }\n';
+
+        // Contenu
+        var contentRules = [];
+        var contentCol = document.getElementById('content_color').value;
+        if (contentCol) contentRules.push('color: ' + contentCol + ' !important');
+        var contentSize = document.getElementById('content_fontSize').value;
+        if (contentSize) contentRules.push('font-size: ' + contentSize + ' !important');
+        var contentLh = document.getElementById('content_lineHeight').value;
+        if (contentLh) contentRules.push('line-height: ' + contentLh + ' !important');
+
+        css += selector + ' .content, ' + selector + ' .hero-subtitle, ' + selector + ' .section-desc, ' + selector + ' p, ' + selector + ' li { ' + contentRules.join('; ') + ' }\n';
+
+        // Boutons
+        var btnRules = [];
+        var btnBg = document.getElementById('button_backgroundColor').value;
+        if (btnBg) btnRules.push('background: ' + btnBg + ' !important');
+        var btnCol = document.getElementById('button_color').value;
+        if (btnCol) btnRules.push('color: ' + btnCol + ' !important');
+        var btnRadius = document.getElementById('button_borderRadius').value;
+        if (btnRadius) btnRules.push('border-radius: ' + btnRadius + ' !important');
+        var btnPad = document.getElementById('button_padding').value;
+        if (btnPad) btnRules.push('padding: ' + btnPad + ' !important');
+
+        css += selector + ' .btn, ' + selector + ' button, ' + selector + ' .hero-btn { ' + btnRules.join('; ') + ' }\n';
+
+        // Liens
+        var linkCol = document.getElementById('links_color').value;
+        if (linkCol) {
+            css += selector + ' a { color: ' + linkCol + ' !important; }\n';
+        }
+
+        styleTag.textContent = css;
+    }
+
+    // Écoute de tous les champs de saisie pour live update instantané
+    document.querySelectorAll('#styles-form input, #styles-form select').forEach(function(el) {
+        el.addEventListener('input', updateLivePreview);
+        el.addEventListener('change', updateLivePreview);
+    });
+
+    // Thèmes pré-configurés en 1 clic
+    document.querySelectorAll('.hb-preset-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+            var preset = this.getAttribute('data-preset');
+            if (preset === 'clean-white') {
+                bgTypeSelect.value = 'solid';
+                document.getElementById('container_backgroundColor').value = '#ffffff';
+                document.getElementById('container_backgroundColor_hex').value = '#ffffff';
+                document.getElementById('container_borderRadius').value = '16px';
+                document.getElementById('container_border').value = '1px solid rgba(0,0,0,0.06)';
+                document.getElementById('container_boxShadow').value = '0 4px 20px rgba(0,0,0,0.04)';
+                document.getElementById('title_color').value = '#0f172a';
+                document.getElementById('title_color_hex').value = '#0f172a';
+                document.getElementById('content_color').value = '#475569';
+                document.getElementById('content_color_hex').value = '#475569';
+                document.getElementById('button_backgroundColor').value = '#0ea5e9';
+                document.getElementById('button_backgroundColor_hex').value = '#0ea5e9';
+                document.getElementById('button_color').value = '#ffffff';
+                document.getElementById('button_color_hex').value = '#ffffff';
+            } else if (preset === 'dark-navy') {
+                bgTypeSelect.value = 'solid';
+                document.getElementById('container_backgroundColor').value = '#0f172a';
+                document.getElementById('container_backgroundColor_hex').value = '#0f172a';
+                document.getElementById('container_borderRadius').value = '16px';
+                document.getElementById('container_border').value = '1px solid rgba(255,255,255,0.1)';
+                document.getElementById('container_boxShadow').value = '0 10px 30px rgba(0,0,0,0.25)';
+                document.getElementById('title_color').value = '#ffffff';
+                document.getElementById('title_color_hex').value = '#ffffff';
+                document.getElementById('content_color').value = '#94a3b8';
+                document.getElementById('content_color_hex').value = '#94a3b8';
+                document.getElementById('button_backgroundColor').value = '#38bdf8';
+                document.getElementById('button_backgroundColor_hex').value = '#38bdf8';
+                document.getElementById('button_color').value = '#0f172a';
+                document.getElementById('button_color_hex').value = '#0f172a';
+            } else if (preset === 'gradient-sunset') {
+                bgTypeSelect.value = 'gradient';
+                document.getElementById('container_gradientStart').value = '#4f46e5';
+                document.getElementById('container_gradientStart_hex').value = '#4f46e5';
+                document.getElementById('container_gradientEnd').value = '#ec4899';
+                document.getElementById('container_gradientEnd_hex').value = '#ec4899';
+                document.getElementById('container_gradientDirection').value = '135deg';
+                document.getElementById('container_borderRadius').value = '20px';
+                document.getElementById('container_border').value = 'none';
+                document.getElementById('container_boxShadow').value = '0 12px 35px rgba(79, 70, 229, 0.25)';
+                document.getElementById('title_color').value = '#ffffff';
+                document.getElementById('title_color_hex').value = '#ffffff';
+                document.getElementById('content_color').value = '#fdf2f8';
+                document.getElementById('content_color_hex').value = '#fdf2f8';
+                document.getElementById('button_backgroundColor').value = '#ffffff';
+                document.getElementById('button_backgroundColor_hex').value = '#ffffff';
+                document.getElementById('button_color').value = '#4f46e5';
+                document.getElementById('button_color_hex').value = '#4f46e5';
+            } else if (preset === 'gradient-ocean') {
+                bgTypeSelect.value = 'gradient';
+                document.getElementById('container_gradientStart').value = '#0284c7';
+                document.getElementById('container_gradientStart_hex').value = '#0284c7';
+                document.getElementById('container_gradientEnd').value = '#0d9488';
+                document.getElementById('container_gradientEnd_hex').value = '#0d9488';
+                document.getElementById('container_gradientDirection').value = '135deg';
+                document.getElementById('container_borderRadius').value = '20px';
+                document.getElementById('container_border').value = 'none';
+                document.getElementById('container_boxShadow').value = '0 12px 35px rgba(2, 132, 199, 0.25)';
+                document.getElementById('title_color').value = '#ffffff';
+                document.getElementById('title_color_hex').value = '#ffffff';
+                document.getElementById('content_color').value = '#f0fdfa';
+                document.getElementById('content_color_hex').value = '#f0fdfa';
+                document.getElementById('button_backgroundColor').value = '#ffffff';
+                document.getElementById('button_backgroundColor_hex').value = '#ffffff';
+                document.getElementById('button_color').value = '#0284c7';
+                document.getElementById('button_color_hex').value = '#0284c7';
+            }
+            bgTypeSelect.dispatchEvent(new Event('change'));
+            updateLivePreview();
+        });
+    });
+
+    // Initialisation
+    updateLivePreview();
+});
+</script>

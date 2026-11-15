@@ -116,31 +116,76 @@ class Block extends JsonActiveRecord
     {
         $css = '';
         $blockId = 'block-' . $this->id;
-        
+
         $camelToKebab = function($property) {
             return strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $property));
         };
-        
-        $processValue = function($value) {
-            if ($value === '' || $value === null) return false;
-            return $value;
-        };
-        
+
         $styles = $this->styles;
-        foreach (['container' => '', 'title' => ' h2, #$blockId h3', 'content' => ' .content', 'links' => ' a', 'button' => ' .btn'] as $key => $suffix) {
-            if (!empty($styles[$key])) {
-                $selector = ($key === 'container') ? "#$blockId" : "#$blockId$suffix";
-                $css .= "$selector {";
-                foreach ($styles[$key] as $property => $value) {
-                    $processedValue = $processValue($value);
-                    if ($processedValue !== false) {
-                        $css .= " " . $camelToKebab($property) . ": $processedValue;";
-                    }
-                }
-                $css .= " }";
+
+        // Container styles
+        if (!empty($styles['container'])) {
+            $c = $styles['container'];
+            $css .= "#$blockId {";
+            $bgType = $c['backgroundType'] ?? 'solid';
+            if ($bgType === 'gradient' && !empty($c['gradientStart']) && !empty($c['gradientEnd'])) {
+                $dir = !empty($c['gradientDirection']) ? $c['gradientDirection'] : 'to bottom';
+                $css .= " background: linear-gradient({$dir}, {$c['gradientStart']}, {$c['gradientEnd']});";
+            } elseif (!empty($c['backgroundColor'])) {
+                $css .= " background-color: {$c['backgroundColor']};";
             }
+            foreach (['padding', 'margin', 'borderRadius', 'border', 'boxShadow', 'width', 'maxWidth'] as $prop) {
+                if (isset($c[$prop]) && $c[$prop] !== '') {
+                    $css .= " " . $camelToKebab($prop) . ": " . $c[$prop] . ";";
+                }
+            }
+            $css .= " }";
         }
-        
+
+        // Title styles
+        if (!empty($styles['title'])) {
+            $css .= " #$blockId h1, #$blockId h2, #$blockId h3, #$blockId .hero-title, #$blockId .section-title {";
+            foreach ($styles['title'] as $property => $value) {
+                if ($value !== '' && $value !== null) {
+                    $css .= " " . $camelToKebab($property) . ": $value;";
+                }
+            }
+            $css .= " }";
+        }
+
+        // Content styles
+        if (!empty($styles['content'])) {
+            $css .= " #$blockId .content, #$blockId .hero-subtitle, #$blockId .section-desc, #$blockId p, #$blockId li {";
+            foreach ($styles['content'] as $property => $value) {
+                if ($value !== '' && $value !== null) {
+                    $css .= " " . $camelToKebab($property) . ": $value;";
+                }
+            }
+            $css .= " }";
+        }
+
+        // Links styles
+        if (!empty($styles['links'])) {
+            $css .= " #$blockId a {";
+            foreach ($styles['links'] as $property => $value) {
+                if ($value !== '' && $value !== null) {
+                    $css .= " " . $camelToKebab($property) . ": $value;";
+                }
+            }
+            $css .= " }";
+        }
+
+        // Button styles
+        if (!empty($styles['button'])) {
+            $css .= " #$blockId .btn, #$blockId button, #$blockId .hero-btn {";
+            foreach ($styles['button'] as $property => $value) {
+                if ($value !== '' && $value !== null) {
+                    $css .= " " . $camelToKebab($property) . ": $value;";
+                }
+            }
+            $css .= " }";
+        }
+
         return $css;
     }
 
