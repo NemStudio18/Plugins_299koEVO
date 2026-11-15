@@ -678,6 +678,108 @@ document.addEventListener('DOMContentLoaded', () => {
                 feedContainer.dataset.page = '1';
             }
             reloadFeed(filter);
+            return;
+        }
+
+        // E. MENU PARTAGE DÉROULANT
+        const shareBtn = e.target.closest('.btn-share-toggle');
+        if (shareBtn) {
+            e.stopPropagation();
+            const dropdown = shareBtn.nextElementSibling;
+            document.querySelectorAll('.share-menu-dropdown.show').forEach(d => {
+                if (d !== dropdown) d.classList.remove('show');
+            });
+            if (dropdown) dropdown.classList.toggle('show');
+            return;
+        } else if (!e.target.closest('.share-menu-dropdown')) {
+            document.querySelectorAll('.share-menu-dropdown.show').forEach(d => d.classList.remove('show'));
+        }
+
+        // F. COPIER LE LIEN DU POST
+        const copyBtn = e.target.closest('.btn-copy-link');
+        if (copyBtn) {
+            const url = copyBtn.dataset.url || window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                copyBtn.innerHTML = '<i class="fa-solid fa-check text-emerald"></i> <span>Lien copié !</span>';
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<i class="fa-solid fa-link text-blue"></i> <span>Copier le lien</span>';
+                }, 2000);
+            });
+            return;
+        }
+
+        // G. REPOSTER SUR MON MUR
+        const repostBtn = e.target.closest('.btn-repost-wall');
+        if (repostBtn) {
+            const author = repostBtn.dataset.author || '';
+            const content = repostBtn.dataset.content || '';
+            const media = repostBtn.dataset.media || '';
+            const token = document.querySelector('input[name="token"]')?.value || window.socialCsrfToken || '';
+            
+            const repostContent = `RT @${author} : ${content}`;
+            const formData = new FormData();
+            formData.append('content', repostContent);
+            formData.append('token', token);
+            if (media) formData.append('media_url', media);
+
+            try {
+                const res = await fetch('/social/publish', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    alert('Publication partagée sur votre mur !');
+                    reloadFeed();
+                } else {
+                    alert(data.message || 'Erreur lors du partage.');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+            return;
+        }
+
+        // H. RÉPONDRE À UN COMMENTAIRE
+        const replyBtn = e.target.closest('.btn-reply-comment');
+        if (replyBtn) {
+            const postId = replyBtn.dataset.postId;
+            const commentId = replyBtn.dataset.commentId;
+            const author = replyBtn.dataset.author;
+            const form = document.querySelector(`.comment-add-form[data-post-id="${postId}"]`);
+            const indicator = document.getElementById(`reply-indicator-${postId}`);
+            if (form) {
+                form.dataset.parentId = commentId;
+                const input = form.querySelector('.comment-input');
+                if (input) {
+                    input.focus();
+                    if (!input.value.startsWith(`@${author} `)) {
+                        input.value = `@${author} ` + input.value;
+                    }
+                }
+                if (indicator) {
+                    const textSpan = indicator.querySelector('.reply-target-text');
+                    if (textSpan) textSpan.textContent = `Réponse à @${author}`;
+                    indicator.style.display = 'flex';
+                }
+            }
+            return;
+        }
+
+        // I. ANNULER LA RÉPONSE
+        const cancelReplyBtn = e.target.closest('.btn-cancel-reply');
+        if (cancelReplyBtn) {
+            const indicator = cancelReplyBtn.closest('.comment-reply-indicator');
+            const section = cancelReplyBtn.closest('.card-comments-section');
+            const form = section?.querySelector('.comment-add-form');
+            if (form) {
+                delete form.dataset.parentId;
+            }
+            if (indicator) {
+                indicator.style.display = 'none';
+            }
+            return;
         }
     });
 
@@ -697,12 +799,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     listContainer.innerHTML = '<span class="empty-hint" style="color:var(--sf-text-muted);font-size:0.85rem;">Soyez le premier à commenter !</span>';
                 } else {
                     listContainer.innerHTML = data.comments.map(c => `
-                        <div class="comment-item" id="comment-${c.id}">
+                        <div class="comment-item ${c.parent_id ? 'comment-reply' : ''}" id="comment-${c.id}">
                             <img src="${c.author_avatar}" class="user-avatar-sm" alt="${c.author_name}" />
                             <div class="comment-bubble">
                                 <span class="comment-author">${c.author_name}</span>
                                 <span class="comment-body">${c.content}</span>
-                                <time class="post-time" style="display:block;margin-top:2px;">${c.time_ago}</time>
+                                <div class="comment-footer-actions">
+                                    <time class="post-time">${c.time_ago}</time>
+                                    <button type="button" class="btn-reply-comment" data-post-id="${postId}" data-comment-id="${c.id}" data-author="${c.author_name}">Répondre</button>
+                                </div>
                             </div>
                         </div>
                     `).join('');
@@ -722,10 +827,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const content = input.value.trim();
             if (!content) return;
 
-            const token = document.querySelector('input[name="token"]')?.value || '';
+            const token = commentForm.querySelector('input[name="token"]')?.value
+                || document.querySelector('input[name="token"]')?.value
+                || window.socialCsrfToken
+                || '';
             const formData = new FormData();
             formData.append('content', content);
             formData.append('token', token);
+            if (commentForm.dataset.parentId) {
+                formData.append('parent_id', commentForm.dataset.parentId);
+            }
+
+            const submitBtn = commentForm.querySelector('.btn-comment-submit');
+            if (submitBtn) submitBtn.disabled = true;
 
             try {
                 const res = await fetch(`/social/post/${postId}/comment`, {
@@ -736,6 +850,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
                 if (data.status === 'success') {
                     input.value = '';
+                    delete commentForm.dataset.parentId;
+                    const indicator = document.getElementById(`reply-indicator-${postId}`);
+                    if (indicator) indicator.style.display = 'none';
                     loadComments(postId);
                     const postCard = document.getElementById(`post-${postId}`);
                     const countSpan = postCard?.querySelector('.comments-count');
@@ -747,6 +864,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (err) {
                 console.error(err);
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
             }
         }
     });

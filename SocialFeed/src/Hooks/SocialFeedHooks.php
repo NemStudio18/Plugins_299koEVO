@@ -22,9 +22,12 @@ class SocialFeedHooks {
      */
     public static function onEndMainNavigation(): string {
         $currentUri = $_SERVER['REQUEST_URI'] ?? '';
-        $isFeedActive = (strpos($currentUri, '/social') === 0 && strpos($currentUri, '/social/user') === false) ? ' active' : '';
+        $isFeedActive = (strpos($currentUri, '/social') === 0 && strpos($currentUri, '/social/user') === false && strpos($currentUri, '/social/group') === false) ? ' active' : '';
 
         $html = '<li class="nav-item' . $isFeedActive . '"><a class="nav-link' . $isFeedActive . '" href="/social" title="Fil d\'actualités et communauté"><i class="fa-solid fa-comments"></i> <span>Communauté</span></a></li>';
+
+        $isGroupsActive = (strpos($currentUri, '/social/group') === 0) ? ' active' : '';
+        $html .= '<li class="nav-item' . $isGroupsActive . '"><a class="nav-link' . $isGroupsActive . '" href="/social/groups" title="Groupes et Pages"><i class="fa-solid fa-users-rectangle"></i> <span>Groupes & Pages</span></a></li>';
 
         $user = \Core\Auth\UsersManager::getCurrentUser();
         if ($user && !empty($user->id)) {

@@ -99,16 +99,16 @@ class SocialFeedService {
     }
 
     /**
-     * Crée une publication membre
+     * Crée une publication membre (sur fil public ou dans un groupe/page)
      */
-    public function createPost(int $userId, string $content, ?string $mediaUrl = null, string $postType = 'post', ?int $parentId = null): int {
+    public function createPost(int $userId, string $content, ?string $mediaUrl = null, string $postType = 'post', ?int $parentId = null, ?int $groupId = null): int {
         $content = trim($content);
         if (empty($content) && empty($mediaUrl)) {
             throw new \InvalidArgumentException("Le message ne peut pas être vide.");
         }
 
-        $sql = "INSERT INTO social_posts (user_id, post_type, content, media_url, parent_id, status, created_at, updated_at)
-                VALUES (:uid, :type, :content, :media, :parent, 'published', :now, :now)";
+        $sql = "INSERT INTO social_posts (user_id, post_type, content, media_url, parent_id, group_id, status, created_at, updated_at)
+                VALUES (:uid, :type, :content, :media, :parent, :gid, 'published', :now, :now)";
 
         $now = date('Y-m-d H:i:s');
         $this->db->query($sql, [
@@ -117,23 +117,33 @@ class SocialFeedService {
             ':content' => $content,
             ':media' => $mediaUrl,
             ':parent' => $parentId,
+            ':gid' => $groupId,
             ':now' => $now
         ]);
 
-        return (int)$this->db->lastInsertId();
+        $postId = (int)$this->db->lastInsertId();
+
+        if ($groupId) {
+            $this->db->query("UPDATE social_groups SET posts_count = posts_count + 1 WHERE id = :gid", [':gid' => $groupId]);
+        }
+
+        return $postId;
     }
 
     /**
      * Supprime une publication
      */
     public function deletePost(int $postId, int $userId, bool $isAdmin = false): bool {
-        $sqlCheck = "SELECT user_id FROM social_posts WHERE id = :id";
+        $sqlCheck = "SELECT user_id, group_id FROM social_posts WHERE id = :id";
         $rows = $this->db->query($sqlCheck, [':id' => $postId]);
         if (empty($rows)) {
             return false;
         }
 
-        $authorId = (int)((array)$rows[0])['user_id'];
+        $rowPost = (array)$rows[0];
+        $authorId = (int)$rowPost['user_id'];
+        $groupId = !empty($rowPost['group_id']) ? (int)$rowPost['group_id'] : null;
+
         if (!$isAdmin && $authorId !== $userId) {
             throw new \RuntimeException("Accès refusé : vous n'êtes pas l'auteur de ce post.");
         }
@@ -141,6 +151,10 @@ class SocialFeedService {
         $this->db->query("DELETE FROM social_posts WHERE id = :id", [':id' => $postId]);
         $this->db->query("DELETE FROM social_comments WHERE post_id = :id", [':id' => $postId]);
         $this->db->query("DELETE FROM social_likes WHERE post_id = :id", [':id' => $postId]);
+
+        if ($groupId) {
+            $this->db->query("UPDATE social_groups SET posts_count = MAX(0, posts_count - 1) WHERE id = :gid", [':gid' => $groupId]);
+        }
 
         return true;
     }
@@ -445,5 +459,259 @@ class SocialFeedService {
         if ($diff < 604800) return "Il y a " . floor($diff / 86400) . " j";
 
         return date('d/m/Y', $ts);
+    }
+
+    /**
+     * Génère un slug propre pour URL
+     */
+    public function slugify(string $text): string {
+        $text = preg_replace('~[^\pL\d]+~u', '-', $text);
+        if (function_exists('iconv')) {
+            $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
+        }
+        $text = preg_replace('~[^-\w]+~', '', $text);
+        $text = trim($text, '-');
+        $text = preg_replace('~-+~', '-', $text);
+        $text = strtolower($text);
+        return empty($text) ? 'espace-' . uniqid() : $text;
+    }
+
+    /**
+     * Crée une nouvelle Page ou un Groupe
+     */
+    public function createGroup(array $data, int $userId): ?array {
+        $name = trim($data['name'] ?? '');
+        if (empty($name)) {
+            throw new \InvalidArgumentException("Le nom ne peut pas être vide.");
+        }
+
+        $type = in_array($data['type'] ?? '', ['group', 'page'], true) ? $data['type'] : 'group';
+        $description = trim($data['description'] ?? '');
+        $category = trim($data['category'] ?? 'Général');
+        $visibility = in_array($data['visibility'] ?? '', ['public', 'private'], true) ? $data['visibility'] : 'public';
+        $avatar = $data['avatar'] ?? null;
+        $cover = $data['cover_image'] ?? null;
+
+        $baseSlug = $this->slugify($name);
+        $slug = $baseSlug;
+        $counter = 1;
+        while (!empty($this->db->query("SELECT 1 FROM social_groups WHERE slug = :s", [':s' => $slug]))) {
+            $counter++;
+            $slug = $baseSlug . '-' . $counter;
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $sql = "INSERT INTO social_groups (type, slug, name, description, category, avatar, cover_image, visibility, owner_id, members_count, posts_count, created_at, updated_at)
+                VALUES (:type, :slug, :name, :desc, :cat, :avatar, :cover, :vis, :owner, 1, 0, :now, :now)";
+
+        $this->db->query($sql, [
+            ':type' => $type,
+            ':slug' => $slug,
+            ':name' => $name,
+            ':desc' => $description,
+            ':cat' => $category,
+            ':avatar' => $avatar,
+            ':cover' => $cover,
+            ':vis' => $visibility,
+            ':owner' => $userId,
+            ':now' => $now
+        ]);
+
+        $groupId = (int)$this->db->lastInsertId();
+
+        $this->db->query(
+            "INSERT INTO social_group_members (group_id, user_id, role, status, created_at)
+             VALUES (:gid, :uid, 'owner', 'active', :now)",
+            [':gid' => $groupId, ':uid' => $userId, ':now' => $now]
+        );
+
+        return $this->getGroup($groupId, $userId);
+    }
+
+    /**
+     * Récupère une Page ou un Groupe par son ID ou son Slug
+     */
+    public function getGroup(string|int $idOrSlug, ?int $currentUserId = null): ?array {
+        $field = is_numeric($idOrSlug) ? 'g.id' : 'g.slug';
+        $sql = "SELECT g.*, u.username as owner_username, u.email as owner_email
+                FROM social_groups g
+                LEFT JOIN users u ON u.id = g.owner_id
+                WHERE $field = :param";
+
+        $rows = $this->db->query($sql, [':param' => $idOrSlug]);
+        if (empty($rows)) return null;
+
+        $g = (array)$rows[0];
+        $isMember = false;
+        $memberRole = null;
+
+        if ($currentUserId) {
+            $check = $this->db->query(
+                "SELECT role, status FROM social_group_members WHERE group_id = :gid AND user_id = :uid",
+                [':gid' => (int)$g['id'], ':uid' => $currentUserId]
+            );
+            if (!empty($check)) {
+                $isMember = true;
+                $memberRole = ((array)$check[0])['role'] ?? 'member';
+            }
+        }
+
+        $avatar = $g['avatar'];
+        if (empty($avatar)) {
+            $avatar = 'https://ui-avatars.com/api/?name=' . urlencode($g['name']) . '&background=1d9bf0&color=fff&size=160';
+        }
+
+        return [
+            'id' => (int)$g['id'],
+            'type' => $g['type'],
+            'slug' => $g['slug'],
+            'name' => $g['name'],
+            'description' => $g['description'] ?? '',
+            'category' => $g['category'] ?? 'Général',
+            'avatar' => $avatar,
+            'cover_image' => $g['cover_image'] ?? '',
+            'visibility' => $g['visibility'],
+            'owner_id' => (int)$g['owner_id'],
+            'owner_username' => $g['owner_username'] ?? 'Membre #' . $g['owner_id'],
+            'members_count' => (int)($g['members_count'] ?? 1),
+            'posts_count' => (int)($g['posts_count'] ?? 0),
+            'created_at' => $g['created_at'],
+            'is_member' => $isMember,
+            'member_role' => $memberRole,
+            'is_owner' => $currentUserId && ($currentUserId === (int)$g['owner_id']),
+            'url' => '/social/group/' . $g['slug']
+        ];
+    }
+
+    /**
+     * Récupère la liste des Pages et Groupes
+     */
+    public function getGroups(string $type = 'all', ?int $userId = null, int $page = 1, int $limit = 30): array {
+        $offset = max(0, ($page - 1) * $limit);
+        $params = [];
+        $where = ["1=1"];
+
+        if ($type === 'group' || $type === 'page') {
+            $where[] = "g.type = :type";
+            $params[':type'] = $type;
+        } elseif ($type === 'my' && $userId) {
+            $where[] = "g.id IN (SELECT group_id FROM social_group_members WHERE user_id = :my_uid)";
+            $params[':my_uid'] = $userId;
+        }
+
+        $whereClause = implode(' AND ', $where);
+        $sql = "SELECT g.*, u.username as owner_username
+                FROM social_groups g
+                LEFT JOIN users u ON u.id = g.owner_id
+                WHERE $whereClause
+                ORDER BY g.members_count DESC, g.created_at DESC
+                LIMIT :limit OFFSET :offset";
+
+        $params[':limit'] = $limit;
+        $params[':offset'] = $offset;
+
+        $rows = $this->db->query($sql, $params);
+        if (!is_array($rows)) return [];
+
+        $items = [];
+        foreach ($rows as $row) {
+            $g = (array)$row;
+            $items[] = $this->getGroup((int)$g['id'], $userId);
+        }
+        return $items;
+    }
+
+    /**
+     * Rejoint ou quitte un groupe / s'abonne à une page
+     */
+    public function toggleGroupJoin(int $groupId, int $userId): array {
+        $check = $this->db->query(
+            "SELECT id, role FROM social_group_members WHERE group_id = :gid AND user_id = :uid",
+            [':gid' => $groupId, ':uid' => $userId]
+        );
+
+        if (!empty($check)) {
+            $role = ((array)$check[0])['role'];
+            if ($role === 'owner') {
+                return ['joined' => true, 'is_owner' => true, 'message' => "Le créateur ne peut pas quitter son propre espace."];
+            }
+
+            $this->db->query("DELETE FROM social_group_members WHERE group_id = :gid AND user_id = :uid", [':gid' => $groupId, ':uid' => $userId]);
+            $this->db->query("UPDATE social_groups SET members_count = MAX(1, members_count - 1) WHERE id = :gid", [':gid' => $groupId]);
+
+            $cnt = $this->db->query("SELECT members_count FROM social_groups WHERE id = :gid", [':gid' => $groupId]);
+            $newCount = !empty($cnt) ? (int)((array)$cnt[0])['members_count'] : 0;
+            return ['joined' => false, 'members_count' => $newCount];
+        } else {
+            $now = date('Y-m-d H:i:s');
+            $this->db->query(
+                "INSERT INTO social_group_members (group_id, user_id, role, status, created_at) VALUES (:gid, :uid, 'member', 'active', :now)",
+                [':gid' => $groupId, ':uid' => $userId, ':now' => $now]
+            );
+            $this->db->query("UPDATE social_groups SET members_count = members_count + 1 WHERE id = :gid", [':gid' => $groupId]);
+
+            $cnt = $this->db->query("SELECT members_count FROM social_groups WHERE id = :gid", [':gid' => $groupId]);
+            $newCount = !empty($cnt) ? (int)((array)$cnt[0])['members_count'] : 1;
+            return ['joined' => true, 'members_count' => $newCount];
+        }
+    }
+
+    /**
+     * Récupère les publications d'un groupe ou d'une page
+     */
+    public function getGroupTimeline(int $groupId, ?int $currentUserId = null, int $page = 1, int $limit = 20): array {
+        $offset = max(0, ($page - 1) * $limit);
+        $sql = "SELECT p.*, u.username, u.email, u.role
+                FROM social_posts p
+                LEFT JOIN users u ON u.id = p.user_id
+                WHERE p.group_id = :gid AND p.status = 'published'
+                ORDER BY p.pinned DESC, p.created_at DESC
+                LIMIT :limit OFFSET :offset";
+
+        $rows = $this->db->query($sql, [':gid' => $groupId, ':limit' => $limit, ':offset' => $offset]);
+        if (!is_array($rows)) return [];
+
+        $likedPostIds = [];
+        if ($currentUserId) {
+            $likes = $this->db->query("SELECT post_id FROM social_likes WHERE user_id = :uid", [':uid' => $currentUserId]);
+            if (is_array($likes)) {
+                $likedPostIds = array_map(fn($r) => (int)((array)$r)['post_id'], $likes);
+            }
+        }
+
+        $items = [];
+        foreach ($rows as $row) {
+            $r = (array)$row;
+            $postId = (int)$r['id'];
+            $email = $r['email'] ?? '';
+            $avatar = 'https://www.gravatar.com/avatar/' . md5(strtolower(trim($email))) . '?d=mp&s=120';
+
+            $items[] = [
+                'type' => 'post',
+                'id' => $postId,
+                'title' => null,
+                'content' => $r['content'],
+                'author_id' => (int)$r['user_id'],
+                'author_name' => !empty($r['username']) ? $r['username'] : 'Membre #' . $r['user_id'],
+                'author_avatar' => $avatar,
+                'author_url' => '/social/user/' . (int)$r['user_id'],
+                'media_url' => $r['media_url'],
+                'permalink' => '/social#post-' . $postId,
+                'created_at' => $r['created_at'],
+                'timestamp' => strtotime($r['created_at']),
+                'likes_count' => (int)($r['likes_count'] ?? 0),
+                'comments_count' => (int)($r['comments_count'] ?? 0),
+                'shares_count' => (int)($r['shares_count'] ?? 0),
+                'has_liked' => in_array($postId, $likedPostIds),
+                'pinned' => (bool)($r['pinned'] ?? false),
+                'time_ago' => $this->timeElapsedString($r['created_at']),
+                'group_id' => $groupId,
+                'meta' => [
+                    'post_type' => $r['post_type'] ?? 'post',
+                    'parent_id' => $r['parent_id'] ?? null
+                ]
+            ];
+        }
+        return $items;
     }
 }

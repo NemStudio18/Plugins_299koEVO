@@ -118,9 +118,26 @@ if (!function_exists('formatSocialText')) {
                         <span class="count comments-count"><?= (int)($item['comments_count'] ?? 0) ?></span>
                     </button>
 
-                    <button class="action-btn btn-share" data-post-id="<?= (int)$item['id'] ?>" data-url="<?= htmlspecialchars($item['permalink'] ?? '') ?>" title="Partager">
-                        <i class="fa-solid fa-share-nodes"></i>
-                    </button>
+                    <div class="share-dropdown-wrap">
+                        <button type="button" class="action-btn btn-share-toggle" data-post-id="<?= (int)$item['id'] ?>" title="Partager">
+                            <i class="fa-solid fa-share-nodes"></i>
+                            <span class="count shares-count"><?= (int)($item['shares_count'] ?? 0) ?></span>
+                        </button>
+                        <div class="share-menu-dropdown dropdown-menu" id="share-menu-<?= (int)$item['id'] ?>">
+                            <button type="button" class="dropdown-item btn-repost-wall" data-post-id="<?= (int)$item['id'] ?>" data-content="<?= htmlspecialchars(mb_substr($item['content'] ?? '', 0, 140)) ?>" data-author="<?= htmlspecialchars($item['author_name'] ?? '') ?>" data-media="<?= htmlspecialchars($item['media_url'] ?? '') ?>">
+                                <i class="fa-solid fa-retweet text-emerald"></i>
+                                <span>Partager sur mon mur</span>
+                            </button>
+                            <a href="/social/groups" class="dropdown-item btn-share-group">
+                                <i class="fa-solid fa-users text-purple"></i>
+                                <span>Partager dans un groupe</span>
+                            </a>
+                            <button type="button" class="dropdown-item btn-copy-link" data-url="<?= htmlspecialchars($item['permalink'] ?? '') ?>">
+                                <i class="fa-solid fa-link text-blue"></i>
+                                <span>Copier le lien</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- SECTION COMMENTAIRES DÉROULANTE -->
@@ -130,9 +147,14 @@ if (!function_exists('formatSocialText')) {
                     </div>
 
                     <?php if (!empty($currentUser)): ?>
+                        <div class="comment-reply-indicator" id="reply-indicator-<?= (int)$item['id'] ?>" style="display: none;">
+                            <span class="reply-target-text"></span>
+                            <button type="button" class="btn-cancel-reply" title="Annuler la réponse">&times;</button>
+                        </div>
                         <form class="comment-add-form" data-post-id="<?= (int)$item['id'] ?>">
+                            <input type="hidden" name="token" value="<?= htmlspecialchars(\Core\Security\Csrf::token()) ?>" />
                             <input type="text" name="comment_content" class="comment-input" placeholder="Écrire un commentaire..." required autocomplete="off" />
-                            <button type="submit" class="btn-comment-submit"><i class="fa-solid fa-paper-plane"></i></button>
+                            <button type="submit" class="btn-comment-submit" title="Envoyer le commentaire"><i class="fa-solid fa-paper-plane"></i></button>
                         </form>
                     <?php else: ?>
                         <div class="comment-login-hint">

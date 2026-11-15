@@ -25,3 +25,9 @@ $router->map("POST|DELETE", "/social/comment/[i:id]/delete", "SocialFeed\\Contro
 // Abonnements (Follow) & Profils
 $router->map("POST", "/social/user/[i:id]/follow", "SocialFeed\\Controllers\\SocialFeedController#toggleFollow", "socialfeed-user-follow");
 $router->map("GET", "/social/user/[i:id]", "SocialFeed\\Controllers\\SocialFeedController#userProfile", "socialfeed-user-profile");
+
+// Pages & Groupes communautaires
+$router->map("GET", "/social/groups[/?]", "SocialFeed\\Controllers\\SocialFeedController#groupsList", "socialfeed-groups-list");
+$router->map("POST", "/social/groups/create", "SocialFeed\\Controllers\\SocialFeedController#groupCreate", "socialfeed-group-create");
+$router->map("GET", "/social/group/[:slug][/?]", "SocialFeed\\Controllers\\SocialFeedController#groupView", "socialfeed-group-view");
+$router->map("POST", "/social/group/[i:id]/join", "SocialFeed\\Controllers\\SocialFeedController#groupToggleJoin", "socialfeed-group-join");

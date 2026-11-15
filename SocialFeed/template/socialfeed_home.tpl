@@ -1,3 +1,4 @@
+<script>window.socialCsrfToken = "<?= htmlspecialchars(\Core\Security\Csrf::token()) ?>";</script>
 <div class="socialfeed-page-wrapper">
     <div class="socialfeed-container">
 

@@ -179,7 +179,7 @@ class EcommerceController extends PublicController
         $tpl->set('subtotal', $total);
         $tpl->set('shipping', $finalShipping);
         $tpl->set('total', $grandTotal);
-        $tpl->set('token', Show::tokenField());
+        $tpl->set('token', \Core\Security\Csrf::hiddenField());
         
         $response->addTemplate($tpl);
         return $response;
@@ -189,7 +189,8 @@ class EcommerceController extends PublicController
     {
         $response = new \Core\Responses\ApiResponse();
         
-        if (!Show::tokenCheck($_POST['token'] ?? '')) {
+        $token = $_POST['token'] ?? ($_POST['_csrf'] ?? '');
+        if (!\Core\Security\Csrf::validate($token, false)) {
             $response->status = \Core\Responses\ApiResponse::STATUS_BAD_REQUEST;
             $response->message = Lang::get('core.bad-token');
             return $response;

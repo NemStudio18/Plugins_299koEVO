@@ -16,6 +16,16 @@ class SocialFeedController {
         $this->feedService = SocialFeedService::getInstance();
     }
 
+    private function isValidToken(?string $token, ?object $user = null): bool {
+        if (empty($token)) {
+            return false;
+        }
+        if ($user && !empty($user->token) && hash_equals((string)$user->token, (string)$token)) {
+            return true;
+        }
+        return Csrf::validate($token, false);
+    }
+
     /**
      * Page principale du Hub Communautaire : /social ou /feed
      */
@@ -93,7 +103,7 @@ class SocialFeedController {
         }
 
         $token = $_POST['token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!Csrf::checkToken($token)) {
+        if (!$this->isValidToken($token, $user)) {
             echo json_encode(['status' => 'error', 'message' => 'Session expirée ou jeton CSRF invalide.']);
             exit;
         }
@@ -115,8 +125,10 @@ class SocialFeedController {
             exit;
         }
 
+        $groupId = !empty($_POST['group_id']) ? (int)$_POST['group_id'] : null;
+
         try {
-            $postId = $this->feedService->createPost((int)$user->id, $content, $mediaUrl, $postType);
+            $postId = $this->feedService->createPost((int)$user->id, $content, $mediaUrl, $postType, null, $groupId);
             echo json_encode([
                 'status' => 'success',
                 'message' => 'Publication réussie !',
@@ -141,7 +153,7 @@ class SocialFeedController {
         }
 
         $token = $_POST['token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!Csrf::checkToken($token)) {
+        if (!$this->isValidToken($token, $user)) {
             echo json_encode(['status' => 'error', 'message' => 'Jeton de sécurité invalide.']);
             exit;
         }
@@ -216,7 +228,7 @@ class SocialFeedController {
         }
 
         $token = $_POST['token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        if (!Csrf::checkToken($token)) {
+        if (!$this->isValidToken($token, $user)) {
             echo json_encode(['status' => 'error', 'message' => 'Jeton CSRF invalide.']);
             exit;
         }
@@ -309,6 +321,142 @@ class SocialFeedController {
 
         $response->addTemplate($tpl);
         return $response;
+    }
+
+    /**
+     * Liste des groupes et pages : /social/groups
+     */
+    public function groupsList() {
+        $currentUser = UsersManager::getCurrentUser();
+        $currentUserId = $currentUser ? (int)($currentUser->id ?? 0) : null;
+        $type = $_GET['type'] ?? 'all';
+
+        $groups = $this->feedService->getGroups($type, $currentUserId, 1, 50);
+
+        $response = new PublicResponse();
+        $response->setTitle('Groupes & Pages - Communauté');
+        $response->hidePageTitle(true);
+        Template::addGlobal('HIDE_PAGE_TITLE', true);
+
+        $tpl = new Template(__DIR__ . '/../template/groups_list.tpl');
+        $tpl->set('groups', $groups);
+        $tpl->set('currentType', $type);
+        $tpl->set('currentUser', $currentUser);
+        $tpl->set('csrfToken', Csrf::token());
+
+        $response->addTemplate($tpl);
+        return $response;
+    }
+
+    /**
+     * Création d'une page ou d'un groupe (POST /social/groups/create)
+     */
+    public function groupCreate() {
+        $currentUser = UsersManager::getCurrentUser();
+        if (!$currentUser) {
+            header('Location: /login');
+            exit;
+        }
+
+        $token = $_POST['token'] ?? '';
+        if (!$this->isValidToken($token, $user)) {
+            header('Location: /social/groups?error=csrf');
+            exit;
+        }
+
+        $name = trim($_POST['name'] ?? '');
+        $type = $_POST['type'] ?? 'group';
+        $description = trim($_POST['description'] ?? '');
+        $category = trim($_POST['category'] ?? 'Général');
+        $visibility = $_POST['visibility'] ?? 'public';
+
+        $avatar = null;
+        if (isset($_FILES['avatar_file']) && $_FILES['avatar_file']['error'] === UPLOAD_ERR_OK) {
+            $avatar = $this->handleMediaUpload($_FILES['avatar_file']);
+        }
+
+        $cover = null;
+        if (isset($_FILES['cover_file']) && $_FILES['cover_file']['error'] === UPLOAD_ERR_OK) {
+            $cover = $this->handleMediaUpload($_FILES['cover_file']);
+        } elseif (!empty($_POST['cover_url'])) {
+            $cover = trim($_POST['cover_url']);
+        }
+
+        try {
+            $group = $this->feedService->createGroup([
+                'name' => $name,
+                'type' => $type,
+                'description' => $description,
+                'category' => $category,
+                'visibility' => $visibility,
+                'avatar' => $avatar,
+                'cover_image' => $cover
+            ], (int)$currentUser->id);
+
+            header('Location: ' . $group['url']);
+            exit;
+        } catch (\Throwable $e) {
+            header('Location: /social/groups?error=' . urlencode($e->getMessage()));
+            exit;
+        }
+    }
+
+    /**
+     * Page d'un groupe ou d'une page : /social/group/{slug}
+     */
+    public function groupView(string $slug) {
+        $currentUser = UsersManager::getCurrentUser();
+        $currentUserId = $currentUser ? (int)($currentUser->id ?? 0) : null;
+
+        $group = $this->feedService->getGroup($slug, $currentUserId);
+        if (!$group) {
+            header("HTTP/1.0 404 Not Found");
+            echo "Espace communautaire introuvable.";
+            exit;
+        }
+
+        $timeline = $this->feedService->getGroupTimeline($group['id'], $currentUserId, 1, 20);
+
+        $response = new PublicResponse();
+        $response->setTitle($group['name'] . ' (' . ucfirst($group['type']) . ') - Communauté');
+        $response->hidePageTitle(true);
+        Template::addGlobal('HIDE_PAGE_TITLE', true);
+
+        $tpl = new Template(__DIR__ . '/../template/group_view.tpl');
+        $tpl->set('group', $group);
+        $tpl->set('feedTimeline', $timeline);
+        $tpl->set('currentUser', $currentUser);
+        $tpl->set('csrfToken', Csrf::token());
+
+        $response->addTemplate($tpl);
+        return $response;
+    }
+
+    /**
+     * Rejoint ou quitte un groupe / s'abonne à une page (AJAX POST)
+     */
+    public function groupToggleJoin(int $id) {
+        header('Content-Type: application/json; charset=utf-8');
+
+        $user = UsersManager::getCurrentUser();
+        if (!$user) {
+            echo json_encode(['status' => 'error', 'message' => 'Veuillez vous connecter.']);
+            exit;
+        }
+
+        $token = $_POST['token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        if (!$this->isValidToken($token, $user)) {
+            echo json_encode(['status' => 'error', 'message' => 'Session expirée.']);
+            exit;
+        }
+
+        try {
+            $res = $this->feedService->toggleGroupJoin($id, (int)$user->id);
+            echo json_encode(array_merge(['status' => 'success'], $res));
+        } catch (\Throwable $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
     }
 
     /**

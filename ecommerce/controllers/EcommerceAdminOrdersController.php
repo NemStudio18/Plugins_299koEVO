@@ -21,6 +21,17 @@ class EcommerceAdminOrdersController extends AdminController
         $this->orderManager = new \Ecommerce\Entities\OrderManager();
     }
 
+    private function isValidToken(?string $token): bool
+    {
+        if (empty($token)) {
+            return false;
+        }
+        if (isset($this->user->token) && hash_equals((string)$this->user->token, (string)$token)) {
+            return true;
+        }
+        return \Core\Security\Csrf::validate($token, false);
+    }
+
     public function list()
     {
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
@@ -70,7 +81,8 @@ class EcommerceAdminOrdersController extends AdminController
             return $response;
         }
         
-        if (!Show::tokenCheck($_POST['token'] ?? '')) {
+        $token = $_POST['token'] ?? ($_POST['_csrf'] ?? null);
+        if (!$this->isValidToken($token)) {
             $response->status = ApiResponse::STATUS_BAD_REQUEST;
             $response->body = ['message' => Lang::get('core.bad-token')];
             return $response;
@@ -97,4 +109,3 @@ class EcommerceAdminOrdersController extends AdminController
         return $response;
     }
 }
-

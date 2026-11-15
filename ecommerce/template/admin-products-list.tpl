@@ -31,7 +31,7 @@
                     <a href="{{ ROUTER.generate('admin-ecommerce-products-edit', {'id': product.getId()}) }}" class="button small">
                         <i class="fa-solid fa-pen"></i>
                     </a>
-                    <a href="{{ ROUTER.generate('admin-ecommerce-products-delete', {'id': product.getId()}) }}" class="button small alert" onclick="return confirm('Supprimer ce produit ?')">
+                    <a href="{{ ROUTER.generate('admin-ecommerce-products-delete', {'id': product.getId()}) }}?token={{ token }}" class="button small alert" onclick="return confirm('Supprimer ce produit ?')">
                         <i class="fa-regular fa-trash-can"></i>
                     </a>
                 </td>

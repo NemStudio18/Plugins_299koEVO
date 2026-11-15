@@ -23,6 +23,17 @@ class EcommerceAdminProductsController extends AdminController
         $this->categoryManager = new \Ecommerce\Entities\CategoryManager();
     }
 
+    private function isValidToken(?string $token): bool
+    {
+        if (empty($token)) {
+            return false;
+        }
+        if (isset($this->user->token) && hash_equals((string)$this->user->token, (string)$token)) {
+            return true;
+        }
+        return \Core\Security\Csrf::validate($token, false);
+    }
+
     public function list()
     {
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
@@ -67,49 +78,79 @@ class EcommerceAdminProductsController extends AdminController
 
     public function addSend()
     {
-        $response = new ApiResponse();
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);
         if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('ecommerce:admin'), $ctx)) {
-            $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
-            return $response;
+            if ($this->request->isAjax()) {
+                $response = new ApiResponse();
+                $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
+                return $response;
+            }
+            \Utils\Show::msg(\Core\Lang::get('core-not-authorized'), 'error');
+            $this->core->redirect($this->router->generate('admin-ecommerce-products'));
+            return null;
         }
         
-        if (!\Core\Security\Csrf::validate($_POST['token'] ?? '')) {
-            $response->status = ApiResponse::STATUS_BAD_REQUEST;
-            $response->body = ['message' => Lang::get('core.bad-token')];
-            return $response;
+        $token = $_POST['token'] ?? ($_POST['_csrf'] ?? null);
+        if (!$this->isValidToken($token)) {
+            if ($this->request->isAjax()) {
+                $response = new ApiResponse();
+                $response->status = ApiResponse::STATUS_BAD_REQUEST;
+                $response->body = ['message' => Lang::get('core.bad-token')];
+                return $response;
+            }
+            Show::msg(Lang::get('core.bad-token'), 'error');
+            $this->core->redirect($this->router->generate('admin-ecommerce-products-add'));
+            return null;
         }
         
         $data = [
-            'name' => $_POST['name'] ?? '',
-            'description' => $_POST['description'] ?? '',
+            'name' => trim($_POST['name'] ?? ''),
+            'description' => trim($_POST['description'] ?? ''),
             'price' => (float)($_POST['price'] ?? 0),
             'stock' => (int)($_POST['stock'] ?? 0),
-            'image' => $_POST['image'] ?? '',
+            'image' => trim($_POST['image'] ?? ''),
             'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
             'active' => isset($_POST['active']) ? 1 : 0,
         ];
         
-        if (empty($data['name']) || $data['price'] <= 0) {
-            $response->status = ApiResponse::STATUS_BAD_REQUEST;
-            $response->body = ['message' => Lang::get('ecommerce.invalid-data')];
-            return $response;
+        if (empty($data['name']) || $data['price'] < 0) {
+            if ($this->request->isAjax()) {
+                $response = new ApiResponse();
+                $response->status = ApiResponse::STATUS_BAD_REQUEST;
+                $response->body = ['message' => Lang::get('ecommerce.invalid-data')];
+                return $response;
+            }
+            Show::msg(Lang::get('ecommerce.invalid-data') ?: 'Données invalides.', 'error');
+            $this->core->redirect($this->router->generate('admin-ecommerce-products-add'));
+            return null;
         }
         
         $product = $this->productManager->create($data);
         if ($product) {
-            $response->status = ApiResponse::STATUS_SUCCESS;
-            $response->body = [
-                'message' => Lang::get('ecommerce.product-created'),
-                'redirect' => Util::urlBuild('/admin/ecommerce/products')
-            ];
+            if ($this->request->isAjax()) {
+                $response = new ApiResponse();
+                $response->status = ApiResponse::STATUS_SUCCESS;
+                $response->body = [
+                    'message' => Lang::get('ecommerce.product-created'),
+                    'redirect' => Util::urlBuild('/admin/ecommerce/products')
+                ];
+                return $response;
+            }
+            Show::msg(Lang::get('ecommerce.product-created') ?: 'Produit créé avec succès.', 'success');
+            $this->core->redirect($this->router->generate('admin-ecommerce-products'));
+            return null;
         } else {
-            $response->status = ApiResponse::STATUS_ERROR;
-            $response->body = ['message' => Lang::get('ecommerce.product-create-error')];
+            if ($this->request->isAjax()) {
+                $response = new ApiResponse();
+                $response->status = ApiResponse::STATUS_ERROR;
+                $response->body = ['message' => Lang::get('ecommerce.product-create-error')];
+                return $response;
+            }
+            Show::msg(Lang::get('ecommerce.product-create-error') ?: 'Erreur lors de la création du produit.', 'error');
+            $this->core->redirect($this->router->generate('admin-ecommerce-products-add'));
+            return null;
         }
-        
-        return $response;
     }
 
     public function edit()
@@ -142,67 +183,118 @@ class EcommerceAdminProductsController extends AdminController
 
     public function editSend()
     {
-        $response = new ApiResponse();
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);
         if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('ecommerce:admin'), $ctx)) {
-            $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
-            return $response;
-        }
-        
-        if (!\Core\Security\Csrf::validate($_POST['token'] ?? '')) {
-            $response->status = ApiResponse::STATUS_BAD_REQUEST;
-            $response->body = ['message' => Lang::get('core.bad-token')];
-            return $response;
+            if ($this->request->isAjax()) {
+                $response = new ApiResponse();
+                $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
+                return $response;
+            }
+            \Utils\Show::msg(\Core\Lang::get('core-not-authorized'), 'error');
+            $this->core->redirect($this->router->generate('admin-ecommerce-products'));
+            return null;
         }
         
         $id = (int)($this->router->getParam('id') ?? $_POST['id'] ?? 0);
+        $token = $_POST['token'] ?? ($_POST['_csrf'] ?? null);
+        if (!$this->isValidToken($token)) {
+            if ($this->request->isAjax()) {
+                $response = new ApiResponse();
+                $response->status = ApiResponse::STATUS_BAD_REQUEST;
+                $response->body = ['message' => Lang::get('core.bad-token')];
+                return $response;
+            }
+            Show::msg(Lang::get('core.bad-token'), 'error');
+            $this->core->redirect($this->router->generate('admin-ecommerce-products-edit', ['id' => $id]));
+            return null;
+        }
         
         $data = [
-            'name' => $_POST['name'] ?? '',
-            'description' => $_POST['description'] ?? '',
+            'name' => trim($_POST['name'] ?? ''),
+            'description' => trim($_POST['description'] ?? ''),
             'price' => (float)($_POST['price'] ?? 0),
             'stock' => (int)($_POST['stock'] ?? 0),
-            'image' => $_POST['image'] ?? '',
+            'image' => trim($_POST['image'] ?? ''),
             'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
             'active' => isset($_POST['active']) ? 1 : 0,
         ];
         
         if ($this->productManager->update($id, $data)) {
-            $response->status = ApiResponse::STATUS_SUCCESS;
-            $response->body = [
-                'message' => Lang::get('ecommerce.product-updated'),
-                'redirect' => Util::urlBuild('/admin/ecommerce/products')
-            ];
+            if ($this->request->isAjax()) {
+                $response = new ApiResponse();
+                $response->status = ApiResponse::STATUS_SUCCESS;
+                $response->body = [
+                    'message' => Lang::get('ecommerce.product-updated'),
+                    'redirect' => Util::urlBuild('/admin/ecommerce/products')
+                ];
+                return $response;
+            }
+            Show::msg(Lang::get('ecommerce.product-updated') ?: 'Produit mis à jour avec succès.', 'success');
+            $this->core->redirect($this->router->generate('admin-ecommerce-products'));
+            return null;
         } else {
-            $response->status = ApiResponse::STATUS_ERROR;
-            $response->body = ['message' => Lang::get('ecommerce.product-update-error')];
+            if ($this->request->isAjax()) {
+                $response = new ApiResponse();
+                $response->status = ApiResponse::STATUS_ERROR;
+                $response->body = ['message' => Lang::get('ecommerce.product-update-error')];
+                return $response;
+            }
+            Show::msg(Lang::get('ecommerce.product-update-error') ?: 'Erreur lors de la mise à jour du produit.', 'error');
+            $this->core->redirect($this->router->generate('admin-ecommerce-products-edit', ['id' => $id]));
+            return null;
         }
-        
-        return $response;
     }
 
     public function delete($id)
     {
-        $response = new ApiResponse();
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);
         if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('ecommerce:admin'), $ctx)) {
-            $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
+            if ($this->request->isAjax()) {
+                $response = new ApiResponse();
+                $response->status = ApiResponse::STATUS_NOT_AUTHORIZED;
+                return $response;
+            }
+            \Utils\Show::msg(\Core\Lang::get('core-not-authorized'), 'error');
+            $this->core->redirect($this->router->generate('admin-ecommerce-products'));
+            return null;
+        }
+        
+        $token = $_GET['token'] ?? ($_POST['token'] ?? null);
+        if (!empty($token) && !$this->isValidToken($token)) {
+            if ($this->request->isAjax()) {
+                $response = new ApiResponse();
+                $response->status = ApiResponse::STATUS_BAD_REQUEST;
+                $response->body = ['message' => Lang::get('core.bad-token')];
+                return $response;
+            }
+            Show::msg(Lang::get('core.bad-token'), 'error');
+            $this->core->redirect($this->router->generate('admin-ecommerce-products'));
+            return null;
+        }
+
+        $id = (int)$id;
+        $success = $this->productManager->delete($id);
+        
+        if ($this->request->isAjax()) {
+            $response = new ApiResponse();
+            if ($success) {
+                $response->status = ApiResponse::STATUS_SUCCESS;
+                $response->body = ['message' => Lang::get('ecommerce.product-deleted')];
+            } else {
+                $response->status = ApiResponse::STATUS_ERROR;
+                $response->body = ['message' => Lang::get('ecommerce.product-delete-error')];
+            }
             return $response;
         }
         
-        $id = (int)$id; // Use the passed $id parameter
-        
-        if ($this->productManager->delete($id)) {
-            $response->status = ApiResponse::STATUS_SUCCESS;
-            $response->body = ['message' => Lang::get('ecommerce.product-deleted')];
+        if ($success) {
+            Show::msg(Lang::get('ecommerce.product-deleted') ?: 'Produit supprimé avec succès.', 'success');
         } else {
-            $response->status = ApiResponse::STATUS_ERROR;
-            $response->body = ['message' => Lang::get('ecommerce.product-delete-error')];
+            Show::msg(Lang::get('ecommerce.product-delete-error') ?: 'Erreur lors de la suppression du produit.', 'error');
         }
-        
-        return $response;
+        $this->core->redirect($this->router->generate('admin-ecommerce-products'));
+        return null;
     }
 }
-
