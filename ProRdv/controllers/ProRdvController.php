@@ -27,9 +27,21 @@ class ProRdvController extends Controller
     {
         if (defined('ADMIN_MODE') && ADMIN_MODE) return true;
         if (defined('IS_ADMIN') && IS_ADMIN) return true;
-        if (!$user || !$user->isLogged()) return false;
+        if (!$user) return false;
+        if (method_exists($user, 'isLogged') && !$user->isLogged()) return false;
         if (method_exists($user, 'hasRole') && $user->hasRole('admin')) return true;
-        if (method_exists($user, 'can_access') && $user->can_access('system:admin-access')) return true;
+
+        if (class_exists('\\Core\\Navigation\\AccessPolicyEvaluator') && class_exists('\\Core\\Auth\\UsersManager')) {
+            $realUser = \Core\Auth\UsersManager::getCurrentUser();
+            if ($realUser !== null) {
+                $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+                $ctx = new \Core\Navigation\ConditionContext($realUser);
+                if ($evaluator->isAdmin($ctx)) {
+                    return true;
+                }
+            }
+        }
+
         if ((int)($user->attributes['group_id'] ?? 0) === 1) return true;
         return false;
     }
@@ -129,7 +141,7 @@ class ProRdvController extends Controller
                     $html .= '<div><strong style="font-size:1.05rem;color:#0f172a;">' . htmlspecialchars($cp['name']) . '</strong><div style="font-size:0.85rem;color:#64748b;">ID #' . (int)$cp['id'] . '</div></div>';
                     $html .= '<form action="/pro/rdv/activate" method="post" style="margin:0;">';
                     if (class_exists('\\Core\\Security\\Csrf')) {
-                        $html .= \Core\Security\Csrf::field();
+                        $html .= \Core\Security\Csrf::hiddenField();
                     }
                     $html .= '<input type="hidden" name="poi_id" value="' . (int)$cp['id'] . '">';
                     $html .= '<button type="submit" style="background:#10b981;color:#fff;border:none;padding:10px 18px;border-radius:8px;font-weight:700;font-size:0.9rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><i class="fa-solid fa-bolt"></i> Activer en 1 clic (Gratuit - Pilote)</button>';
@@ -140,7 +152,7 @@ class ProRdvController extends Controller
             } else {
                 $html .= '<form action="/pro/rdv/activate" method="post" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:24px;">';
                 if (class_exists('\\Core\\Security\\Csrf')) {
-                    $html .= \Core\Security\Csrf::field();
+                    $html .= \Core\Security\Csrf::hiddenField();
                 }
                 $html .= '<h3 style="margin-top:0;margin-bottom:16px;color:#1e293b;font-size:1.1rem;"><i class="fa-solid fa-plus-circle" style="color:#059669;"></i> Créer votre agenda professionnel</h3>';
                 $html .= '<div style="margin-bottom:14px;"><label style="display:block;font-weight:600;margin-bottom:6px;color:#334155;">Nom de votre établissement / activité</label>';
@@ -203,8 +215,9 @@ class ProRdvController extends Controller
             exit;
         }
 
-        // Validate CSRF if session active
-        if (class_exists('\\Core\\Security\\Csrf') && !empty($_POST) && !\Core\Security\Csrf::validate($_POST['_csrf'] ?? null, false)) {
+        // Validate CSRF token (required for all mutations)
+        if (class_exists('\\Core\\Security\\Csrf') && !\Core\Security\Csrf::validate($_POST['_csrf'] ?? null, false)) {
+            http_response_code(403);
             exit("Jeton de sécurité invalide ou expiré.");
         }
 
@@ -216,7 +229,7 @@ class ProRdvController extends Controller
         }
 
         $userId = ($user && method_exists($user, 'id')) ? (int)$user->id() : (isset($user->id) ? (int)$user->id : 0);
-        $poiId = (int)($_REQUEST['poi_id'] ?? 0);
+        $poiId = (int)($_POST['poi_id'] ?? 0);
         $standaloneNom = trim($_POST['standalone_nom'] ?? '');
         $isAdmin = $this->isAdminUser($user);
 
@@ -248,6 +261,7 @@ class ProRdvController extends Controller
         }
 
         if (!$canActivate) {
+            http_response_code(403);
             exit("Accès refusé : vous devez être propriétaire de cet établissement pour activer le module.");
         }
 

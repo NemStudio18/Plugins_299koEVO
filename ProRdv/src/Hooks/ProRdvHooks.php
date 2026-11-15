@@ -132,8 +132,13 @@ class ProRdvHooks
         $isAdmin = (defined('ADMIN_MODE') && ADMIN_MODE)
             || (defined('IS_ADMIN') && IS_ADMIN)
             || (method_exists($currentUser, 'hasRole') && $currentUser->hasRole('admin'))
-            || (method_exists($currentUser, 'can_access') && $currentUser->can_access('system:admin-access'))
             || ((int)($currentUser->attributes['group_id'] ?? 0) === 1);
+        if (!$isAdmin && class_exists('\\Core\\Navigation\\AccessPolicyEvaluator') && class_exists('\\Core\\Auth\\UsersManager')) {
+            $realUser = \Core\Auth\UsersManager::getCurrentUser();
+            if ($realUser !== null) {
+                $isAdmin = \Core\Navigation\AccessPolicyEvaluator::getInstance()->isAdmin(new \Core\Navigation\ConditionContext($realUser));
+            }
+        }
         
         $hasActiveCommerce = false;
         $service = RdvService::getInstance();
