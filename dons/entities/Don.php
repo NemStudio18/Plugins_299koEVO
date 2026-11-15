@@ -43,6 +43,30 @@ class Don extends JsonActiveRecord
         return $this->status === 'completed';
     }
 
+    public function getId()
+    {
+        return $this->attributes['id'] ?? null;
+    }
+
+    public function getAmount(): float
+    {
+        return (float) ($this->attributes['amount'] ?? 0);
+    }
+
+    public function __call(string $name, array $arguments)
+    {
+        if (str_starts_with($name, 'get') && strlen($name) > 3) {
+            $prop = lcfirst(substr($name, 3));
+            return $this->attributes[$prop] ?? null;
+        }
+        if (str_starts_with($name, 'set') && strlen($name) > 3 && array_key_exists(0, $arguments)) {
+            $prop = lcfirst(substr($name, 3));
+            $this->attributes[$prop] = $arguments[0];
+            return $this;
+        }
+        throw new \BadMethodCallException('Call to undefined method ' . static::class . '::' . $name . '()');
+    }
+
     public function toArray(): array
     {
         return $this->attributes;

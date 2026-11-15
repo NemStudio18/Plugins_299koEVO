@@ -18,13 +18,13 @@ class LiveChatAdminController extends AdminController
         $this->service = new LiveChatService();
     }
 
-    private function jsonResponse(array $data, int $status = 200): void
+    private function jsonResponse(array $data, int $status = 200): \Core\Responses\ApiResponse
     {
-        http_response_code($status);
-        header('Content-Type: application/json; charset=utf-8');
-        header('Cache-Control: no-cache, no-store, must-revalidate');
-        echo json_encode($data);
-        exit;
+        $resp = new \Core\Responses\ApiResponse();
+        $resp->httpCode = $status;
+        $resp->status = \Core\Responses\ApiResponse::httpStatusLine($status);
+        $resp->body = $data;
+        return $resp;
     }
 
     /**
@@ -92,7 +92,7 @@ class LiveChatAdminController extends AdminController
     /**
      * Liste paginée / filtrée des conversations en JSON (recherche, filtres, Charger plus)
      */
-    public function listConversations(): void
+    public function listConversations(): \Core\Responses\ApiResponse
     {
         $status = $this->normalizeStatusFilter((string)($_GET['status'] ?? 'all'));
         $search = trim((string)($_GET['q'] ?? ''));
@@ -103,7 +103,7 @@ class LiveChatAdminController extends AdminController
         $totalMatching = $this->service->countConversations($status, $search);
         $stats = $this->service->getConversationStats();
 
-        $this->jsonResponse([
+        return $this->jsonResponse([
             'success' => true,
             'conversations' => $conversations,
             'total' => $totalMatching,
@@ -116,7 +116,7 @@ class LiveChatAdminController extends AdminController
     /**
      * Répondre à une conversation depuis l'espace admin
      */
-    public function adminReply(): void
+    public function adminReply(): \Core\Responses\ApiResponse
     {
         $convId = (int)($_POST['conversation_id'] ?? 0);
         $message = trim($_POST['message'] ?? '');
@@ -124,21 +124,21 @@ class LiveChatAdminController extends AdminController
         $adminName = !empty($_POST['admin_name']) ? trim($_POST['admin_name']) : ($config['admin_name'] ?? 'Équipe Support');
 
         if ($convId <= 0 || empty($message)) {
-            $this->jsonResponse(['success' => false, 'error' => 'Paramètres invalides'], 400);
+            return $this->jsonResponse(['success' => false, 'error' => 'Paramètres invalides'], 400);
         }
 
         try {
             $msg = $this->service->addMessage($convId, 'admin', $message, $adminName);
-            $this->jsonResponse(['success' => true, 'message' => $msg]);
+            return $this->jsonResponse(['success' => true, 'message' => $msg]);
         } catch (\Exception $e) {
-            $this->jsonResponse(['success' => false, 'error' => $e->getMessage()], 400);
+            return $this->jsonResponse(['success' => false, 'error' => $e->getMessage()], 400);
         }
     }
 
     /**
      * Polling admin pour recevoir les nouveaux messages du visiteur en direct
      */
-    public function adminPoll(): void
+    public function adminPoll(): \Core\Responses\ApiResponse
     {
         $convId = (int)($_GET['conversation_id'] ?? 0);
         $afterId = max(0, (int)($_GET['after_id'] ?? 0));
@@ -158,7 +158,7 @@ class LiveChatAdminController extends AdminController
         $totalMatching = $this->service->countConversations($status, $search);
         $stats = $this->service->getConversationStats();
 
-        $this->jsonResponse([
+        return $this->jsonResponse([
             'success' => true,
             'messages' => $messages,
             'conversations' => $conversations,
@@ -171,17 +171,17 @@ class LiveChatAdminController extends AdminController
     /**
      * Basculer l'état ouvert/fermé d'une conversation
      */
-    public function toggleStatus(): void
+    public function toggleStatus(): \Core\Responses\ApiResponse
     {
         $convId = (int)($_POST['conversation_id'] ?? 0);
         if ($convId <= 0) {
-            $this->jsonResponse(['success' => false, 'error' => 'ID invalide'], 400);
+            return $this->jsonResponse(['success' => false, 'error' => 'ID invalide'], 400);
         }
 
         $res = $this->service->toggleStatus($convId);
         $conv = $this->service->getConversationById($convId);
 
-        $this->jsonResponse([
+        return $this->jsonResponse([
             'success' => $res,
             'new_status' => $conv['status'] ?? 'open'
         ]);
@@ -190,7 +190,7 @@ class LiveChatAdminController extends AdminController
     /**
      * Sauvegarde de la configuration LiveChat
      */
-    public function saveConfig(): void
+    public function saveConfig(): \Core\Responses\ApiResponse
     {
         $webhook = trim($_POST['discord_webhook'] ?? '');
         $adminName = trim($_POST['admin_name'] ?? 'Équipe Support');
@@ -207,13 +207,13 @@ class LiveChatAdminController extends AdminController
         file_put_contents($configFile, json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
 
         // Mettre à jour aussi dans config_pro_chat.json si utile
-        $proConfigFile = ROOT . 'data/config_pro_chat.json';
+        $proConfigFile = DATA_PLUGIN . 'LiveChat/config_pro_chat.json';
         if (file_exists($proConfigFile)) {
             $p = json_decode(file_get_contents($proConfigFile), true) ?: [];
             $p['discord_webhook'] = $webhook;
             file_put_contents($proConfigFile, json_encode($p, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
         }
 
-        $this->jsonResponse(['success' => true, 'message' => 'Configuration enregistrée']);
+        return $this->jsonResponse(['success' => true, 'message' => 'Configuration enregistrée']);
     }
 }

@@ -246,9 +246,15 @@ function pwaInstall()
         }
     }
 
-    // Ne pas générer les clés automatiquement - l'utilisateur doit le faire via l'interface admin
+    if (!pwaGetVapidKeys()) {
+        $keys = pwaGenerateVapidKeys();
+        if ($keys) {
+            pwaSaveVapidKeys($keys['publicKey'], $keys['privateKey']);
+        }
+    }
+
     $logger = \Core\Core::getInstance()->getLogger();
-    $logger->log(\Core\Logger::LEVEL_INFO, "PWA: Plugin installed. VAPID keys can be generated from the admin interface.");
+    $logger->log(\Core\Logger::LEVEL_INFO, "PWA: Plugin installed.");
 }
 
 

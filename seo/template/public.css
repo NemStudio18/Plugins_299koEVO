@@ -1,7 +1,5 @@
 @layer evo-plugins {
 
-@layer evo-plugins {
-
 #navigation li.seo_element {
     display: inline-block;
     width:auto;
@@ -96,7 +94,5 @@
 .seo-share-button.facebook { background: #1877f2; }
 .seo-share-button.twitter { background: #000000; }
 .seo-share-button.linkedin { background: #0a66c2; }
-
-}
 
 }

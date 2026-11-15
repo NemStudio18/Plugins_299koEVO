@@ -47,7 +47,8 @@ class OAuthPublicController extends PublicController
     {
         $config = $this->getConfig();
         if (empty($config['facebook_enabled']) || empty($config['facebook_app_id'])) {
-            $this->core->error404();
+            Show::msg('Ce fournisseur OAuth n\'est pas configuré.', 'error');
+            $this->core->redirect($this->router->generate('login'));
             return;
         }
 
@@ -143,7 +144,8 @@ class OAuthPublicController extends PublicController
     {
         $config = $this->getConfig();
         if (empty($config['google_enabled']) || empty($config['google_client_id'])) {
-            $this->core->error404();
+            Show::msg('Ce fournisseur OAuth n\'est pas configuré.', 'error');
+            $this->core->redirect($this->router->generate('login'));
             return;
         }
 

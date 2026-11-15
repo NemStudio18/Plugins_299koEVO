@@ -37,7 +37,7 @@
             <?php 
                 $timeline = $feedTimeline ?? ['items' => [], 'has_more' => false, 'page' => 1];
                 $filter = 'all';
-                include __DIR__ . '/feed_items.tpl';
+                include (is_file(__DIR__ . '/feed_items.tpl') ? __DIR__ . '/feed_items.tpl' : PLUGINS . 'LocalFeed/template/feed_items.tpl');
             ?>
         </div>
     </div>
@@ -45,4 +45,3 @@
 
 <link rel="stylesheet" href="/plugin/LocalFeed/public/css/localfeed.css?v=1.1.0" />
 <script src="/plugin/LocalFeed/public/js/localfeed.js?v=1.1.0"></script>
-

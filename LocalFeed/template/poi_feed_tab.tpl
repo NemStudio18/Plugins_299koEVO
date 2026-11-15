@@ -16,7 +16,7 @@
 
     <?php if (!empty($canManage)): ?>
         <div class="poi-owner-publish-wrapper">
-            <?php include __DIR__ . '/publish_box.tpl'; ?>
+            <?php include (is_file(__DIR__ . '/publish_box.tpl') ? __DIR__ . '/publish_box.tpl' : PLUGINS . 'LocalFeed/template/publish_box.tpl'); ?>
         </div>
     <?php endif; ?>
 

@@ -5,6 +5,8 @@ use Core\Responses\AdminResponse;
 use Utils\Show;
 use Core\Lang;
 use Utils\Util;
+use Faq\Entities\FaqManager;
+use Faq\Entities\FaqQuestion;
 
 /**
  * @copyright (C) 2025, 299Ko

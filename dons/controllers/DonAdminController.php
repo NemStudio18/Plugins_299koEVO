@@ -116,14 +116,16 @@ class DonAdminController extends AdminController
         $progress = $targetAmount > 0 ? ($totalAmount / $targetAmount) * 100 : 0;
         if ($progress > 100) $progress = 100;
 
-        header('Content-Type: application/json');
-        echo json_encode([
+        $response = new \Core\Responses\ApiResponse();
+        $response->status = \Core\Responses\ApiResponse::STATUS_SUCCESS;
+        $response->httpCode = 200;
+        $response->body = [
             'totalAmount' => $totalAmount,
             'targetAmount' => $targetAmount,
             'progress' => round($progress, 2),
             'count' => count($donManager->getCompletedDons())
-        ]);
-        die();
+        ];
+        return $response;
     }
 
     public function params()
@@ -208,6 +210,101 @@ class DonAdminController extends AdminController
             header('location:' . $this->router->generate('dons-admin-params'));
         }
         die();
+    }
+
+    public function edit()
+    {
+        if (!$this->checkAdminAccess()) {
+            return;
+        }
+
+        $id = isset($_GET['id']) && $_GET['id'] !== '' ? (string)$_GET['id'] : null;
+        $donManager = new DonManager();
+        $don = $donManager->create($id);
+
+        if ($id !== null && !$don) {
+            Show::msg(Lang::get('core-not-found') ?: 'Don introuvable.', 'error');
+            $this->core->redirect($this->router->generate('dons-admin-list'));
+            return;
+        }
+
+        $this->runPlugin->setMainTitle($don->getId() ? 'Modifier un don' : 'Ajouter un don');
+        $this->runPlugin->setTitleTag($this->runPlugin->getMainTitle());
+
+        $response = new AdminResponse();
+        $tpl = $response->createPluginTemplate('dons', 'admin-edit');
+        $tpl->set('don', [
+            'id' => $don->getId() ?? '',
+            'amount' => $don->getAmount(),
+            'firstName' => (string) ($don->getFirstName() ?? ''),
+            'lastName' => (string) ($don->getLastName() ?? ''),
+            'email' => (string) ($don->getEmail() ?? ''),
+            'gateway' => (string) ($don->getGateway() ?? 'manual'),
+            'status' => (string) ($don->getStatus() ?? 'pending'),
+            'transactionId' => (string) ($don->getTransactionId() ?? ''),
+            'message' => (string) ($don->getMessage() ?? ''),
+            'anonymous' => (string) ($don->attributes['anonymous'] ?? '0'),
+        ]);
+        $tpl->set('token', $this->user->token);
+        $tpl->set('saveUrl', $this->router->generate('dons-admin-save'));
+        $tpl->set('backUrl', $this->router->generate('dons-admin-list'));
+
+        $response->addTemplate($tpl);
+        return $response;
+    }
+
+    public function save()
+    {
+        if (!$this->checkAdminAccess()) {
+            return;
+        }
+
+        if (!isset($_POST['token']) || $_POST['token'] !== $this->user->token) {
+            Show::msg(Lang::get('core-invalid-token'), 'error');
+            return $this->edit();
+        }
+
+        $id = isset($_POST['id']) && $_POST['id'] !== '' ? (string)$_POST['id'] : null;
+        $donManager = new DonManager();
+        $don = $id ? ($donManager->create($id) ?: new Don()) : new Don();
+
+        $amount = round(floatval($_POST['amount'] ?? 0), 2);
+        if ($amount <= 0) {
+            Show::msg(Lang::get('dons.invalid-amount') ?: 'Montant invalide.', 'error');
+            return $this->edit();
+        }
+
+        $status = (string)($_POST['status'] ?? 'pending');
+        if (!in_array($status, ['pending', 'completed', 'failed'], true)) {
+            $status = 'pending';
+        }
+
+        $gateway = trim(strip_tags((string)($_POST['gateway'] ?? 'manual')));
+        if ($gateway === '') {
+            $gateway = 'manual';
+        }
+
+        $don->amount = $amount;
+        $don->firstName = trim(strip_tags((string)($_POST['firstName'] ?? '')));
+        $don->lastName = trim(strip_tags((string)($_POST['lastName'] ?? '')));
+        $don->email = filter_var(trim((string)($_POST['email'] ?? '')), FILTER_SANITIZE_EMAIL);
+        $don->message = trim(strip_tags((string)($_POST['message'] ?? '')));
+        $don->gateway = $gateway;
+        $don->status = $status;
+        $don->anonymous = isset($_POST['anonymous']) ? '1' : '0';
+        $don->transactionId = trim(strip_tags((string)($_POST['transactionId'] ?? '')));
+
+        if ($donManager->saveDon($don)) {
+            Show::msg(Lang::get('core-changes-saved'), 'success');
+        } else {
+            Show::msg(Lang::get('core-changes-not-saved'), 'error');
+        }
+
+        if (PHP_SAPI !== 'cli' && !headers_sent()) {
+            header('Location: ' . $this->router->generate('dons-admin-list'));
+            exit;
+        }
+        return $this->list();
     }
 
     public function chartData()

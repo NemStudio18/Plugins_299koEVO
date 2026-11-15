@@ -4,6 +4,8 @@ namespace LiveChat;
 
 defined('ROOT') or exit('No direct script access allowed');
 
+require_once PLUGINS . 'LiveChat/services/LiveChatService.php';
+
 class Hooks
 {
     public static function install(): void

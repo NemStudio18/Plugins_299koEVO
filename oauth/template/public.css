@@ -1,5 +1,3 @@
-@layer evo-plugins {
-
 /* Styles spécifiques au plugin Auth */
 
 .auth-plugin-extra {
@@ -210,6 +208,4 @@
 
 .auth-checkbox-delete {
     flex: 0 0 50px;
-}
-
 }

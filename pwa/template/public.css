@@ -1,5 +1,3 @@
-@layer evo-plugins {
-
 /* PWA Install Button Styles */
 .pwa-install-button {
     position: fixed;
@@ -36,6 +34,4 @@
     .pwa-install-button i {
         font-size: 1.3rem;
     }
-}
-
 }

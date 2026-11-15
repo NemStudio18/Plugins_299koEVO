@@ -171,24 +171,73 @@ class RssProviderManager
     private static function getBlogItems(string $siteUrl): array
     {
         $items = [];
-        $file = DATA . 'plugin/blog/articles.json';
-        if (!file_exists($file)) return $items;
-        $articles = json_decode((string)@file_get_contents($file), true);
-        if (!is_array($articles)) return $items;
+        $baseSiteUrl = rtrim($siteUrl, '/');
+
+        if (class_exists(\Blog\Entities\NewsManager::class)) {
+            try {
+                $newsManager = new \Blog\Entities\NewsManager();
+                foreach ($newsManager->getItems() as $art) {
+                    $draft = method_exists($art, 'getDraft') ? $art->getDraft() : 0;
+                    if ((string) $draft === '1' || (int) $draft === 1) {
+                        continue;
+                    }
+                    $title = (string) ($art->getName() ?: 'Sans titre');
+                    $id = $art->getId();
+                    $date = method_exists($art, 'getDate') ? (string) $art->getDate() : '';
+                    $ts = $date !== '' ? strtotime($date) : time();
+                    $rawDesc = '';
+                    if (method_exists($art, 'getIntro') && (string) $art->getIntro() !== '') {
+                        $rawDesc = (string) $art->getIntro();
+                    } elseif (method_exists($art, 'getContent')) {
+                        $rawDesc = (string) $art->getContent();
+                    }
+                    $desc = strip_tags(html_entity_decode($rawDesc, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                    $slug = class_exists(\Utils\Util::class) ? \Utils\Util::strToUrl($title) : strtolower(trim((string) preg_replace('/[^a-zA-Z0-9]+/', '-', $title), '-'));
+
+                    $items[] = [
+                        'title' => $title,
+                        'link' => $baseSiteUrl . '/blog/' . ($slug !== '' ? $slug : 'article') . '-' . $id . '.html',
+                        'timestamp' => $ts ?: time(),
+                        'category' => 'Blog',
+                        'description' => mb_substr($desc, 0, 350),
+                    ];
+                }
+                return $items;
+            } catch (\Throwable $e) {
+            }
+        }
+
+        $dataPlugin = defined('DATA_PLUGIN') ? DATA_PLUGIN : DATA . 'plugin/';
+        $file = file_exists($dataPlugin . 'blog/blog.json')
+            ? $dataPlugin . 'blog/blog.json'
+            : DATA . 'plugin/blog/articles.json';
+        if (!file_exists($file)) {
+            return $items;
+        }
+        $articles = json_decode((string) @file_get_contents($file), true);
+        if (!is_array($articles)) {
+            return $items;
+        }
 
         foreach ($articles as $art) {
-            if (empty($art['published']) && (isset($art['status']) && $art['status'] !== 'published')) continue;
-            $title = $art['title'] ?? 'Sans titre';
+            $isDraft = isset($art['draft']) && ((string) $art['draft'] === '1' || (int) $art['draft'] === 1);
+            $isUnpublishedLegacy = array_key_exists('published', $art) && empty($art['published']) && isset($art['status']) && $art['status'] !== 'published';
+            if ($isDraft || $isUnpublishedLegacy) {
+                continue;
+            }
+            $title = (string) ($art['name'] ?? $art['title'] ?? 'Sans titre');
             $id = $art['id'] ?? '';
-            $ts = !empty($art['date']) ? strtotime($art['date']) : time();
-            $desc = strip_tags(html_entity_decode($art['chapo'] ?? $art['content'] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+            $ts = !empty($art['date']) ? strtotime((string) $art['date']) : time();
+            $rawDesc = (string) ($art['intro'] ?? $art['chapo'] ?? $art['content'] ?? '');
+            $desc = strip_tags(html_entity_decode($rawDesc, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+            $slug = class_exists(\Utils\Util::class) ? \Utils\Util::strToUrl($title) : strtolower(trim((string) preg_replace('/[^a-zA-Z0-9]+/', '-', $title), '-'));
 
             $items[] = [
                 'title' => $title,
-                'link' => $siteUrl . '/blog/article/' . $id,
+                'link' => $baseSiteUrl . '/blog/' . ($slug !== '' ? $slug : 'article') . '-' . $id . '.html',
                 'timestamp' => $ts ?: time(),
                 'category' => 'Blog',
-                'description' => mb_substr($desc, 0, 350)
+                'description' => mb_substr($desc, 0, 350),
             ];
         }
         return $items;

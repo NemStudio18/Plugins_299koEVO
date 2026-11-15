@@ -132,7 +132,7 @@ class NewsManager
         return $this->nbItemsToPublic;
     }
 
-    public function rss()
+    public function rss(): string
     {
         $core = Core::getInstance();
         $xml = '<?xml version="1.0" encoding="UTF-8"?>';
@@ -153,10 +153,7 @@ class NewsManager
             }
         $xml .= '</channel>';
         $xml .= '</rss>';
-        header('Cache-Control: must-revalidate, pre-check=0, post-check=0, max-age=0');
-        header('Content-Type: application/rss+xml; charset=utf-8');
-        echo $xml;
-        die();
+        return $xml;
     }
 
     private function makeId()

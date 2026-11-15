@@ -80,10 +80,10 @@ class ReactionService {
                     // Clic différent : mise à jour du type de réaction (ex: like -> interest)
                     $upd = $pdo->prepare("
                         UPDATE content_reactions 
-                        SET reaction_type = :rtype, created_at = NOW() 
+                        SET reaction_type = :rtype, created_at = :now 
                         WHERE id = :id
                     ");
-                    $upd->execute([':rtype' => $reactionType, ':id' => $existing['id']]);
+                    $upd->execute([':rtype' => $reactionType, ':now' => date('Y-m-d H:i:s'), ':id' => $existing['id']]);
                     $reacted = true;
                 }
             } else {
@@ -91,13 +91,14 @@ class ReactionService {
                 try {
                     $ins = $pdo->prepare("
                         INSERT INTO content_reactions (user_id, content_type, content_id, reaction_type, created_at)
-                        VALUES (:uid, :type, :cid, :rtype, NOW())
+                        VALUES (:uid, :type, :cid, :rtype, :now)
                     ");
                     $ins->execute([
                         ':uid' => $userId,
                         ':type' => $contentType,
                         ':cid' => $contentId,
-                        ':rtype' => $reactionType
+                        ':rtype' => $reactionType,
+                        ':now' => date('Y-m-d H:i:s')
                     ]);
                     $reacted = true;
                 } catch (\PDOException $e) {

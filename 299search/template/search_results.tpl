@@ -50,6 +50,16 @@
                 <i class="fa-solid fa-location-dot"></i> Lieux & Fiches <span class="search299-chip-count">{{ countsByType.poi }}</span>
             </a>
             {% endif %}
+            {% if countsByType.content > 0 %}
+            <a href="/search?q={{ qEnc }}&type=content" class="search299-chip {% if typeFilter == 'content' %}is-active{% endif %}">
+                <i class="fa-solid fa-cubes"></i> Contenus <span class="search299-chip-count">{{ countsByType.content }}</span>
+            </a>
+            {% endif %}
+            {% if countsByType.plugin > 0 %}
+            <a href="/search?q={{ qEnc }}&type=plugin" class="search299-chip {% if typeFilter == 'plugin' %}is-active{% endif %}">
+                <i class="fa-solid fa-puzzle-piece"></i> Plugins <span class="search299-chip-count">{{ countsByType.plugin }}</span>
+            </a>
+            {% endif %}
         </div>
         {% endif %}
     </header>

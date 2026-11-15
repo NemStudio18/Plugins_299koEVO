@@ -33,8 +33,8 @@ class newsManager {
         $categoriesManager = new BlogCategoriesManager();
         $i = 0;
         $data = [];
-        if (file_exists(ROOT . 'data/plugin/blog/blog.json')) {
-            $temp = Util::readJsonFile(ROOT . 'data/plugin/blog/blog.json');
+        if (file_exists(DATA_PLUGIN . 'blog/blog.json')) {
+            $temp = Util::readJsonFile(DATA_PLUGIN . 'blog/blog.json');
             if (!is_array($temp)) {
                 $temp = [];
             }
@@ -161,7 +161,7 @@ class newsManager {
         return $this->nbItemsToPublic;
     }
 
-    public function rss() {
+    public function rss(): string {
         $core = Core::getInstance();
         $xml = '<?xml version="1.0" encoding="UTF-8"?>';
         $xml .= '<rss version="2.0">';
@@ -181,10 +181,7 @@ class newsManager {
             }
         $xml .= '</channel>';
         $xml .= '</rss>';
-        header('Cache-Control: must-revalidate, pre-check=0, post-check=0, max-age=0');
-        header('Content-Type: application/rss+xml; charset=utf-8');
-        echo $xml;
-        die();
+        return $xml;
     }
 
     private function makeId() {
@@ -210,7 +207,7 @@ class newsManager {
                 'commentsOff' => $v->getCommentsOff(),
             );
         }
-        if (Util::writeJsonFile(ROOT . 'data/plugin/blog/blog.json', $data))
+        if (Util::writeJsonFile(DATA_PLUGIN . 'blog/blog.json', $data))
             return true;
         return false;
     }

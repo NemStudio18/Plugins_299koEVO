@@ -19,13 +19,25 @@ class LocalFeedService {
         return self::$instance;
     }
 
-    private function fetchAll(string $sql, array $params = []): array {
+    private function fetchAll(string $sql, array $params = [], bool $optional = false): array {
         try {
             $res = $this->db->query($sql, $params);
             return is_array($res) ? $res : [];
-        } catch (\Exception $e) {
-            error_log("LocalFeedService fetchAll SQL Error: " . $e->getMessage());
+        } catch (\Throwable $e) {
+            if (!$optional) {
+                error_log("LocalFeedService fetchAll SQL Error: " . $e->getMessage());
+            }
             return [];
+        }
+    }
+
+    private function tableExists(string $table): bool {
+        try {
+            $sql = $this->db->getDialect()->tableExists($table);
+            $rows = $this->db->query($sql);
+            return !empty($rows);
+        } catch (\Throwable $e) {
+            return false;
         }
     }
 
@@ -44,9 +56,9 @@ class LocalFeedService {
         $offset = max(0, ($page - 1) * $limit);
         $favoritePoiIds = [];
 
-        if ($userId) {
+        if ($userId && $this->tableExists('favorites')) {
             $favSql = "SELECT poi_id FROM favorites WHERE user_id = :uid";
-            $favRows = $this->fetchAll($favSql, [':uid' => $userId]);
+            $favRows = $this->fetchAll($favSql, [':uid' => $userId], true);
             if (!empty($favRows)) {
                 $favoritePoiIds = array_map(function($r) {
                     $item = (array)$r;
@@ -58,7 +70,7 @@ class LocalFeedService {
         $items = [];
 
         // 1. Publications des Commerçants (poi_posts)
-        if ($filter === null || $filter === 'posts' || $filter === 'all') {
+        if (($filter === null || $filter === 'posts' || $filter === 'all') && $this->tableExists('poi_posts') && $this->tableExists('poi')) {
             $postsSql = "SELECT p.*, 
                                 poi.name AS poi_name, poi.slug AS poi_slug,
                                 addr.city AS poi_city, addr.street AS poi_street
@@ -69,7 +81,7 @@ class LocalFeedService {
                          ORDER BY p.pinned DESC, p.created_at DESC
                          LIMIT 50";
             
-            $posts = $this->fetchAll($postsSql);
+            $posts = $this->fetchAll($postsSql, [], true);
             foreach ($posts as $post) {
                 $pArr = (array)$post;
                 $poiId = (int)$pArr['poi_id'];
@@ -131,15 +143,21 @@ class LocalFeedService {
                     }
                 }
 
-                $eventsSql = "SELECT MIN(id) AS id, title, MIN(description) AS description, MIN(start_date) AS start_date, MIN(end_date) AS end_date, MIN(location) AS location, MIN(poi_id) AS poi_id, MIN(proof_file) AS proof_file 
-                              FROM agenda_events 
-                              WHERE (status = 'approved' OR status IS NULL)
-                                AND start_date >= CURDATE()
-                                AND start_date < CURDATE() + INTERVAL 21 DAY
-                              GROUP BY title, DATE(start_date)
-                              ORDER BY start_date ASC 
-                              LIMIT 60";
-                $events = $this->fetchAll($eventsSql);
+                if ($this->tableExists('agenda_events')) {
+                    $today = date('Y-m-d');
+                    $maxDate = date('Y-m-d', strtotime('+21 days'));
+                    $eventsSql = "SELECT MIN(id) AS id, title, MIN(description) AS description, MIN(start_date) AS start_date, MIN(end_date) AS end_date, MIN(location) AS location, MIN(poi_id) AS poi_id, MIN(proof_file) AS proof_file 
+                                  FROM agenda_events 
+                                  WHERE (status = 'approved' OR status IS NULL)
+                                    AND start_date >= :today
+                                    AND start_date < :max_date
+                                  GROUP BY title, DATE(start_date)
+                                  ORDER BY start_date ASC 
+                                  LIMIT 60";
+                    $events = $this->fetchAll($eventsSql, [':today' => $today, ':max_date' => $maxDate], true);
+                } else {
+                    $events = [];
+                }
                 
                 // Charger les films du Méga CGR si disponibles
                 $cgrFile = DATA_PLUGIN . 'agenda/cgr_movies.json';
@@ -225,48 +243,52 @@ class LocalFeedService {
 
         // 3. Bons plans & Offres promotionnelles actives (GoodDeals lbp_deals & table offers)
         if ($filter === null || $filter === 'offers' || $filter === 'deals' || $filter === 'all') {
-            try {
-                // Table GoodDeals (lbp_deals)
-                $dealsSql = "SELECT d.*, p.name AS poi_name, p.slug AS poi_slug, p.addr_street, p.addr_city
-                             FROM lbp_deals d
-                             JOIN poi_public p ON p.id = d.poi_id
-                             WHERE d.status = 'ACTIVE' AND d.stock > 0
-                             ORDER BY d.created_at DESC 
-                             LIMIT 10";
-                $deals = $this->fetchAll($dealsSql);
-                foreach ($deals as $deal) {
-                    $dArr = (array)$deal;
-                    $poiId = (int)$dArr['poi_id'];
-                    $isFav = in_array($poiId, $favoritePoiIds);
-                    $score = 95;
-                    if ($isFav) $score += 130;
+            if ($this->tableExists('lbp_deals') && $this->tableExists('poi_public')) {
+                try {
+                    // Table GoodDeals (lbp_deals)
+                    $dealsSql = "SELECT d.*, p.name AS poi_name, p.slug AS poi_slug, p.addr_street, p.addr_city
+                                 FROM lbp_deals d
+                                 JOIN poi_public p ON p.id = d.poi_id
+                                 WHERE d.status = 'ACTIVE' AND d.stock > 0
+                                 ORDER BY d.created_at DESC 
+                                 LIMIT 10";
+                    $deals = $this->fetchAll($dealsSql, [], true);
+                    foreach ($deals as $deal) {
+                        $dArr = (array)$deal;
+                        $poiId = (int)$dArr['poi_id'];
+                        $isFav = in_array($poiId, $favoritePoiIds);
+                        $score = 95;
+                        if ($isFav) $score += 130;
 
-                    $items[] = [
-                        'type' => 'offer',
-                        'id' => (int)$dArr['id'],
-                        'poi_id' => $poiId,
-                        'poi_name' => $dArr['poi_name'] ?? 'Commerce local',
-                        'poi_slug' => $dArr['poi_slug'] ?? ('p-' . $poiId),
-                        'title' => $dArr['title'],
-                        'content' => $dArr['description'] . (!empty($dArr['discounted_price']) ? (' • Prix exclusif : ' . $dArr['discounted_price'] . ' €') : ''),
-                        'media_url' => !empty($dArr['photo_1']) ? $dArr['photo_1'] : null,
-                        'valid_until' => null,
-                        'is_favorite_poi' => $isFav,
-                        'timestamp' => strtotime($dArr['created_at']),
-                        'score' => $score
-                    ];
-                }
-            } catch (\Throwable $e) {}
+                        $items[] = [
+                            'type' => 'offer',
+                            'id' => (int)$dArr['id'],
+                            'poi_id' => $poiId,
+                            'poi_name' => $dArr['poi_name'] ?? 'Commerce local',
+                            'poi_slug' => $dArr['poi_slug'] ?? ('p-' . $poiId),
+                            'title' => $dArr['title'],
+                            'content' => $dArr['description'] . (!empty($dArr['discounted_price']) ? (' • Prix exclusif : ' . $dArr['discounted_price'] . ' €') : ''),
+                            'media_url' => !empty($dArr['photo_1']) ? $dArr['photo_1'] : null,
+                            'valid_until' => null,
+                            'is_favorite_poi' => $isFav,
+                            'timestamp' => strtotime($dArr['created_at']),
+                            'score' => $score
+                        ];
+                    }
+                } catch (\Throwable $e) {}
+            }
 
-            try {
-                $offersSql = "SELECT o.*, poi.name AS poi_name, poi.slug AS poi_slug 
-                              FROM offers o
-                              JOIN poi ON poi.id = o.poi_id
-                              WHERE o.status = 'ACTIVE' 
-                                AND (o.valid_until IS NULL OR o.valid_until >= NOW())
-                              ORDER BY o.created_at DESC 
-                              LIMIT 10";
-                $offers = $this->fetchAll($offersSql);
+            if ($this->tableExists('offers') && $this->tableExists('poi')) {
+                try {
+                    $now = date('Y-m-d H:i:s');
+                    $offersSql = "SELECT o.*, poi.name AS poi_name, poi.slug AS poi_slug 
+                                  FROM offers o
+                                  JOIN poi ON poi.id = o.poi_id
+                                  WHERE o.status = 'ACTIVE' 
+                                    AND (o.valid_until IS NULL OR o.valid_until >= :now)
+                                  ORDER BY o.created_at DESC 
+                                  LIMIT 10";
+                    $offers = $this->fetchAll($offersSql, [':now' => $now], true);
                 foreach ($offers as $offer) {
                     $oArr = (array)$offer;
                     $poiId = (int)$oArr['poi_id'];
@@ -288,9 +310,10 @@ class LocalFeedService {
                         'timestamp' => strtotime($oArr['created_at']),
                         'score' => $score
                     ];
+                    }
+                } catch (\Throwable $e) {
+                    // Offres optionnelles
                 }
-            } catch (\Exception $e) {
-                // Offres optionnelles
             }
         }
 
@@ -458,8 +481,8 @@ class LocalFeedService {
         } else {
             // Like
             $this->db->execute(
-                "INSERT INTO poi_post_likes (post_id, user_id, created_at) VALUES (:pid, :uid, NOW())",
-                [':pid' => $postId, ':uid' => $userId]
+                "INSERT INTO poi_post_likes (post_id, user_id, created_at) VALUES (:pid, :uid, :now)",
+                [':pid' => $postId, ':uid' => $userId, ':now' => date('Y-m-d H:i:s')]
             );
             $this->db->execute(
                 "UPDATE poi_posts SET likes_count = likes_count + 1 WHERE id = :id",
@@ -483,8 +506,8 @@ class LocalFeedService {
      */
     public function recordShare(int $postId, ?int $userId = null, string $channel = 'native'): array {
         $this->db->execute(
-            "INSERT INTO poi_post_shares (post_id, user_id, channel, created_at) VALUES (:pid, :uid, :ch, NOW())",
-            [':pid' => $postId, ':uid' => $userId, ':ch' => $channel]
+            "INSERT INTO poi_post_shares (post_id, user_id, channel, created_at) VALUES (:pid, :uid, :ch, :now)",
+            [':pid' => $postId, ':uid' => $userId, ':ch' => $channel, ':now' => date('Y-m-d H:i:s')]
         );
         $this->db->execute(
             "UPDATE poi_posts SET shares_count = shares_count + 1 WHERE id = :id",
@@ -516,8 +539,9 @@ class LocalFeedService {
             throw new \InvalidArgumentException("Le contenu de la publication ne peut pas être vide.");
         }
 
+        $now = date('Y-m-d H:i:s');
         $sql = "INSERT INTO poi_posts (poi_id, author_user_id, post_type, title, content, media_url, pinned, status, created_at, updated_at)
-                VALUES (:poi_id, :author_id, :post_type, :title, :content, :media_url, :pinned, 'published', NOW(), NOW())";
+                VALUES (:poi_id, :author_id, :post_type, :title, :content, :media_url, :pinned, 'published', :now_created, :now_updated)";
         
         $this->db->execute($sql, [
             ':poi_id' => $poiId,
@@ -526,18 +550,51 @@ class LocalFeedService {
             ':title' => $title,
             ':content' => $content,
             ':media_url' => $mediaUrl,
-            ':pinned' => $pinned
+            ':pinned' => $pinned,
+            ':now_created' => $now,
+            ':now_updated' => $now
         ]);
 
         return (int)$this->db->lastInsertId();
     }
 
     /**
-     * Supprime une publication
+     * Supprime une publication et purge ses likes, partages et commentaires en cascade applicative
      */
     public function deletePost(int $postId): bool {
+        if ($this->tableExists('poi_post_likes')) {
+            $this->db->execute("DELETE FROM poi_post_likes WHERE post_id = :id", [':id' => $postId]);
+        }
+        if ($this->tableExists('poi_post_shares')) {
+            $this->db->execute("DELETE FROM poi_post_shares WHERE post_id = :id", [':id' => $postId]);
+        }
+        if ($this->tableExists('poi_post_comments')) {
+            $this->db->execute("DELETE FROM poi_post_comments WHERE post_id = :id", [':id' => $postId]);
+        }
         $this->db->execute("DELETE FROM poi_posts WHERE id = :id", [':id' => $postId]);
         return true;
+    }
+
+    /**
+     * Supprime toutes les publications d'un POI donné (nettoyage applicatif en cascade)
+     * Opération idempotente et sûre.
+     */
+    public function deletePostsByPoi(int $poiId): int {
+        if ($poiId <= 0 || !$this->tableExists('poi_posts')) {
+            return 0;
+        }
+
+        $posts = $this->fetchAll("SELECT id FROM poi_posts WHERE poi_id = :poi_id", [':poi_id' => $poiId], true);
+        $deleted = 0;
+        foreach ($posts as $post) {
+            $pArr = (array)$post;
+            $postId = (int)($pArr['id'] ?? 0);
+            if ($postId > 0) {
+                $this->deletePost($postId);
+                $deleted++;
+            }
+        }
+        return $deleted;
     }
 
     /**
@@ -586,13 +643,14 @@ class LocalFeedService {
         }
 
         $sql = "INSERT INTO poi_post_comments (post_id, user_id, author_name, content, status, created_at)
-                VALUES (:pid, :uid, :aname, :content, 'published', NOW())";
+                VALUES (:pid, :uid, :aname, :content, 'published', :now)";
         
         $this->db->execute($sql, [
             ':pid' => $postId,
             ':uid' => $userId,
             ':aname' => $authorName,
-            ':content' => $content
+            ':content' => $content,
+            ':now' => date('Y-m-d H:i:s')
         ]);
 
         $commentId = (int)$this->db->lastInsertId();

@@ -1,5 +1,3 @@
-@layer evo-plugins {
-
 /* Newsletter Plugin Styles */
 .newsletter-floating-btn {
     position: fixed;
@@ -178,6 +176,4 @@
 
 .p-large {
     padding: 2rem;
-}
-
 }

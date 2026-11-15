@@ -20,35 +20,37 @@ class PwaController extends PublicController
 
     public function serviceWorker()
     {
-        // Désactiver le traitement de la réponse par le système
         $this->core->getLogger()->log(Logger::LEVEL_INFO, 'PWA: serviceWorker endpoint hit (router match successful)');
-        header('Content-Type: application/javascript; charset=utf-8');
-        header('Cache-Control: no-cache, no-store, must-revalidate');
-        header('Pragma: no-cache');
-        header('Expires: 0');
-
-        $swContent = file_get_contents(PLUGINS . 'pwa/sw.js');
-        if ($swContent === false) {
-            http_response_code(404);
-            $this->core->getLogger()->log(Logger::LEVEL_ERROR, 'PWA: sw.js file missing at ' . PLUGINS . 'pwa/sw.js');
-            echo 'Service Worker not found';
-            die();
+        if (!headers_sent()) {
+            header('Content-Type: application/javascript; charset=utf-8');
+            header('Cache-Control: no-cache, no-store, must-revalidate');
+            header('Pragma: no-cache');
+            header('Expires: 0');
         }
-        echo $swContent;
-        die();
+
+        $swContent = @file_get_contents(PLUGINS . 'pwa/sw.js');
+        if ($swContent === false) {
+            if (!headers_sent()) {
+                http_response_code(404);
+            }
+            $this->core->getLogger()->log(Logger::LEVEL_ERROR, 'PWA: sw.js file missing at ' . PLUGINS . 'pwa/sw.js');
+            return (new StringResponse())->setContent('Service Worker not found');
+        }
+
+        return (new StringResponse())->setContent($swContent);
     }
 
     public function manifest()
     {
-        // Désactiver le traitement de la réponse par le système et forcer l'accès public
         $this->core->getLogger()->log(Logger::LEVEL_INFO, 'PWA: manifest endpoint hit (router match successful)');
 
-        // Headers essentiels
-        header('Content-Type: application/manifest+json; charset=utf-8');
-        header('Cache-Control: no-cache, no-store, must-revalidate');
-        header('Pragma: no-cache');
-        header('Expires: 0');
-        header('Access-Control-Allow-Origin: *'); // Autoriser l'accès cross-origin pour le manifest
+        if (!headers_sent()) {
+            header('Content-Type: application/manifest+json; charset=utf-8');
+            header('Cache-Control: no-cache, no-store, must-revalidate');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+            header('Access-Control-Allow-Origin: *');
+        }
 
         $core = Core::getInstance();
         $siteName = $core->getConfigVal('siteName') ?: '299Ko';
@@ -95,18 +97,29 @@ class PwaController extends PublicController
         }
 
         $this->core->getLogger()->log(Logger::LEVEL_INFO, 'PWA: manifest payload generated');
-        echo json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        exit; // Utiliser exit au lieu de die pour plus de propreté
+        $resp = new \Core\Responses\ApiResponse();
+        $resp->status = \Core\Responses\ApiResponse::STATUS_SUCCESS;
+        $resp->httpCode = 200;
+        $resp->allowCors('*');
+        $resp->body = $manifest;
+        return $resp;
     }
 
     public function getPublicKey()
     {
         require_once PLUGINS . 'pwa/pwa.php';
         $vapidKeys = pwaGetVapidKeys();
+        if (!$vapidKeys) {
+            $generated = pwaGenerateVapidKeys();
+            if ($generated && pwaSaveVapidKeys($generated['publicKey'], $generated['privateKey'])) {
+                $vapidKeys = $generated;
+            }
+        }
         $key = $vapidKeys ? trim((string) $vapidKeys['publicKey']) : '';
-        header('Content-Type: text/plain; charset=utf-8');
-        echo $key;
-        die();
+        if (!headers_sent()) {
+            header('Content-Type: text/plain; charset=utf-8');
+        }
+        return (new StringResponse())->setContent($key);
     }
 
     public function subscribe()

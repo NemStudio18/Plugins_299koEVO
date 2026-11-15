@@ -1,6 +1,8 @@
 <?php
 defined('ROOT') or exit('Access denied!');
 
+require_once __DIR__ . '/src/Hooks/SearchHooks.php';
+
 use Core\Plugin\Plugin;
 
 class Plugin299search extends Plugin

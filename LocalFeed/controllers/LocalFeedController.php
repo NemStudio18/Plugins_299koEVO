@@ -66,9 +66,11 @@ class LocalFeedController {
             exit;
         }
 
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($timeline, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        exit;
+        $resp = new \Core\Responses\ApiResponse();
+        $resp->status = \Core\Responses\ApiResponse::STATUS_SUCCESS;
+        $resp->httpCode = 200;
+        $resp->body = $timeline;
+        return $resp;
     }
 
     /**

@@ -9,6 +9,8 @@
  */
 defined('ROOT') OR exit('No direct script access allowed');
 
+use Guestbook\Entities\GuestbookManager;
+
 require_once PLUGINS . 'guestbook/entities/GuestbookEntry.php';
 require_once PLUGINS . 'guestbook/entities/GuestbookManager.php';
 

@@ -35,12 +35,15 @@ class SearchController extends PublicController
         $tpl = $response->createPluginTemplate('299search', 'search_results');
 
         $results = [];
+        $seenUrls = [];
         $countsByType = [
-            'all'   => 0,
-            'page'  => 0,
-            'blog'  => 0,
-            'event' => 0,
-            'poi'   => 0
+            'all'     => 0,
+            'page'    => 0,
+            'blog'    => 0,
+            'event'   => 0,
+            'poi'     => 0,
+            'content' => 0,
+            'plugin'  => 0
         ];
 
         if ($query !== '' && mb_strlen($query) >= 2) {
@@ -48,6 +51,7 @@ class SearchController extends PublicController
 
             // 1. Pages réelles du CMS
             foreach ($this->searchSitePages($normQuery) as $p) {
+                $seenUrls[$p['url']] = true;
                 $countsByType['page']++;
                 if ($typeFilter === 'all' || $typeFilter === 'page') {
                     $results[] = $p;
@@ -57,6 +61,7 @@ class SearchController extends PublicController
             // 2. Articles du Blog (si plugin actif)
             if (PluginsManager::isActivePlugin('blog')) {
                 foreach ($this->searchBlog($normQuery) as $b) {
+                    $seenUrls[$b['url']] = true;
                     $countsByType['blog']++;
                     if ($typeFilter === 'all' || $typeFilter === 'blog') {
                         $results[] = $b;
@@ -67,6 +72,7 @@ class SearchController extends PublicController
             // 3. Événements de l'Agenda (si plugin actif)
             if (PluginsManager::isActivePlugin('agenda')) {
                 foreach ($this->searchEvents($normQuery) as $e) {
+                    $seenUrls[$e['url']] = true;
                     $countsByType['event']++;
                     if ($typeFilter === 'all' || $typeFilter === 'event') {
                         $results[] = $e;
@@ -76,13 +82,39 @@ class SearchController extends PublicController
 
             // 4. Fiches Lieux / POI (optionnel si table poi_public présente)
             foreach ($this->searchPois($query, $normQuery) as $poi) {
+                $seenUrls[$poi['url']] = true;
                 $countsByType['poi']++;
                 if ($typeFilter === 'all' || $typeFilter === 'poi') {
                     $results[] = $poi;
                 }
             }
 
-            $countsByType['all'] = $countsByType['page'] + $countsByType['blog'] + $countsByType['event'] + $countsByType['poi'];
+            // 5. Types de contenus personnalisés publiés (Core\Content\ContentTypeManager)
+            foreach ($this->searchCustomContents($normQuery, $seenUrls) as $c) {
+                $countsByType['content']++;
+                if ($typeFilter === 'all' || $typeFilter === 'content') {
+                    $results[] = $c;
+                }
+            }
+
+            // 6. Hook extensible des plugins (search:get-results)
+            foreach ($this->searchPluginHooks($query, $seenUrls) as $h) {
+                $bucket = $h['type'];
+                if (!isset($countsByType[$bucket])) {
+                    $bucket = 'plugin';
+                }
+                $countsByType[$bucket]++;
+                if ($typeFilter === 'all' || $typeFilter === $bucket) {
+                    $results[] = $h;
+                }
+            }
+
+            $countsByType['all'] = $countsByType['page']
+                + $countsByType['blog']
+                + $countsByType['event']
+                + $countsByType['poi']
+                + $countsByType['content']
+                + $countsByType['plugin'];
         }
 
         $tpl->set('siteName', htmlspecialchars($siteName));
@@ -304,6 +336,114 @@ class SearchController extends PublicController
                     'url' => $slug,
                     'excerpt' => mb_substr((string)$desc, 0, 150) . (mb_strlen((string)$desc) > 150 ? '…' : ''),
                     'meta' => trim(($address !== '' ? $address . ' • ' : '') . ($r['category'] ?? 'Lieu'))
+                ];
+            }
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        return $matches;
+    }
+
+    /**
+     * Recherche dans les entrées publiées des types de contenus personnalisés
+     */
+    private function searchCustomContents(string $normQuery, array &$seenUrls): array
+    {
+        if (!class_exists(\Core\Content\ContentTypeManager::class)) {
+            return [];
+        }
+
+        $matches = [];
+        try {
+            $ctm = \Core\Content\ContentTypeManager::getInstance();
+            foreach ($ctm->all() as $type) {
+                $entries = $ctm->findEntries($type->id, ['status' => 'published']);
+                foreach ($entries as $entry) {
+                    $title = trim((string)($entry->getTitle() ?: $entry->getSlug()));
+                    $parts = [$title, (string)$entry->getSlug()];
+                    foreach ($entry->getFields() as $val) {
+                        if (is_scalar($val)) {
+                            $parts[] = strip_tags((string)$val);
+                        } elseif (is_array($val)) {
+                            $parts[] = json_encode($val, JSON_UNESCAPED_UNICODE) ?: '';
+                        }
+                    }
+                    foreach ($entry->getBlocks() as $blk) {
+                        if (is_array($blk)) {
+                            $parts[] = strip_tags(json_encode($blk, JSON_UNESCAPED_UNICODE) ?: '');
+                        }
+                    }
+
+                    $haystack = $this->normalize(implode(' ', $parts));
+                    if ($haystack === '' || mb_strpos($haystack, $normQuery) === false) {
+                        continue;
+                    }
+
+                    $url = '/content/' . rawurlencode($type->id) . '/' . rawurlencode($entry->getSlug());
+                    if (isset($seenUrls[$url])) {
+                        continue;
+                    }
+                    $seenUrls[$url] = true;
+
+                    $rawText = trim(preg_replace('/\s+/', ' ', implode(' ', array_slice($parts, 2))));
+                    $excerpt = $rawText !== ''
+                        ? (mb_substr($rawText, 0, 150) . (mb_strlen($rawText) > 150 ? '…' : ''))
+                        : $type->label;
+
+                    $matches[] = [
+                        'type' => 'content',
+                        'type_label' => $type->label,
+                        'type_icon' => $type->icon ?: 'fa-solid fa-cube',
+                        'badge_class' => 'badge-content',
+                        'title' => $title,
+                        'url' => $url,
+                        'excerpt' => $excerpt,
+                        'meta' => $type->label . ' • ' . $entry->getLocale()
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        return $matches;
+    }
+
+    /**
+     * Collecte et normalise les résultats fournis par les plugins via le hook search:get-results
+     */
+    private function searchPluginHooks(string $query, array &$seenUrls): array
+    {
+        $matches = [];
+        try {
+            $hookData = $this->core->callHook('search:get-results', [
+                'query' => $query,
+                'results' => []
+            ]);
+            $rawResults = is_array($hookData['results'] ?? null) ? $hookData['results'] : [];
+
+            foreach ($rawResults as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $url = trim((string)($item['url'] ?? ''));
+                $title = trim((string)($item['title'] ?? ''));
+                if ($url === '' || $title === '' || isset($seenUrls[$url])) {
+                    continue;
+                }
+                $seenUrls[$url] = true;
+
+                $src = trim((string)($item['source'] ?? $item['type'] ?? 'plugin'));
+                $matches[] = [
+                    'type' => $src !== '' ? $src : 'plugin',
+                    'type_label' => (string)($item['type_label'] ?? $item['source_label'] ?? 'Plugin'),
+                    'type_icon' => (string)($item['type_icon'] ?? $item['icon'] ?? 'fa-solid fa-puzzle-piece'),
+                    'badge_class' => (string)($item['badge_class'] ?? ('badge-' . ($src !== '' ? $src : 'plugin'))),
+                    'title' => $title,
+                    'url' => $url,
+                    'excerpt' => (string)($item['excerpt'] ?? ''),
+                    'meta' => (string)($item['meta'] ?? $item['date_formatted'] ?? $item['source_label'] ?? '')
                 ];
             }
         } catch (\Throwable $e) {

@@ -15,11 +15,12 @@ class Database
     private function __construct()
     {
         $dbPath = DATA_PLUGIN . 'ecommerce/database.sqlite3';
-        
-        if (!file_exists($dbPath)) {
-            throw new \Exception('E-commerce database not found. Please install the plugin first.');
+        $dbDir = dirname($dbPath);
+
+        if (!is_dir($dbDir)) {
+            @mkdir($dbDir, 0755, true);
         }
-        
+
         try {
             $this->db = new PDO('sqlite:' . $dbPath);
             $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

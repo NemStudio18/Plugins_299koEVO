@@ -135,8 +135,13 @@ class BlogAdminCategoriesController extends AdminController
 
     public function listAjaxCategories()
     {
+        ob_start();
         $this->categoriesManager->outputAsList();
-        die();
+        $html = (string) ob_get_clean();
+
+        $response = new StringResponse();
+        $response->setContent($html);
+        return $response;
     }
 
 

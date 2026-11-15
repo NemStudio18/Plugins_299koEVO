@@ -106,9 +106,16 @@ class PublicRdvController extends Controller
     /**
      * Endpoint JSON pour le rafraîchissement dynamique des créneaux en AJAX
      */
-    public function slotsJson()
+    public function slotsJson(): \Core\Responses\ApiResponse
     {
-        header('Content-Type: application/json; charset=utf-8');
+        $jsonResp = static function (array $payload): \Core\Responses\ApiResponse {
+            $resp = new \Core\Responses\ApiResponse();
+            $resp->status = \Core\Responses\ApiResponse::STATUS_SUCCESS;
+            $resp->httpCode = 200;
+            $resp->body = $payload;
+            return $resp;
+        };
+
         $cid = (int)($_GET['commerce_id'] ?? 0);
         $pid = (int)($_GET['presta_id'] ?? 0);
         $collabId = !empty($_GET['collab_id']) ? (int)$_GET['collab_id'] : null;
@@ -116,8 +123,7 @@ class PublicRdvController extends Controller
 
         $commerce = $this->service->getCommerceById($cid);
         if (!$commerce) {
-            echo json_encode(['success' => false, 'error' => 'Commerce non trouvé']);
-            exit;
+            return $jsonResp(['success' => false, 'error' => 'Commerce non trouvé']);
         }
 
         $prestas = $this->service->getPrestations($cid);
@@ -130,13 +136,11 @@ class PublicRdvController extends Controller
         }
 
         if (!$presta) {
-            echo json_encode(['success' => false, 'error' => 'Prestation non trouvée']);
-            exit;
+            return $jsonResp(['success' => false, 'error' => 'Prestation non trouvée']);
         }
 
         $slots = $this->service->getAvailableSlots($commerce, $presta, $collabId, $date);
-        echo json_encode(['success' => true, 'slots' => $slots, 'count' => count($slots)]);
-        exit;
+        return $jsonResp(['success' => true, 'slots' => $slots, 'count' => count($slots)]);
     }
 
     /**

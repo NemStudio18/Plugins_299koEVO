@@ -11,12 +11,12 @@ class RssPublicController extends BasePublicController
 {
     public function feed()
     {
-        $this->renderRssFeed(null);
+        return $this->renderRssFeed(null);
     }
 
     public function channel($channel)
     {
-        $this->renderRssFeed(trim(strtolower((string)$channel)));
+        return $this->renderRssFeed(trim(strtolower((string)$channel)));
     }
 
     private function renderRssFeed(?string $channelFilter)
@@ -65,36 +65,38 @@ class RssPublicController extends BasePublicController
         $selfUrl = $siteUrl . ($channelFilter ? '/rss/' . $channelFilter : '/rss.xml');
         $lastBuildDate = !empty($items) ? gmdate(DATE_RSS, $items[0]['timestamp']) : gmdate(DATE_RSS);
 
-        header('Content-Type: application/rss+xml; charset=utf-8');
-
-        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        echo '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">' . "\n";
-        echo "  <channel>\n";
-        echo "    <title>" . htmlspecialchars($siteName . ' - ' . $feedTitle, ENT_XML1, 'UTF-8') . "</title>\n";
-        echo "    <link>" . htmlspecialchars($siteUrl, ENT_XML1, 'UTF-8') . "</link>\n";
-        echo "    <description>" . htmlspecialchars($feedDesc, ENT_XML1, 'UTF-8') . "</description>\n";
-        echo "    <language>fr-FR</language>\n";
-        echo "    <lastBuildDate>" . $lastBuildDate . "</lastBuildDate>\n";
-        echo "    <atom:link href=\"" . htmlspecialchars($selfUrl, ENT_XML1, 'UTF-8') . "\" rel=\"self\" type=\"application/rss+xml\" />\n";
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $xml .= '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">' . "\n";
+        $xml .= "  <channel>\n";
+        $xml .= "    <title>" . htmlspecialchars($siteName . ' - ' . $feedTitle, ENT_XML1, 'UTF-8') . "</title>\n";
+        $xml .= "    <link>" . htmlspecialchars($siteUrl, ENT_XML1, 'UTF-8') . "</link>\n";
+        $xml .= "    <description>" . htmlspecialchars($feedDesc, ENT_XML1, 'UTF-8') . "</description>\n";
+        $xml .= "    <language>fr-FR</language>\n";
+        $xml .= "    <lastBuildDate>" . $lastBuildDate . "</lastBuildDate>\n";
+        $xml .= "    <atom:link href=\"" . htmlspecialchars($selfUrl, ENT_XML1, 'UTF-8') . "\" rel=\"self\" type=\"application/rss+xml\" />\n";
 
         foreach ($items as $item) {
             $pubDate = gmdate(DATE_RSS, $item['timestamp']);
-            echo "    <item>\n";
-            echo "      <title>" . htmlspecialchars($item['title'], ENT_XML1, 'UTF-8') . "</title>\n";
-            echo "      <link>" . htmlspecialchars($item['link'], ENT_XML1, 'UTF-8') . "</link>\n";
-            echo "      <guid isPermaLink=\"true\">" . htmlspecialchars($item['link'], ENT_XML1, 'UTF-8') . "</guid>\n";
-            echo "      <pubDate>" . $pubDate . "</pubDate>\n";
+            $xml .= "    <item>\n";
+            $xml .= "      <title>" . htmlspecialchars($item['title'], ENT_XML1, 'UTF-8') . "</title>\n";
+            $xml .= "      <link>" . htmlspecialchars($item['link'], ENT_XML1, 'UTF-8') . "</link>\n";
+            $xml .= "      <guid isPermaLink=\"true\">" . htmlspecialchars($item['link'], ENT_XML1, 'UTF-8') . "</guid>\n";
+            $xml .= "      <pubDate>" . $pubDate . "</pubDate>\n";
             if (!empty($item['category'])) {
-                echo "      <category>" . htmlspecialchars($item['category'], ENT_XML1, 'UTF-8') . "</category>\n";
+                $xml .= "      <category>" . htmlspecialchars($item['category'], ENT_XML1, 'UTF-8') . "</category>\n";
             }
             if (!empty($item['description'])) {
-                echo "      <description><![CDATA[" . $item['description'] . "]]></description>\n";
+                $xml .= "      <description><![CDATA[" . $item['description'] . "]]></description>\n";
             }
-            echo "    </item>\n";
+            $xml .= "    </item>\n";
         }
 
-        echo "  </channel>\n";
-        echo "</rss>\n";
-        exit;
+        $xml .= "  </channel>\n";
+        $xml .= "</rss>\n";
+
+        $response = new \Core\Responses\StringResponse();
+        $response->setContent($xml)
+            ->setContentType('application/rss+xml; charset=utf-8');
+        return $response;
     }
 }

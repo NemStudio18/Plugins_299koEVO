@@ -128,6 +128,9 @@ class ProRdvController extends Controller
                     $html .= '<div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #cbd5e1;padding:14px 18px;border-radius:10px;">';
                     $html .= '<div><strong style="font-size:1.05rem;color:#0f172a;">' . htmlspecialchars($cp['name']) . '</strong><div style="font-size:0.85rem;color:#64748b;">ID #' . (int)$cp['id'] . '</div></div>';
                     $html .= '<form action="/pro/rdv/activate" method="post" style="margin:0;">';
+                    if (class_exists('\\Core\\Security\\Csrf')) {
+                        $html .= \Core\Security\Csrf::field();
+                    }
                     $html .= '<input type="hidden" name="poi_id" value="' . (int)$cp['id'] . '">';
                     $html .= '<button type="submit" style="background:#10b981;color:#fff;border:none;padding:10px 18px;border-radius:8px;font-weight:700;font-size:0.9rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><i class="fa-solid fa-bolt"></i> Activer en 1 clic (Gratuit - Pilote)</button>';
                     $html .= '</form>';
@@ -136,6 +139,9 @@ class ProRdvController extends Controller
                 $html .= '</div></div>';
             } else {
                 $html .= '<form action="/pro/rdv/activate" method="post" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:24px;">';
+                if (class_exists('\\Core\\Security\\Csrf')) {
+                    $html .= \Core\Security\Csrf::field();
+                }
                 $html .= '<h3 style="margin-top:0;margin-bottom:16px;color:#1e293b;font-size:1.1rem;"><i class="fa-solid fa-plus-circle" style="color:#059669;"></i> Créer votre agenda professionnel</h3>';
                 $html .= '<div style="margin-bottom:14px;"><label style="display:block;font-weight:600;margin-bottom:6px;color:#334155;">Nom de votre établissement / activité</label>';
                 $html .= '<input type="text" name="standalone_nom" required placeholder="Ex: Atelier Martin, Cabinet Conseil..." style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;"></div>';
@@ -191,6 +197,17 @@ class ProRdvController extends Controller
      */
     public function activate()
     {
+        // Enforce POST method for state mutation
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            header('Location: /pro/rdv');
+            exit;
+        }
+
+        // Validate CSRF if session active
+        if (class_exists('\\Core\\Security\\Csrf') && !empty($_POST) && !\Core\Security\Csrf::validate($_POST['_csrf'] ?? null, false)) {
+            exit("Jeton de sécurité invalide ou expiré.");
+        }
+
         $user = CurrentUser::get();
         $isLogged = ($user && $user->isLogged()) || $this->isAdminUser($user);
         if (!$isLogged) {

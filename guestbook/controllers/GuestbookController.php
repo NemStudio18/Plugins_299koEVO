@@ -7,6 +7,8 @@ use Core\Lang;
 use Utils\Util;
 use Core\Core;
 use Utils\VoteProtection;
+use Guestbook\Entities\GuestbookManager;
+use Guestbook\Entities\GuestbookEntry;
 
 /**
  * @copyright (C) 2024, 299Ko

@@ -1,5 +1,3 @@
-@layer evo-plugins {
-
 .dons-progress {
     margin: 2rem 0;
     padding: 1.5rem;
@@ -66,7 +64,4 @@
 
 .stripe-btn:hover {
     background: #4e46e5;
-}
-
-
 }

@@ -46,6 +46,9 @@ function donsEndFrontHead()
  */
 function donsNavigation($tree)
 {
+    if (!is_object($tree) || !method_exists($tree, 'addItem')) {
+        return;
+    }
     $tree->addItem(\Core\Navigation\NavigationItem::fromArray([
         'id' => 'plugin.dons.home',
         'parentId' => null,

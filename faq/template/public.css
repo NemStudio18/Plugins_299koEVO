@@ -1,5 +1,3 @@
-@layer evo-plugins {
-
 /* FAQ Plugin - Styles unifiés 299koEVO */
 
 .faq-categories {
@@ -141,7 +139,4 @@
     .faq-captcha {
         width: 100%;
     }
-}
-
-
 }

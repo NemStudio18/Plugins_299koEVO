@@ -27,7 +27,21 @@ class PointsService
     
     private function initTables()
     {
-        // Table des transactions de points
+        $driver = method_exists($this->db, 'getDriverName') ? $this->db->getDriverName() : 'mysql';
+        if ($driver === 'sqlite') {
+            $this->db->query("CREATE TABLE IF NOT EXISTS gamification_points (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                points INTEGER NOT NULL,
+                reason TEXT NOT NULL,
+                meta_data TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )");
+            $this->db->query("CREATE INDEX IF NOT EXISTS idx_gamification_user ON gamification_points(user_id)");
+            return;
+        }
+
+        // Table des transactions de points (MySQL)
         $sql = "CREATE TABLE IF NOT EXISTS gamification_points (
             id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT NOT NULL,

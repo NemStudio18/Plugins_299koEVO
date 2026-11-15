@@ -1,5 +1,3 @@
-@layer evo-plugins {
-
 /**
  * Statistiques Publiques - Styles unifiés 299koEVO
  */
@@ -370,7 +368,4 @@
     .stats-cta .button {
         width: 100%;
     }
-}
-
-
 }

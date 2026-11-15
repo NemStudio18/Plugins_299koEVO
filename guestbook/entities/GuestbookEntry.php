@@ -14,6 +14,8 @@ defined('ROOT') OR exit('No direct script access allowed');
 
 class GuestbookEntry extends JsonActiveRecord
 {
+    protected static string $filePath = DATA_PLUGIN . 'guestbook/entries.json';
+    protected static string $tableName = 'guestbook';
     protected static string $table = 'guestbook';
     protected static string $primaryKey = 'id';
     

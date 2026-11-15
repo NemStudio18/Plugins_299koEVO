@@ -1,5 +1,3 @@
-@layer evo-plugins {
-
 /* PWA Install Banner Styles */
 .pwa-install-banner {
     position: fixed;
@@ -84,6 +82,4 @@
         width: 100%;
         justify-content: flex-end;
     }
-}
-
 }

@@ -148,8 +148,10 @@ class PellEditorController
             }
         }
 
-        header('Content-Type: application/json');
-        echo json_encode($images);
-        exit;
+        $resp = new \Core\Responses\ApiResponse();
+        $resp->status = \Core\Responses\ApiResponse::STATUS_SUCCESS;
+        $resp->httpCode = 200;
+        $resp->body = $images;
+        return $resp;
     }
 }

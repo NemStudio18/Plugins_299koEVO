@@ -1,5 +1,3 @@
-@layer evo-plugins {
-
 /**
  * Forum Plugin - Styles Publics (299koEVO)
  * Utilise exclusivement les tokens --evo-* du socle commun (compatible Light/Dark + Mobile).
@@ -569,7 +567,4 @@
     .forum-col-main {
         padding: 0.85rem 1rem;
     }
-}
-
-
 }

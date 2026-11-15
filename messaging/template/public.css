@@ -1,5 +1,3 @@
-@layer evo-plugins {
-
 /**
  * Messaging Plugin - Public Styles
  * Uses 299koEVO theme variables (--evo-*) with fallbacks.
@@ -222,7 +220,4 @@
 
 .messaging-read__text {
     margin-bottom: 1rem;
-}
-
-
 }

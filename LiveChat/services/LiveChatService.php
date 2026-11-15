@@ -345,7 +345,7 @@ class LiveChatService
         $webhookUrl = trim($this->config['discord_webhook'] ?? '');
         if (empty($webhookUrl)) {
             // Vérifier aussi dans config_pro_chat.json si présent
-            $proConfig = ROOT . 'data/config_pro_chat.json';
+            $proConfig = DATA_PLUGIN . 'LiveChat/config_pro_chat.json';
             if (file_exists($proConfig)) {
                 $p = json_decode(file_get_contents($proConfig), true);
                 $webhookUrl = trim($p['discord_webhook'] ?? '');

@@ -15,7 +15,7 @@ $router->map("GET|HEAD", "/rdv/[*:slug]", "ProRdv\\Controllers\\PublicRdvControl
 
 // --- Routes Espace Pro / Commerçants ---
 $router->map("GET|HEAD", "/pro/rdv[/?]", "ProRdv\\Controllers\\ProRdvController#index", "rdv-pro-index");
-$router->map("GET|POST", "/pro/rdv/activate", "ProRdv\\Controllers\\ProRdvController#activate", "rdv-pro-activate");
+$router->map("POST", "/pro/rdv/activate", "ProRdv\\Controllers\\ProRdvController#activate", "rdv-pro-activate");
 $router->map("POST", "/pro/rdv/action", "ProRdv\\Controllers\\ProRdvController#action", "rdv-pro-action");
 $router->map("GET|POST", "/pro/rdv/config", "ProRdv\\Controllers\\ProRdvController#config", "rdv-pro-config");
 

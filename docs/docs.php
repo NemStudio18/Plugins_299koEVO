@@ -21,6 +21,7 @@ require_once PLUGINS . 'docs/entities/WikiCategoriesManager.php';
 require_once PLUGINS . 'docs/entities/WikiCategory.php';
 require_once PLUGINS . 'docs/entities/WikiPageHistory.php';
 require_once PLUGINS . 'docs/entities/WikiHistoryManager.php';
+require_once PLUGINS . 'docs/entities/WikiActivity.php';
 require_once PLUGINS . 'docs/entities/WikiActivityManager.php';
 
 /**

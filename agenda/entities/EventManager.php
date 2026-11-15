@@ -90,6 +90,38 @@ class EventManager
         return null;
     }
 
+    public function findById($id): ?Event
+    {
+        return $this->getById($id);
+    }
+
+    /**
+     * Retourne les événements futurs approuvés/publiés triés par date de début croissante.
+     *
+     * @return Event[]
+     */
+    public function findFutureEvents(?string $fromDate = null): array
+    {
+        $minDate = $fromDate ?: date('Y-m-d');
+        $events = array_filter(
+            $this->getAll(true, false),
+            static function (Event $event) use ($minDate): bool {
+                $status = strtolower((string) $event->getStatus());
+                if ($status !== '' && !in_array($status, ['approved', 'published'], true)) {
+                    return false;
+                }
+                return (string) $event->getStartDate() >= $minDate;
+            }
+        );
+
+        usort(
+            $events,
+            static fn(Event $a, Event $b): int => strcmp((string) $a->getStartDate(), (string) $b->getStartDate())
+        );
+
+        return array_values($events);
+    }
+
     public function getByDateRange(string $start, string $end): array
     {
         return Event::query()

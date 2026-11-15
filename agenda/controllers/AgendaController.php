@@ -619,7 +619,8 @@ class AgendaController extends PublicController
     public function exportIcal($id)
     {
         $event = $this->eventManager->findById((int)$id);
-        if (!$event || $event->getStatus() !== 'published') {
+        $status = $event ? strtolower((string) $event->getStatus()) : '';
+        if (!$event || ($status !== '' && !in_array($status, ['approved', 'published'], true))) {
             Show::msg('Événement non trouvé ou non publié.', 'error');
             return $this->core->redirect('/agenda');
         }
@@ -627,10 +628,11 @@ class AgendaController extends PublicController
         $ics = $this->buildIcal([$event], $event->getTitle());
         $filename = 'evenement-' . $event->getId() . '.ics';
 
-        header('Content-Type: text/calendar; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        echo $ics;
-        exit;
+        $response = new \Core\Responses\StringResponse();
+        $response->setContent($ics)
+            ->setContentType('text/calendar; charset=utf-8')
+            ->addHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        return $response;
     }
 
     /**
@@ -646,10 +648,11 @@ class AgendaController extends PublicController
         $ics = $this->buildIcal($events, 'Agenda ' . $siteName);
         $filename = 'agenda-' . date('Y-m-d') . '.ics';
 
-        header('Content-Type: text/calendar; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        echo $ics;
-        exit;
+        $response = new \Core\Responses\StringResponse();
+        $response->setContent($ics)
+            ->setContentType('text/calendar; charset=utf-8')
+            ->addHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        return $response;
     }
 
     private function buildIcal(array $events, string $calName): string

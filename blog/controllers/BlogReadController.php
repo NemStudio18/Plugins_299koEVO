@@ -219,7 +219,7 @@ class BlogReadController extends PublicController
         $this->core->addMeta('<meta property="og:site_name" content="' . htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8') . '" />');
 
         // Facebook App ID si configuré
-        $authConfFile = ROOT . 'data' . DIRECTORY_SEPARATOR . 'plugin' . DIRECTORY_SEPARATOR . 'auth' . DIRECTORY_SEPARATOR . 'auth_conf.json';
+        $authConfFile = DATA_PLUGIN . 'auth' . DIRECTORY_SEPARATOR . 'auth_conf.json';
         if (file_exists($authConfFile)) {
             $authConf = json_decode(@file_get_contents($authConfFile), true);
             if (!empty($authConf['facebook_app_id'])) {
@@ -396,8 +396,11 @@ class BlogReadController extends PublicController
     public function rss()
     {
         $newsManager = new NewsManager();
-        echo $newsManager->rss();
-        die();
+        $xml = $newsManager->rss();
+        $response = new \Core\Responses\StringResponse();
+        $response->setContent($xml);
+        $response->setContentType('application/rss+xml; charset=utf-8');
+        return $response;
     }
 
     protected function generateCategoriesSidebar()
