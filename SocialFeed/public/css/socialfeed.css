@@ -692,7 +692,7 @@
 }
 
 .dropdown-menu.show {
-    display: block;
+    display: block !important;
     animation: sfFadeIn 0.15s ease-out;
 }
 

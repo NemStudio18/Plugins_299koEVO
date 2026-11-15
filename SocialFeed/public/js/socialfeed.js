@@ -217,42 +217,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. FERMETURE AU CLIC EXTÉRIEUR (DROPDOWNS, EMOJIS, GIFS)
+    // 4. GESTION DES MENUS DROPDOWN & TIROIRS
     document.addEventListener('click', (e) => {
-        // Dropdown menus
-        const isDropdownBtn = e.target.closest('.btn-post-options');
+        const btnOptions = e.target.closest('.btn-post-options');
         const isInsideDropdown = e.target.closest('.dropdown-menu');
-        if (!isDropdownBtn && !isInsideDropdown) {
+
+        // Clic sur le bouton 3-points (...)
+        if (btnOptions) {
+            e.preventDefault();
+            const menu = btnOptions.parentElement ? btnOptions.parentElement.querySelector('.dropdown-menu') : null;
+            if (menu) {
+                const isOpen = menu.classList.contains('show');
+                document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+                if (!isOpen) {
+                    menu.classList.add('show');
+                }
+            }
+            return;
+        }
+
+        // Clic en dehors du menu déroulant : fermer
+        if (!isInsideDropdown) {
             document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
         }
 
-        // Drawers
+        // Tiroir Emojis
         const isEmojiToggle = e.target.closest('#btn-toggle-emoji');
         const isInsideEmoji = e.target.closest('#emoji-drawer');
         if (!isEmojiToggle && !isInsideEmoji && emojiDrawer) {
             emojiDrawer.style.display = 'none';
         }
 
+        // Tiroir GIFs
         const isGifToggle = e.target.closest('#btn-toggle-gif');
         const isInsideGif = e.target.closest('#gif-drawer');
         if (!isGifToggle && !isInsideGif && gifDrawer) {
             gifDrawer.style.display = 'none';
-        }
-    });
-
-    // Toggle dropdown 3-points
-    document.addEventListener('click', (e) => {
-        const btnOptions = e.target.closest('.btn-post-options');
-        if (btnOptions) {
-            e.stopPropagation();
-            const menu = btnOptions.nextElementSibling;
-            if (menu) {
-                // Fermer les autres d'abord
-                document.querySelectorAll('.dropdown-menu.show').forEach(m => {
-                    if (m !== menu) m.classList.remove('show');
-                });
-                menu.classList.toggle('show');
-            }
         }
     });
 

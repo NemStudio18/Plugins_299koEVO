@@ -56,11 +56,11 @@ if (!function_exists('formatSocialText')) {
                     ?>
                     <?php if ($canDelete): ?>
                         <div class="card-options dropdown">
-                            <button class="btn-icon btn-post-options" title="Options" onclick="this.nextElementSibling.classList.toggle('show')">
+                            <button type="button" class="btn-icon btn-post-options" title="Options">
                                 <i class="fa-solid fa-ellipsis"></i>
                             </button>
                             <div class="dropdown-menu">
-                                <button class="dropdown-item text-danger btn-delete-post" data-post-id="<?= (int)$item['id'] ?>">
+                                <button type="button" class="dropdown-item text-danger btn-delete-post" data-post-id="<?= (int)$item['id'] ?>">
                                     <i class="fa-solid fa-trash"></i> Supprimer
                                 </button>
                             </div>
