@@ -44,11 +44,45 @@ class SocialFeed extends Plugin {
                     shares_count INTEGER DEFAULT 0,
                     comments_count INTEGER DEFAULT 0,
                     status TEXT DEFAULT 'published',
+                    group_id INTEGER NULL,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )",
                 "CREATE INDEX IF NOT EXISTS idx_social_posts_user_date ON social_posts(user_id, created_at)",
                 "CREATE INDEX IF NOT EXISTS idx_social_posts_feed_status ON social_posts(status, created_at)",
+                "CREATE INDEX IF NOT EXISTS idx_social_posts_group_id ON social_posts(group_id)",
+
+                "CREATE TABLE IF NOT EXISTS social_groups (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    type TEXT NOT NULL DEFAULT 'group',
+                    slug TEXT NOT NULL UNIQUE,
+                    name TEXT NOT NULL,
+                    description TEXT NULL,
+                    category TEXT NULL,
+                    avatar TEXT NULL,
+                    cover_image TEXT NULL,
+                    visibility TEXT NOT NULL DEFAULT 'public',
+                    owner_id INTEGER NOT NULL,
+                    members_count INTEGER DEFAULT 1,
+                    posts_count INTEGER DEFAULT 0,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )",
+                "CREATE INDEX IF NOT EXISTS idx_social_groups_slug ON social_groups(slug)",
+                "CREATE INDEX IF NOT EXISTS idx_social_groups_type ON social_groups(type)",
+                "CREATE INDEX IF NOT EXISTS idx_social_groups_owner ON social_groups(owner_id)",
+
+                "CREATE TABLE IF NOT EXISTS social_group_members (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    group_id INTEGER NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    role TEXT NOT NULL DEFAULT 'member',
+                    status TEXT NOT NULL DEFAULT 'active',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(group_id, user_id)
+                )",
+                "CREATE INDEX IF NOT EXISTS idx_social_group_members_user ON social_group_members(user_id)",
+                "CREATE INDEX IF NOT EXISTS idx_social_group_members_group ON social_group_members(group_id)",
 
                 "CREATE TABLE IF NOT EXISTS social_likes (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -109,10 +143,44 @@ class SocialFeed extends Plugin {
                 shares_count INT DEFAULT 0,
                 comments_count INT DEFAULT 0,
                 status VARCHAR(20) DEFAULT 'published',
+                group_id BIGINT UNSIGNED NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 INDEX idx_user_date (user_id, created_at),
-                INDEX idx_feed_status (status, created_at)
+                INDEX idx_feed_status (status, created_at),
+                INDEX idx_group_id (group_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+            "CREATE TABLE IF NOT EXISTS social_groups (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                type VARCHAR(20) NOT NULL DEFAULT 'group',
+                slug VARCHAR(100) NOT NULL UNIQUE,
+                name VARCHAR(150) NOT NULL,
+                description TEXT NULL,
+                category VARCHAR(80) NULL,
+                avatar VARCHAR(500) NULL,
+                cover_image VARCHAR(500) NULL,
+                visibility VARCHAR(20) NOT NULL DEFAULT 'public',
+                owner_id INT NOT NULL,
+                members_count INT DEFAULT 1,
+                posts_count INT DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_slug (slug),
+                INDEX idx_type (type),
+                INDEX idx_owner (owner_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+            "CREATE TABLE IF NOT EXISTS social_group_members (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                group_id BIGINT UNSIGNED NOT NULL,
+                user_id INT NOT NULL,
+                role VARCHAR(20) NOT NULL DEFAULT 'member',
+                status VARCHAR(20) NOT NULL DEFAULT 'active',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_group_user (group_id, user_id),
+                INDEX idx_user (user_id),
+                INDEX idx_group (group_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 
             "CREATE TABLE IF NOT EXISTS social_likes (
