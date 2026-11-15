@@ -24,6 +24,58 @@ document.addEventListener('DOMContentLoaded', () => {
     const gifDrawer = document.getElementById('gif-drawer');
     const btnCloseGif = document.getElementById('btn-close-gif');
 
+    // COMPOSER REPLIABLE (EXPAND ON CLICK / FOCUS - MASQUE BIU ET OUTILS PAR DÉFAUT)
+    const publishCard = document.getElementById('social-publish-card');
+
+    function expandComposer() {
+        if (publishCard && publishCard.classList.contains('is-collapsed')) {
+            publishCard.classList.remove('is-collapsed');
+            publishCard.classList.add('is-expanded');
+            if (postTextarea) {
+                postTextarea.style.height = 'auto';
+                postTextarea.style.height = Math.max(90, postTextarea.scrollHeight) + 'px';
+            }
+        }
+    }
+
+    function collapseComposerIfEmpty() {
+        if (!publishCard || !publishCard.classList.contains('is-expanded')) return;
+        const hasText = postTextarea && postTextarea.value.trim().length > 0;
+        const hasFile = mediaFileInput && mediaFileInput.files && mediaFileInput.files.length > 0;
+        const hasUrl = mediaUrlInput && mediaUrlInput.value.trim().length > 0;
+        const isEmojiOpen = emojiDrawer && emojiDrawer.style.display !== 'none';
+        const isGifOpen = gifDrawer && gifDrawer.style.display !== 'none';
+
+        if (!hasText && !hasFile && !hasUrl && !isEmojiOpen && !isGifOpen) {
+            publishCard.classList.remove('is-expanded');
+            publishCard.classList.add('is-collapsed');
+            if (postTextarea) {
+                postTextarea.style.height = '';
+            }
+        }
+    }
+
+    if (postTextarea) {
+        postTextarea.addEventListener('focus', expandComposer);
+        postTextarea.addEventListener('click', expandComposer);
+    }
+    if (publishCard) {
+        publishCard.addEventListener('click', (e) => {
+            if (e.target.closest('.social-publish-form') || e.target.closest('.publish-header-user')) {
+                expandComposer();
+            }
+        });
+    }
+
+    // Clic en dehors du compositeur : replier si vide
+    document.addEventListener('click', (e) => {
+        if (publishCard && !publishCard.contains(e.target)) {
+            const camModal = document.getElementById('camera-recorder-modal');
+            if (camModal && camModal.style.display !== 'none') return;
+            collapseComposerIfEmpty();
+        }
+    });
+
     // 1. TEXTAREA AUTO-EXPAND (Comme X / Facebook)
     if (postTextarea) {
         postTextarea.addEventListener('input', () => {
@@ -213,6 +265,182 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (mediaPreviewVideo) mediaPreviewVideo.style.display = 'none';
                 }
                 mediaPreview.style.display = 'block';
+            }
+        });
+    }
+
+    // 3B. ENREGISTREUR CAMÉRA & RÉELS VIDÉO EN DIRECT
+    const btnCameraRecord = document.getElementById('btn-camera-record');
+    const cameraModal = document.getElementById('camera-recorder-modal');
+    const btnCloseCamera = document.getElementById('btn-close-camera');
+    const streamVideo = document.getElementById('camera-stream-video');
+    const recordedVideo = document.getElementById('camera-recorded-video');
+    const recordingStatus = document.getElementById('camera-recording-status');
+    const recordTimer = document.getElementById('camera-record-timer');
+    const controlsIdle = document.getElementById('camera-controls-idle');
+    const controlsRecording = document.getElementById('camera-controls-recording');
+    const controlsPreview = document.getElementById('camera-controls-preview');
+    const btnStartRecord = document.getElementById('btn-start-record');
+    const btnStopRecord = document.getElementById('btn-stop-record');
+    const btnRetryRecord = document.getElementById('btn-retry-record');
+    const btnUseRecordedVideo = document.getElementById('btn-use-recorded-video');
+    const mobileVideoCapture = document.getElementById('mobile-video-capture');
+
+    let cameraStream = null;
+    let cameraRecorder = null;
+    let recordedChunks = [];
+    let recordTimerInterval = null;
+    let recordSeconds = 0;
+    let recordedBlob = null;
+
+    function formatRecordTime(sec) {
+        const m = Math.floor(sec / 60).toString().padStart(2, '0');
+        const s = (sec % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    async function openCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            if (mobileVideoCapture) mobileVideoCapture.click();
+            return;
+        }
+
+        try {
+            cameraStream = await navigator.mediaDevices.getUserMedia({
+                video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+                audio: true
+            });
+            if (streamVideo) {
+                streamVideo.srcObject = cameraStream;
+                streamVideo.style.display = 'block';
+            }
+            if (recordedVideo) {
+                recordedVideo.style.display = 'none';
+                recordedVideo.src = '';
+            }
+            if (recordingStatus) recordingStatus.style.display = 'none';
+            if (controlsIdle) controlsIdle.style.display = 'flex';
+            if (controlsRecording) controlsRecording.style.display = 'none';
+            if (controlsPreview) controlsPreview.style.display = 'none';
+            if (cameraModal) cameraModal.style.display = 'flex';
+        } catch (err) {
+            console.warn('Accès caméra refusé ou indisponible, fallback mobile:', err);
+            if (mobileVideoCapture) mobileVideoCapture.click();
+        }
+    }
+
+    function startCameraRecording() {
+        if (!cameraStream) return;
+        recordedChunks = [];
+        let mimeType = 'video/webm;codecs=vp8,opus';
+        if (!window.MediaRecorder || !MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = '';
+        }
+
+        const options = mimeType ? { mimeType } : {};
+        try {
+            cameraRecorder = new MediaRecorder(cameraStream, options);
+        } catch (e) {
+            cameraRecorder = new MediaRecorder(cameraStream);
+        }
+
+        cameraRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+                recordedChunks.push(e.data);
+            }
+        };
+
+        cameraRecorder.onstop = () => {
+            recordedBlob = new Blob(recordedChunks, { type: cameraRecorder.mimeType || 'video/webm' });
+            if (streamVideo) streamVideo.style.display = 'none';
+            if (recordedVideo) {
+                recordedVideo.src = URL.createObjectURL(recordedBlob);
+                recordedVideo.style.display = 'block';
+                recordedVideo.play().catch(() => {});
+            }
+            if (controlsRecording) controlsRecording.style.display = 'none';
+            if (controlsPreview) controlsPreview.style.display = 'flex';
+            if (recordingStatus) recordingStatus.style.display = 'none';
+        };
+
+        cameraRecorder.start(100);
+        if (controlsIdle) controlsIdle.style.display = 'none';
+        if (controlsRecording) controlsRecording.style.display = 'flex';
+        if (recordingStatus) recordingStatus.style.display = 'flex';
+
+        recordSeconds = 0;
+        if (recordTimer) recordTimer.textContent = '00:00';
+        clearInterval(recordTimerInterval);
+        recordTimerInterval = setInterval(() => {
+            recordSeconds++;
+            if (recordTimer) recordTimer.textContent = formatRecordTime(recordSeconds);
+        }, 1000);
+    }
+
+    function stopCameraRecording() {
+        if (cameraRecorder && cameraRecorder.state !== 'inactive') {
+            cameraRecorder.stop();
+        }
+        clearInterval(recordTimerInterval);
+    }
+
+    function closeCameraModal() {
+        if (cameraRecorder && cameraRecorder.state !== 'inactive') {
+            cameraRecorder.stop();
+        }
+        clearInterval(recordTimerInterval);
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(t => t.stop());
+            cameraStream = null;
+        }
+        if (cameraModal) cameraModal.style.display = 'none';
+    }
+
+    function applyRecordedVideo() {
+        if (!recordedBlob) return;
+        const ext = recordedBlob.type.includes('mp4') ? 'mp4' : 'webm';
+        const file = new File([recordedBlob], `video_reel_${Date.now()}.${ext}`, {
+            type: recordedBlob.type || 'video/webm'
+        });
+
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        if (mediaFileInput) mediaFileInput.files = dt.files;
+
+        if (mediaPreviewVideo) {
+            mediaPreviewVideo.src = URL.createObjectURL(file);
+            mediaPreviewVideo.style.display = 'block';
+            if (mediaPreviewImg) mediaPreviewImg.style.display = 'none';
+        }
+        if (mediaPreview) mediaPreview.style.display = 'block';
+
+        expandComposer();
+        if (postTextarea) postTextarea.focus();
+        closeCameraModal();
+    }
+
+    if (btnCameraRecord) btnCameraRecord.addEventListener('click', openCamera);
+    if (btnCloseCamera) btnCloseCamera.addEventListener('click', closeCameraModal);
+    if (btnStartRecord) btnStartRecord.addEventListener('click', startCameraRecording);
+    if (btnStopRecord) btnStopRecord.addEventListener('click', stopCameraRecording);
+    if (btnRetryRecord) btnRetryRecord.addEventListener('click', openCamera);
+    if (btnUseRecordedVideo) btnUseRecordedVideo.addEventListener('click', applyRecordedVideo);
+
+    if (mobileVideoCapture) {
+        mobileVideoCapture.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                if (mediaFileInput) mediaFileInput.files = dt.files;
+                if (mediaPreviewVideo) {
+                    mediaPreviewVideo.src = URL.createObjectURL(file);
+                    mediaPreviewVideo.style.display = 'block';
+                    if (mediaPreviewImg) mediaPreviewImg.style.display = 'none';
+                }
+                if (mediaPreview) mediaPreview.style.display = 'block';
+                expandComposer();
+                if (postTextarea) postTextarea.focus();
             }
         });
     }

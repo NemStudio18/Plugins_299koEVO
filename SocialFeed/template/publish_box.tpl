@@ -1,4 +1,4 @@
-<div class="social-publish-card">
+<div class="social-publish-card is-collapsed" id="social-publish-card">
     <?php if (!empty($currentUser)): ?>
         <?php 
             $userEmail = $currentUser->email ?? '';
@@ -16,7 +16,7 @@
         <form id="social-publish-form" action="/social/publish" method="POST" enctype="multipart/form-data" class="social-publish-form">
             <input type="hidden" name="token" value="<?= htmlspecialchars($csrfToken ?? '') ?>" />
 
-            <!-- BARRE DE FORMATAGE RAPIDE (GRAS, ITALIQUE, SOULIGNÉ) -->
+            <!-- BARRE DE FORMATAGE RAPIDE (GRAS, ITALIQUE, SOULIGNÉ) : Masquée si non replié -->
             <div class="publish-format-bar">
                 <button type="button" class="btn-format" data-format="bold" title="Gras (**texte**)"><strong>B</strong></button>
                 <button type="button" class="btn-format" data-format="italic" title="Italique (*texte*)"><em>I</em></button>
@@ -24,7 +24,7 @@
             </div>
 
             <div class="publish-body">
-                <textarea name="content" id="social-post-content" rows="3" placeholder="Quoi de neuf ? Exprimez-vous..." required></textarea>
+                <textarea name="content" id="social-post-content" rows="1" placeholder="Quoi de neuf ? Exprimez-vous..." required></textarea>
             </div>
 
             <!-- PRÉVISUALISATION MÉDIA (IMAGE OU VIDÉO / REEL) -->
@@ -80,15 +80,22 @@
                 </div>
             </div>
 
-            <!-- BARRE D'OUTILS ET PUBLICATION -->
+            <!-- BARRE D'OUTILS ET PUBLICATION : Masquée tant qu'on n'a pas cliqué sur le champ -->
             <div class="publish-footer">
                 <div class="publish-tools">
-                    <!-- Photo / Vidéo File -->
-                    <label class="btn-tool" title="Ajouter une photo ou vidéo">
+                    <!-- Photo / Vidéo Fichier -->
+                    <label class="btn-tool" title="Importer une photo ou vidéo">
                         <i class="fa-solid fa-photo-film text-emerald"></i>
                         <span>Photo/Vidéo</span>
                         <input type="file" name="media_file" id="media-file-input" accept="image/*,video/mp4,video/webm" style="display: none;" />
                     </label>
+
+                    <!-- Filmer en direct (Webcam / Caméra Smartphone) -->
+                    <button type="button" class="btn-tool btn-tool-camera" id="btn-camera-record" title="Filmer directement depuis la caméra">
+                        <i class="fa-solid fa-video text-rose"></i>
+                        <span>Filmer</span>
+                    </button>
+                    <input type="file" id="mobile-video-capture" accept="video/*" capture="user" style="display: none;" />
 
                     <!-- Emojis Picker -->
                     <button type="button" class="btn-tool" id="btn-toggle-emoji" title="Ajouter un emoji">
@@ -119,6 +126,52 @@
                 <input type="url" name="media_url" id="media-url-input" placeholder="Coller le lien d'une vidéo (YouTube, TikTok, MP4) ou image externe..." />
             </div>
         </form>
+
+        <!-- MODALE CAMERA RECORD (FILMER EN DIRECT) -->
+        <div id="camera-recorder-modal" class="sf-modal-overlay" style="display: none;">
+            <div class="sf-modal-card camera-recorder-card">
+                <div class="sf-modal-header">
+                    <h4><i class="fa-solid fa-video text-rose"></i> Filmer un Réel / Vidéo</h4>
+                    <button type="button" class="btn-close-modal" id="btn-close-camera">&times;</button>
+                </div>
+
+                <div class="camera-viewport-wrap">
+                    <video id="camera-stream-video" autoplay playsinline muted></video>
+                    <video id="camera-recorded-video" controls playsinline style="display: none;"></video>
+
+                    <div id="camera-recording-status" class="recording-badge" style="display: none;">
+                        <span class="recording-dot"></span>
+                        <span id="camera-record-timer">00:00</span>
+                    </div>
+                </div>
+
+                <div class="camera-controls-bar">
+                    <div id="camera-controls-idle" class="controls-group">
+                        <button type="button" class="btn-record-action btn-start-rec" id="btn-start-record">
+                            <span class="record-circle"></span>
+                            <span>Démarrer l'enregistrement</span>
+                        </button>
+                    </div>
+
+                    <div id="camera-controls-recording" class="controls-group" style="display: none;">
+                        <button type="button" class="btn-record-action btn-stop-rec" id="btn-stop-record">
+                            <span class="stop-square"></span>
+                            <span>Arrêter l'enregistrement</span>
+                        </button>
+                    </div>
+
+                    <div id="camera-controls-preview" class="controls-group" style="display: none;">
+                        <button type="button" class="btn-camera-opt btn-rec-retry" id="btn-retry-record">
+                            <i class="fa-solid fa-rotate-left"></i> Recommencer
+                        </button>
+                        <button type="button" class="btn-camera-opt btn-rec-use" id="btn-use-recorded-video">
+                            <i class="fa-solid fa-check"></i> Valider et utiliser cette vidéo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     <?php else: ?>
         <div class="social-login-callout">
             <div class="callout-icon">
