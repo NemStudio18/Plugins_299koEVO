@@ -341,7 +341,7 @@
 }
 
 .bug-comment-admin {
-    background: var(--evo-accent-soft, var(--evo-primary-soft, rgba(59, 130, 246, 0.1));
+    background: var(--evo-accent-soft, var(--evo-primary-soft, rgba(59, 130, 246, 0.1)));
     border-left-color: var(--evo-accent, var(--evo-primary, #3b82f6));
 }
 
