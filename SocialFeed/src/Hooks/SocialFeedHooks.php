@@ -6,6 +6,18 @@ use SocialFeed\Services\SocialFeedService;
 class SocialFeedHooks {
 
     /**
+     * Injecte les assets CSS et JS dans le <head> sur toutes les pages sociales et profils
+     */
+    public static function onEndFrontHead(): string {
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        if (strpos($uri, '/social') === 0 || strpos($uri, '/profile') === 0) {
+            return '<link rel="stylesheet" href="/plugin/SocialFeed/public/css/socialfeed.css?v=6" />' . "\n" .
+                   '<script src="/plugin/SocialFeed/public/js/socialfeed.js?v=6" defer></script>' . "\n";
+        }
+        return '';
+    }
+
+    /**
      * Ajoute les liens vers le Hub Social et le Profil membre dans la navigation principale
      */
     public static function onEndMainNavigation(): string {

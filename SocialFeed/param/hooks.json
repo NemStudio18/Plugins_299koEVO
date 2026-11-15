@@ -1,4 +1,5 @@
 {
+    "endFrontHead": "SocialFeed\\Hooks\\SocialFeedHooks::onEndFrontHead",
     "endMainNavigation": "SocialFeed\\Hooks\\SocialFeedHooks::onEndMainNavigation",
     "user:after-delete": "SocialFeed\\Hooks\\SocialFeedHooks::onUserDeleted",
     "user:profile-tabs": "SocialFeed\\Hooks\\SocialFeedHooks::userProfileTabs",
