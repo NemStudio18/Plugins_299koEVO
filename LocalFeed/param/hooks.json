@@ -1,0 +1,4 @@
+{
+    "endMainNavigation": "LocalFeed\\Hooks\\LocalFeedHooks::onEndMainNavigation",
+    "poi:after-delete": "LocalFeed\\Hooks\\LocalFeedHooks::onPoiDeleted"
+}
