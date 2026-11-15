@@ -303,16 +303,127 @@ class BlockManager
     public function getAvailableBlockTypes()
     {
         return [
-            'text' => 'Texte simple',
-            'button' => 'Bouton',
-            'table' => 'Tableau',
-            'form' => 'Formulaire',
-            'image' => 'Image',
-            'html' => 'HTML personnalisé',
-            'container' => 'Conteneur',
-            'latest_articles' => 'Derniers articles',
+            'hero' => 'Bannière Hero',
+            'text' => 'Texte & Titre',
+            'columns' => 'Grille d\'avantages',
+            'button' => 'Bouton d\'action (CTA)',
+            'latest_articles' => 'Derniers articles (Blog)',
+            'searchmaps_map' => 'Carte interactive (Commerces & Lieux)',
+            'prordv_cta' => 'Prise de rendez-vous (ProRdv)',
             'latest_sondages' => 'Sondages actifs',
-            'guestbook_cta' => 'Bouton livre d\'or'
+            'guestbook_cta' => 'Livre d\'or & Avis',
+            'image' => 'Image / Visuel',
+            'form' => 'Formulaire de contact',
+            'table' => 'Tableau de données',
+            'html' => 'Code HTML personnalisé',
+            'container' => 'Conteneur'
+        ];
+    }
+
+    /**
+     * Métadonnées riches pour l'interface visuelle (icône, couleur, catégorie, description)
+     */
+    public function getBlockTypeMeta(): array
+    {
+        return [
+            'hero' => [
+                'label' => 'Bannière Hero',
+                'icon' => 'fa-solid fa-wand-magic-sparkles',
+                'color' => '#8b5cf6',
+                'category' => 'Présentation',
+                'desc' => 'Grand titre percutant, sous-titre, image d\'accroche et boutons d\'action.'
+            ],
+            'text' => [
+                'label' => 'Texte & Titre',
+                'icon' => 'fa-solid fa-align-left',
+                'color' => '#0ea5e9',
+                'category' => 'Contenu',
+                'desc' => 'Paragraphes rédigés, sous-titres de section et listes à puces.'
+            ],
+            'columns' => [
+                'label' => 'Grille d\'avantages',
+                'icon' => 'fa-solid fa-table-columns',
+                'color' => '#3b82f6',
+                'category' => 'Présentation',
+                'desc' => 'Présentation en 3 ou 4 colonnes avec icônes, titres et descriptions.'
+            ],
+            'button' => [
+                'label' => 'Bouton d\'action (CTA)',
+                'icon' => 'fa-solid fa-arrow-pointer',
+                'color' => '#ec4899',
+                'category' => 'Conversion',
+                'desc' => 'Bouton cliquable mis en valeur menant vers une offre ou inscription.'
+            ],
+            'latest_articles' => [
+                'label' => 'Derniers articles (Blog)',
+                'icon' => 'fa-solid fa-newspaper',
+                'color' => '#0284c7',
+                'category' => 'Modules',
+                'desc' => 'Affiche automatiquement les publications récentes du module Blog.'
+            ],
+            'searchmaps_map' => [
+                'label' => 'Carte interactive (Lieux)',
+                'icon' => 'fa-solid fa-map-location-dot',
+                'color' => '#10b981',
+                'category' => 'Modules',
+                'desc' => 'Aperçu ou intégration de la carte interactive des établissements.'
+            ],
+            'prordv_cta' => [
+                'label' => 'Réservation RDV Pro',
+                'icon' => 'fa-solid fa-calendar-check',
+                'color' => '#f59e0b',
+                'category' => 'Modules',
+                'desc' => 'Bannière invitant les visiteurs à réserver un rendez-vous en direct.'
+            ],
+            'latest_sondages' => [
+                'label' => 'Sondage en cours',
+                'icon' => 'fa-solid fa-square-poll-vertical',
+                'color' => '#6366f1',
+                'category' => 'Modules',
+                'desc' => 'Affiche les sondages actifs pour recueillir l\'avis des visiteurs.'
+            ],
+            'guestbook_cta' => [
+                'label' => 'Livre d\'or & Avis',
+                'icon' => 'fa-solid fa-book-open',
+                'color' => '#eab308',
+                'category' => 'Modules',
+                'desc' => 'Bouton et message incitant les visiteurs à laisser un témoignage.'
+            ],
+            'image' => [
+                'label' => 'Image / Visuel',
+                'icon' => 'fa-regular fa-image',
+                'color' => '#14b8a6',
+                'category' => 'Médias',
+                'desc' => 'Photo ou illustration pleine largeur avec légende.'
+            ],
+            'form' => [
+                'label' => 'Formulaire',
+                'icon' => 'fa-solid fa-envelope',
+                'color' => '#059669',
+                'category' => 'Conversion',
+                'desc' => 'Formulaire simple pour collecter des messages ou des coordonnées.'
+            ],
+            'table' => [
+                'label' => 'Tableau de données',
+                'icon' => 'fa-solid fa-table',
+                'color' => '#64748b',
+                'category' => 'Contenu',
+                'desc' => 'Tableau comparatif ou grille tarifaire structurée.'
+            ],
+            'html' => [
+                'label' => 'Code HTML libre',
+                'icon' => 'fa-solid fa-code',
+                'color' => '#475569',
+                'category' => 'Avancé',
+                'desc' => 'Intégration de code HTML brut, widget externe ou iframe.'
+            ],
+            'container' => [
+                'label' => 'Conteneur',
+                'icon' => 'fa-solid fa-box',
+                'color' => '#6b7280',
+                'category' => 'Structure',
+                'desc' => 'Section regroupant plusieurs sous-blocs dans un même cadre.'
+            ]
         ];
     }
 

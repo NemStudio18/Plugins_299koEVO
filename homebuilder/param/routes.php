@@ -19,6 +19,7 @@ $router->map('GET', '/homebuilder[/?]', 'HomeBuilder\\Controllers\\HomeBuilderCo
 $router->map('GET', '/admin/homebuilder[/?]', 'HomeBuilder\\Controllers\\HomeBuilderAdminController#index', 'admin-homebuilder');
 $router->map('GET', '/admin/homebuilder/add[/?]', 'HomeBuilder\\Controllers\\HomeBuilderAdminController#add', 'admin-homebuilder-add');
 $router->map('GET', '/admin/homebuilder/edit/[*:id]', 'HomeBuilder\\Controllers\\HomeBuilderAdminController#edit', 'admin-homebuilder-edit');
+$router->map('POST', '/admin/homebuilder/toggle/[*:id]', 'HomeBuilder\\Controllers\\HomeBuilderAdminController#toggle', 'admin-homebuilder-toggle');
 $router->map('POST', '/admin/homebuilder/delete/[*:id]', 'HomeBuilder\\Controllers\\HomeBuilderAdminController#delete', 'admin-homebuilder-delete');
 $router->map('POST', '/admin/homebuilder/reorder', 'HomeBuilder\\Controllers\\HomeBuilderAdminController#reorder', 'admin-homebuilder-reorder');
 $router->map('POST', '/admin/homebuilder/add/send[/?]', 'HomeBuilder\\Controllers\\HomeBuilderAdminController#addSend', 'admin-homebuilder-add-send');

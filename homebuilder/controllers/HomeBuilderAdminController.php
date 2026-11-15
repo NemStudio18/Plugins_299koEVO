@@ -22,25 +22,72 @@ class HomeBuilderAdminController extends AdminController
     {
         $BlockManager = new BlockManager();
         $blocks = $BlockManager->getAllBlocks();
-        
-        // Préparer les données pour le template
+        $blockMeta = $BlockManager->getBlockTypeMeta();
         $blockTypes = $BlockManager->getAvailableBlockTypes();
         $blocksData = [];
         
+        $activeCount = 0;
         foreach ($blocks as $block) {
+            $type = $block->getType();
+            $meta = $blockMeta[$type] ?? [
+                'label' => $blockTypes[$type] ?? $type,
+                'icon' => 'fa-solid fa-cube',
+                'color' => '#64748b',
+                'category' => 'Autre',
+                'desc' => ''
+            ];
+            $isActive = $block->isActive();
+            if ($isActive) {
+                $activeCount++;
+            }
+
+            // Aperçu visuel intelligent selon le type
+            $preview = '';
+            $options = $block->getOptions();
+            if ($type === 'hero') {
+                $sub = !empty($options['subtitle']) ? $options['subtitle'] : $block->getContent();
+                $preview = $sub ? mb_substr(strip_tags((string)$sub), 0, 110) . '…' : 'Bannière d\'accroche principale';
+            } elseif ($type === 'latest_articles') {
+                $count = $options['count'] ?? 3;
+                $preview = "Flux dynamique des {$count} derniers articles publiés";
+            } elseif ($type === 'searchmaps_map') {
+                $preview = 'Carte interactive et mise en valeur des commerces locaux';
+            } elseif ($type === 'prordv_cta') {
+                $preview = 'Module de réservation en direct connecté à ProRdv';
+            } elseif ($type === 'button') {
+                $btnText = $options['button_text'] ?? 'Bouton d\'action';
+                $preview = "Bouton CTA : \"{$btnText}\"";
+            } elseif ($type === 'guestbook_cta') {
+                $btnText = $options['button_text'] ?? 'Signer le livre d\'or';
+                $preview = "Appel à signature : \"{$btnText}\"";
+            } elseif ($type === 'latest_sondages') {
+                $count = $options['count'] ?? 2;
+                $preview = "Affiche les {$count} sondages actifs";
+            } elseif ($type === 'columns') {
+                $colsCount = is_array($options['columns'] ?? null) ? count($options['columns']) : 0;
+                $preview = "Grille de {$colsCount} colonnes d'avantages";
+            } else {
+                $clean = trim(strip_tags((string)$block->getContent()));
+                $preview = $clean ? mb_substr($clean, 0, 110) . (mb_strlen($clean) > 110 ? '…' : '') : 'Section sans description textuelle';
+            }
+
             $blocksData[] = [
                 'id' => $block->getId(),
-                'title' => $block->getTitle(),
-                'type' => $block->getType(),
+                'title' => $block->getTitle() ?: $meta['label'],
+                'type' => $type,
+                'typeLabel' => $meta['label'],
+                'typeIcon' => $meta['icon'],
+                'typeColor' => $meta['color'],
+                'typeCategory' => $meta['category'],
                 'content' => $block->getContent(),
                 'order' => $block->getOrder(),
-                'active' => $block->isActive(),
-                'typeLabel' => $blockTypes[$block->getType()] ?? $block->getType(),
-                'contentPreview' => mb_substr($block->getContent(), 0, 100) . (mb_strlen($block->getContent()) > 100 ? '...' : ''),
-                'isActive' => $block->isActive(),
+                'active' => $isActive,
+                'isActive' => $isActive,
+                'contentPreview' => $preview,
                 'editUrl' => $this->router->generate('admin-homebuilder-edit', ['id' => $block->getId()]),
                 'stylesUrl' => $this->router->generate('admin-homebuilder-styles', ['id' => $block->getId()]),
-                'deleteUrl' => $this->router->generate('admin-homebuilder-delete', ['id' => $block->getId()])
+                'deleteUrl' => $this->router->generate('admin-homebuilder-delete', ['id' => $block->getId()]),
+                'toggleUrl' => $this->router->generate('admin-homebuilder-toggle', ['id' => $block->getId()])
             ];
         }
         
@@ -49,10 +96,14 @@ class HomeBuilderAdminController extends AdminController
         
         $tpl->set('blocks', $blocksData);
         $tpl->set('blockTypes', $blockTypes);
+        $tpl->set('blockMeta', $blockMeta);
         $tpl->set('hasBlocks', count($blocksData) > 0);
+        $tpl->set('totalBlocks', count($blocksData));
+        $tpl->set('activeCount', $activeCount);
+        $tpl->set('siteHomeUrl', $this->core->getConfigVal('siteUrl') ?: '/');
         
         $response->addTemplate($tpl);
-        $response->setTitle('Gestion de la page d\'accueil');
+        $response->setTitle('Constructeur de page d\'accueil');
         
         return $response;
     }
@@ -274,6 +325,40 @@ class HomeBuilderAdminController extends AdminController
             echo json_encode(['success' => false, 'error' => 'Erreur lors du réordonnancement']);
         }
         die();
+    }
+
+    public function toggle($id)
+    {
+        $manager = new BlockManager();
+        $block = $manager->getBlock($id);
+        if (!$block) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Bloc introuvable']);
+            exit;
+        }
+
+        $newActive = !$block->isActive();
+        $blockData = [
+            'id' => $block->getId(),
+            'type' => $block->getType(),
+            'title' => $block->getTitle(),
+            'content' => $block->getContent(),
+            'order' => $block->getOrder(),
+            'active' => $newActive,
+            'options' => $block->getOptions(),
+            'parentId' => $block->getParentId(),
+            'children' => $block->getChildren(),
+            'styles' => $block->getStyles()
+        ];
+
+        $success = $manager->updateBlock($id, $blockData);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => $success,
+            'active' => $newActive,
+            'id' => $id
+        ]);
+        exit;
     }
 
     public function styles($id)

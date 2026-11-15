@@ -152,7 +152,8 @@ class Block extends JsonActiveRecord
         if (!empty($customCSS)) $html .= "<style>$customCSS</style>";
         $html .= '<div id="' . $blockId . '" class="homepage-block homepage-block-' . $this->type . '">';
         
-        $method = 'render' . ucfirst($this->type);
+        $typeNormalized = str_replace(' ', '', ucwords(str_replace('_', ' ', $this->type)));
+        $method = 'render' . $typeNormalized;
         if (method_exists($this, $method)) {
             $html .= $this->$method();
         } else {
@@ -325,6 +326,105 @@ class Block extends JsonActiveRecord
     {
         if (!PluginsManager::getInstance()->isActivePlugin('guestbook')) return $this->renderInfoMessage('Guestbook indisponible');
         return '<div class="guestbook-cta">' . ($this->title ? '<h2>' . htmlspecialchars($this->title) . '</h2>' : '') . '<a class="btn" href="' . Router::getInstance()->generate('guestbook-home') . '">Signer</a></div>';
+    }
+
+    private function renderHero(): string
+    {
+        $subtitle = $this->options['subtitle'] ?? '';
+        $btnText1 = $this->options['btn1_text'] ?? '';
+        $btnUrl1 = $this->options['btn1_url'] ?? '';
+        $btnText2 = $this->options['btn2_text'] ?? '';
+        $btnUrl2 = $this->options['btn2_url'] ?? '';
+        $image = $this->options['image'] ?? '';
+
+        $html = '<div class="homebuilder-hero-section' . (!empty($image) ? ' with-bg' : '') . '"' . (!empty($image) ? ' style="background-image:url(\'' . htmlspecialchars($image) . '\');"' : '') . '>';
+        $html .= '<div class="hero-inner">';
+        if ($this->title) {
+            $html .= '<h1 class="hero-title">' . htmlspecialchars($this->title) . '</h1>';
+        }
+        if ($subtitle) {
+            $html .= '<p class="hero-subtitle">' . nl2br(htmlspecialchars($subtitle)) . '</p>';
+        } elseif ($this->content) {
+            $html .= '<p class="hero-subtitle">' . nl2br(htmlspecialchars($this->content)) . '</p>';
+        }
+        if ($btnText1 || $btnText2) {
+            $html .= '<div class="hero-ctas">';
+            if ($btnText1) {
+                $html .= '<a href="' . htmlspecialchars($btnUrl1 ?: '#') . '" class="btn btn-primary hero-btn">' . htmlspecialchars($btnText1) . '</a>';
+            }
+            if ($btnText2) {
+                $html .= '<a href="' . htmlspecialchars($btnUrl2 ?: '#') . '" class="btn btn-secondary hero-btn">' . htmlspecialchars($btnText2) . '</a>';
+            }
+            $html .= '</div>';
+        }
+        $html .= '</div></div>';
+        return $html;
+    }
+
+    private function renderColumns(): string
+    {
+        $items = $this->options['columns'] ?? [];
+        $html = '';
+        if ($this->title) {
+            $html .= '<h2 class="section-title">' . htmlspecialchars($this->title) . '</h2>';
+        }
+        if ($this->content) {
+            $html .= '<p class="section-desc">' . nl2br(htmlspecialchars($this->content)) . '</p>';
+        }
+        if (!empty($items) && is_array($items)) {
+            $html .= '<div class="homebuilder-columns-grid">';
+            foreach ($items as $col) {
+                $icon = !empty($col['icon']) ? htmlspecialchars($col['icon']) : 'fa-solid fa-check';
+                $title = !empty($col['title']) ? htmlspecialchars($col['title']) : '';
+                $text = !empty($col['text']) ? htmlspecialchars($col['text']) : '';
+                $html .= '<div class="col-item">';
+                $html .= '<div class="col-icon"><i class="' . $icon . '"></i></div>';
+                if ($title) $html .= '<h3 class="col-title">' . htmlspecialchars($title) . '</h3>';
+                if ($text) $html .= '<p class="col-text">' . nl2br(htmlspecialchars($text)) . '</p>';
+                $html .= '</div>';
+            }
+            $html .= '</div>';
+        }
+        return $html;
+    }
+
+    private function renderSearchmapsMap(): string
+    {
+        $pluginsManager = PluginsManager::getInstance();
+        if (!$pluginsManager->isActivePlugin('SearchMaps')) {
+            return $this->renderInfoMessage('Le module SearchMaps n\'est pas activé.');
+        }
+        $html = '<div class="homebuilder-map-preview">';
+        if ($this->title) {
+            $html .= '<h2>' . htmlspecialchars($this->title) . '</h2>';
+        }
+        if ($this->content) {
+            $html .= '<p>' . nl2br(htmlspecialchars($this->content)) . '</p>';
+        }
+        $html .= '<div class="map-action-box" style="padding:28px;text-align:center;background:var(--evo-surface-alt, #f8fafc);border-radius:12px;border:1px dashed var(--evo-border, #cbd5e1);margin-top:16px;">';
+        $html .= '<i class="fa-solid fa-map-location-dot" style="font-size:2.5rem;color:var(--evo-primary,#0ea5e9);margin-bottom:12px;display:block;"></i>';
+        $html .= '<p style="margin:0 0 16px;font-weight:600;font-size:1.05rem;">Découvrez les commerces, artisans et services locaux sur la carte interactive.</p>';
+        $html .= '<a href="/carte" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;"><i class="fa-solid fa-compass"></i> Explorer la carte interactive</a>';
+        $html .= '</div></div>';
+        return $html;
+    }
+
+    private function renderPrordvCta(): string
+    {
+        $pluginsManager = PluginsManager::getInstance();
+        if (!$pluginsManager->isActivePlugin('ProRdv')) {
+            return $this->renderInfoMessage('Le module ProRdv n\'est pas activé.');
+        }
+        $html = '<div class="homebuilder-rdv-box" style="padding:32px;background:linear-gradient(135deg, rgba(16,185,129,0.08), rgba(6,95,70,0.04));border:1px solid rgba(16,185,129,0.25);border-radius:16px;margin:20px 0;">';
+        $html .= '<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">';
+        $html .= '<div style="width:56px;height:56px;border-radius:50%;background:#ecfdf5;color:#059669;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;"><i class="fa-solid fa-calendar-check"></i></div>';
+        $html .= '<div style="flex:1;min-width:240px;">';
+        $html .= '<h3 style="margin:0 0 6px;color:var(--evo-text,#0f172a);font-size:1.3rem;">' . htmlspecialchars($this->title ?: 'Prenez rendez-vous en ligne') . '</h3>';
+        $html .= '<p style="margin:0;color:var(--evo-text-muted,#64748b);font-size:0.95rem;">' . htmlspecialchars($this->content ?: 'Réservez vos prestations et créneaux auprès des professionnels en direct.') . '</p>';
+        $html .= '</div>';
+        $html .= '<div><a href="/pro/rdv" class="btn" style="background:#10b981;color:#fff;font-weight:700;padding:12px 22px;border-radius:8px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;"><i class="fa-solid fa-bolt"></i> Réserver en direct</a></div>';
+        $html .= '</div></div>';
+        return $html;
     }
 
     private function renderInfoMessage(string $message): string { return '<div class="homebuilder-info">' . htmlspecialchars($message) . '</div>'; }
