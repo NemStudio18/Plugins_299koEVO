@@ -1,3 +1,24 @@
+<?php
+if (!function_exists('formatSocialText')) {
+    function formatSocialText(string $raw): string {
+        $escaped = htmlspecialchars($raw, ENT_QUOTES, 'UTF-8');
+        // 1. Gras **texte**
+        $escaped = preg_replace('/\*\*(.*?)\*\*/s', '<strong>$1</strong>', $escaped);
+        // 2. Italique *texte*
+        $escaped = preg_replace('/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/s', '<em>$1</em>', $escaped);
+        // 3. Souligné &lt;u&gt;texte&lt;/u&gt;
+        $escaped = preg_replace('/&lt;u&gt;(.*?)&lt;\/u&gt;/is', '<u>$1</u>', $escaped);
+        // 4. Hashtags #mot
+        $escaped = preg_replace('/(?<!\w)#([a-zA-Z0-9_\x{00C0}-\x{00FF}]+)/u', '<span class="hashtag">#$1</span>', $escaped);
+        // 5. Mentions @pseudo
+        $escaped = preg_replace('/(?<!\w)@([a-zA-Z0-9_]+)/', '<span class="mention">@$1</span>', $escaped);
+        // 6. Liens automatiques
+        $escaped = preg_replace('/(https?:\/\/[^\s<]+)/i', '<a href="$1" target="_blank" rel="noopener noreferrer" class="post-link">$1</a>', $escaped);
+        return nl2br($escaped);
+    }
+}
+?>
+
 <?php if (empty($feedTimeline)): ?>
     <div class="social-empty-state">
         <i class="fa-solid fa-wind empty-icon"></i>
@@ -48,7 +69,7 @@
                 </div>
 
                 <div class="card-content">
-                    <p class="post-text"><?= nl2br(htmlspecialchars($item['content'] ?? '')) ?></p>
+                    <p class="post-text"><?= formatSocialText($item['content'] ?? '') ?></p>
                     <?php if (!empty($item['media_url'])): ?>
                         <?php 
                             $mUrl = $item['media_url'];

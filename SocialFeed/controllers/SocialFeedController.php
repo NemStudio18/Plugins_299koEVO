@@ -266,6 +266,37 @@ class SocialFeedController {
     }
 
     /**
+     * Page de profil public d'un membre : /social/user/{id}
+     */
+    public function userProfile(int $id) {
+        $currentUser = UsersManager::getCurrentUser();
+        $currentUserId = $currentUser ? (int)($currentUser->id ?? 0) : null;
+
+        $profile = $this->feedService->getUserProfile($id, $currentUserId);
+        if (!$profile) {
+            header("HTTP/1.0 404 Not Found");
+            echo "Membre introuvable.";
+            exit;
+        }
+
+        $feedTimeline = $this->feedService->getUserTimeline($id, $currentUserId, 1, 20);
+
+        $response = new PublicResponse();
+        $response->setTitle($profile['username'] . ' (@' . $profile['username'] . ') - Profil Communauté');
+        $response->hidePageTitle(true);
+        Template::addGlobal('HIDE_PAGE_TITLE', true);
+
+        $tpl = new Template(__DIR__ . '/../template/user_profile.tpl');
+        $tpl->set('profile', $profile);
+        $tpl->set('feedTimeline', $feedTimeline);
+        $tpl->set('currentUser', $currentUser);
+        $tpl->set('csrfToken', Csrf::token());
+
+        $response->addTemplate($tpl);
+        return $response;
+    }
+
+    /**
      * Traitement de l'upload de média (Photos, Vidéos / Reels)
      */
     private function handleMediaUpload(array $file): ?string {

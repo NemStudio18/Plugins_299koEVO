@@ -32,6 +32,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // FORMATAGE DU TEXTE (GRAS, ITALIQUE, SOULIGNÉ)
+    document.addEventListener('click', (e) => {
+        const btnFormat = e.target.closest('.btn-format');
+        if (btnFormat && postTextarea) {
+            e.preventDefault();
+            const format = btnFormat.dataset.format;
+            const start = postTextarea.selectionStart || 0;
+            const end = postTextarea.selectionEnd || 0;
+            const selectedText = postTextarea.value.substring(start, end) || 'texte';
+            let replacement = selectedText;
+
+            if (format === 'bold') replacement = `**${selectedText}**`;
+            else if (format === 'italic') replacement = `*${selectedText}*`;
+            else if (format === 'underline') replacement = `<u>${selectedText}</u>`;
+
+            const text = postTextarea.value;
+            postTextarea.value = text.substring(0, start) + replacement + text.substring(end);
+            postTextarea.selectionStart = start;
+            postTextarea.selectionEnd = start + replacement.length;
+            postTextarea.focus();
+            postTextarea.dispatchEvent(new Event('input'));
+        }
+    });
+
+    // ABONNEMENT / DÉSABONNEMENT DEPUIS LA PAGE PROFIL
+    const btnProfileFollow = document.getElementById('btn-toggle-profile-follow');
+    if (btnProfileFollow) {
+        btnProfileFollow.addEventListener('click', async () => {
+            const targetUserId = btnProfileFollow.dataset.userId;
+            btnProfileFollow.disabled = true;
+            try {
+                const res = await fetch(`/social/user/${targetUserId}/follow`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    btnProfileFollow.classList.toggle('following', data.following);
+                    const countEl = document.getElementById('followers-count-val');
+                    if (countEl) {
+                        const current = parseInt(countEl.textContent || '0', 10);
+                        countEl.textContent = data.following ? current + 1 : Math.max(0, current - 1);
+                    }
+                } else if (data.message) {
+                    alert(data.message);
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                btnProfileFollow.disabled = false;
+            }
+        });
+    }
+
     // 2. GESTION DES TIROIRS EMOJIS & GIFS
     if (btnToggleEmoji && emojiDrawer) {
         btnToggleEmoji.addEventListener('click', (e) => {

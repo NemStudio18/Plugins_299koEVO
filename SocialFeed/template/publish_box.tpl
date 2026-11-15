@@ -16,6 +16,13 @@
         <form id="social-publish-form" action="/social/publish" method="POST" enctype="multipart/form-data" class="social-publish-form">
             <input type="hidden" name="token" value="<?= htmlspecialchars($csrfToken ?? '') ?>" />
 
+            <!-- BARRE DE FORMATAGE RAPIDE (GRAS, ITALIQUE, SOULIGNÉ) -->
+            <div class="publish-format-bar">
+                <button type="button" class="btn-format" data-format="bold" title="Gras (**texte**)"><strong>B</strong></button>
+                <button type="button" class="btn-format" data-format="italic" title="Italique (*texte*)"><em>I</em></button>
+                <button type="button" class="btn-format" data-format="underline" title="Souligné (<u>texte</u>)"><u>U</u></button>
+            </div>
+
             <div class="publish-body">
                 <textarea name="content" id="social-post-content" rows="3" placeholder="Quoi de neuf ? Exprimez-vous..." required></textarea>
             </div>

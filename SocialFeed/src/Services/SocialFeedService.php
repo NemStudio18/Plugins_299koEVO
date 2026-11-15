@@ -301,6 +301,125 @@ class SocialFeedService {
     }
 
     /**
+     * Récupère les informations publiques du profil d'un membre avec ses métriques sociales
+     */
+    public function getUserProfile(int $profileUserId, ?int $currentUserId = null): ?array {
+        $sql = "SELECT id, username, email, role, created_at FROM users WHERE id = :id";
+        $rows = $this->db->query($sql, [':id' => $profileUserId]);
+        if (empty($rows)) {
+            return null;
+        }
+
+        $u = (array)$rows[0];
+        $email = $u['email'] ?? '';
+        $avatar = 'https://www.gravatar.com/avatar/' . md5(strtolower(trim($email))) . '?d=mp&s=180';
+
+        // Compteurs
+        $pCount = $this->db->query("SELECT COUNT(*) as cnt FROM social_posts WHERE user_id = :uid AND status = 'published'", [':uid' => $profileUserId]);
+        $postsCount = !empty($pCount) ? (int)((array)$pCount[0])['cnt'] : 0;
+
+        $flCount = $this->db->query("SELECT COUNT(*) as cnt FROM social_follows WHERE following_id = :uid", [':uid' => $profileUserId]);
+        $followersCount = !empty($flCount) ? (int)((array)$flCount[0])['cnt'] : 0;
+
+        $fgCount = $this->db->query("SELECT COUNT(*) as cnt FROM social_follows WHERE follower_id = :uid", [':uid' => $profileUserId]);
+        $followingCount = !empty($fgCount) ? (int)((array)$fgCount[0])['cnt'] : 0;
+
+        $isFollowing = false;
+        if ($currentUserId && $currentUserId !== $profileUserId) {
+            $check = $this->db->query(
+                "SELECT 1 FROM social_follows WHERE follower_id = :curr AND following_id = :uid",
+                [':curr' => $currentUserId, ':uid' => $profileUserId]
+            );
+            $isFollowing = !empty($check);
+        }
+
+        return [
+            'id' => (int)$u['id'],
+            'username' => !empty($u['username']) ? $u['username'] : 'Membre #' . $u['id'],
+            'avatar' => $avatar,
+            'role' => $u['role'] ?? 'member',
+            'created_at' => $u['created_at'],
+            'joined_date' => date('F Y', strtotime($u['created_at'] ?? 'now')),
+            'posts_count' => $postsCount,
+            'followers_count' => $followersCount,
+            'following_count' => $followingCount,
+            'is_following' => $isFollowing,
+            'is_self' => $currentUserId === $profileUserId
+        ];
+    }
+
+    /**
+     * Récupère les publications d'un profil spécifique
+     */
+    public function getUserTimeline(int $profileUserId, ?int $currentUserId = null, int $page = 1, int $limit = 20): array {
+        $offset = max(0, ($page - 1) * $limit);
+        $sql = "SELECT p.*, u.username, u.email, u.role
+                FROM social_posts p
+                LEFT JOIN users u ON u.id = p.user_id
+                WHERE p.user_id = :uid AND p.status = 'published'
+                ORDER BY p.pinned DESC, p.created_at DESC
+                LIMIT :limit OFFSET :offset";
+
+        $rows = $this->db->query($sql, [':uid' => $profileUserId, ':limit' => $limit, ':offset' => $offset]);
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        // Likes de l'utilisateur courant
+        $likedPostIds = [];
+        if ($currentUserId && !empty($rows)) {
+            $postIds = array_map(fn($r) => (int)((array)$r)['id'], $rows);
+            $inClause = implode(',', array_map('intval', $postIds));
+            if (!empty($inClause)) {
+                $likeRows = $this->db->query(
+                    "SELECT post_id FROM social_likes WHERE user_id = :uid AND post_id IN ({$inClause})",
+                    [':uid' => $currentUserId]
+                );
+                if (is_array($likeRows)) {
+                    foreach ($likeRows as $lr) {
+                        $likedPostIds[] = (int)((array)$lr)['post_id'];
+                    }
+                }
+            }
+        }
+
+        $items = [];
+        foreach ($rows as $row) {
+            $r = (array)$row;
+            $postId = (int)$r['id'];
+            $email = $r['email'] ?? '';
+            $avatar = 'https://www.gravatar.com/avatar/' . md5(strtolower(trim($email))) . '?d=mp&s=120';
+
+            $items[] = [
+                'type' => 'post',
+                'id' => $postId,
+                'title' => null,
+                'content' => $r['content'],
+                'author_id' => (int)$r['user_id'],
+                'author_name' => !empty($r['username']) ? $r['username'] : 'Membre #' . $r['user_id'],
+                'author_avatar' => $avatar,
+                'author_url' => '/social/user/' . (int)$r['user_id'],
+                'media_url' => $r['media_url'],
+                'permalink' => '/social#post-' . $postId,
+                'created_at' => $r['created_at'],
+                'timestamp' => strtotime($r['created_at']),
+                'likes_count' => (int)($r['likes_count'] ?? 0),
+                'comments_count' => (int)($r['comments_count'] ?? 0),
+                'shares_count' => (int)($r['shares_count'] ?? 0),
+                'has_liked' => in_array($postId, $likedPostIds),
+                'pinned' => (bool)($r['pinned'] ?? false),
+                'time_ago' => $this->timeElapsedString($r['created_at']),
+                'meta' => [
+                    'post_type' => $r['post_type'] ?? 'post',
+                    'parent_id' => $r['parent_id'] ?? null
+                ]
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
      * Formate une date relative (il y a X minutes, heures...)
      */
     public function timeElapsedString(string $datetime): string {
