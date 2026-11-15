@@ -68,6 +68,6 @@
     </div>
 </div>
 
-<link rel="stylesheet" href="/plugin/SocialFeed/public/css/socialfeed.css?v=2" />
-<script src="/plugin/SocialFeed/public/js/socialfeed.js?v=2" defer></script>
+<link rel="stylesheet" href="/plugin/SocialFeed/public/css/socialfeed.css?v=4" />
+<script src="/plugin/SocialFeed/public/js/socialfeed.js?v=4" defer></script>
 

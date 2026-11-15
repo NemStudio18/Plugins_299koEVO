@@ -297,9 +297,72 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 6. ACTIONS GLOBALES (LIKES, COMMENTAIRES, SUPPRESSION)
+    // TOAST NOTIFICATION FLOTTANTE
+    function showToast(message) {
+        let toast = document.getElementById('sf-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'sf-toast';
+            toast.className = 'sf-toast';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // 6. ACTIONS GLOBALES (LIKES, COMMENTAIRES, PARTAGE, SUPPRESSION)
     document.addEventListener('click', async (e) => {
-        // A. LIKE
+        // A. PARTAGE D'UN POST
+        const btnShare = e.target.closest('.btn-share');
+        if (btnShare) {
+            e.preventDefault();
+            const postId = btnShare.dataset.postId;
+            const pathUrl = btnShare.dataset.url || `/social#post-${postId}`;
+            const fullUrl = pathUrl.startsWith('http') ? pathUrl : window.location.origin + pathUrl;
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Publication Déclic',
+                        url: fullUrl
+                    });
+                    fetch(`/social/post/${postId}/share`, { method: 'POST' });
+                } catch (err) {}
+            } else {
+                navigator.clipboard.writeText(fullUrl).then(() => {
+                    showToast('Lien de la publication copié dans le presse-papier ! 📋');
+                    fetch(`/social/post/${postId}/share`, { method: 'POST' });
+                }).catch(() => {
+                    prompt('Copiez ce lien :', fullUrl);
+                });
+            }
+            return;
+        }
+
+        // B. COPIER LE LIEN DEPUIS LE MENU (...)
+        const btnCopyLink = e.target.closest('.btn-copy-link');
+        if (btnCopyLink) {
+            e.preventDefault();
+            const pathUrl = btnCopyLink.dataset.url || window.location.href;
+            const fullUrl = pathUrl.startsWith('http') ? pathUrl : window.location.origin + pathUrl;
+            navigator.clipboard.writeText(fullUrl).then(() => {
+                showToast('Lien copié dans le presse-papier ! 📋');
+            });
+            document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+            return;
+        }
+
+        // C. SIGNALER UN POST
+        const btnReport = e.target.closest('.btn-report-post');
+        if (btnReport) {
+            e.preventDefault();
+            alert('Merci, cette publication a été signalée à l\'équipe de modération.');
+            document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+            return;
+        }
+
+        // D. LIKE
         const btnLike = e.target.closest('.btn-like');
         if (btnLike) {
             e.preventDefault();

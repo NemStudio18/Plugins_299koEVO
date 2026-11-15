@@ -33,10 +33,14 @@ if (!function_exists('formatSocialText')) {
             <!-- CARTE POST MEMBRE -->
             <article class="social-card social-post-card" id="post-<?= (int)$item['id'] ?>" data-post-id="<?= (int)$item['id'] ?>">
                 <div class="card-header">
-                    <img src="<?= htmlspecialchars($item['author_avatar'] ?? '/common/img/default-avatar.png') ?>" alt="<?= htmlspecialchars($item['author_name'] ?? '') ?>" class="user-avatar" />
+                    <a href="<?= htmlspecialchars($item['author_url'] ?? ('/social/user/' . (int)($item['author_id'] ?? 1))) ?>" class="author-avatar-link">
+                        <img src="<?= htmlspecialchars($item['author_avatar'] ?? '/common/img/default-avatar.png') ?>" alt="<?= htmlspecialchars($item['author_name'] ?? '') ?>" class="user-avatar" />
+                    </a>
                     <div class="header-meta">
                         <div class="author-row">
-                            <span class="author-name"><?= htmlspecialchars($item['author_name'] ?? 'Membre') ?></span>
+                            <a href="<?= htmlspecialchars($item['author_url'] ?? ('/social/user/' . (int)($item['author_id'] ?? 1))) ?>" class="author-name-link">
+                                <?= htmlspecialchars($item['author_name'] ?? 'Membre') ?>
+                            </a>
                             <?php if (!empty($item['pinned'])): ?>
                                 <span class="badge-pinned"><i class="fa-solid fa-thumbtack"></i> Épinglé</span>
                             <?php endif; ?>
@@ -54,18 +58,31 @@ if (!function_exists('formatSocialText')) {
                             $canDelete = $isAuthor || $isAdmin;
                         }
                     ?>
-                    <?php if ($canDelete): ?>
-                        <div class="card-options dropdown">
-                            <button type="button" class="btn-icon btn-post-options" title="Options">
-                                <i class="fa-solid fa-ellipsis"></i>
+                    <div class="card-options dropdown">
+                        <button type="button" class="btn-icon btn-post-options" title="Options">
+                            <i class="fa-solid fa-ellipsis"></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            <button type="button" class="dropdown-item btn-copy-link" data-url="<?= htmlspecialchars($item['permalink'] ?? ('/social#post-' . (int)$item['id'])) ?>">
+                                <i class="fa-solid fa-link"></i> Copier le lien
                             </button>
-                            <div class="dropdown-menu">
+                            <?php if (!empty($item['author_url'])): ?>
+                                <a href="<?= htmlspecialchars($item['author_url']) ?>" class="dropdown-item">
+                                    <i class="fa-solid fa-user"></i> Voir le profil
+                                </a>
+                            <?php endif; ?>
+                            <?php if ($canDelete): ?>
+                                <hr class="dropdown-divider" />
                                 <button type="button" class="dropdown-item text-danger btn-delete-post" data-post-id="<?= (int)$item['id'] ?>">
                                     <i class="fa-solid fa-trash"></i> Supprimer
                                 </button>
-                            </div>
+                            <?php else: ?>
+                                <button type="button" class="dropdown-item btn-report-post" data-post-id="<?= (int)$item['id'] ?>">
+                                    <i class="fa-regular fa-flag"></i> Signaler
+                                </button>
+                            <?php endif; ?>
                         </div>
-                    <?php endif; ?>
+                    </div>
                 </div>
 
                 <div class="card-content">

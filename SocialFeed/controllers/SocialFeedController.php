@@ -179,6 +179,21 @@ class SocialFeedController {
     }
 
     /**
+     * Enregistre un partage
+     */
+    public function recordShare(int $id) {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $db = \Core\Database::getInstance();
+            $db->query("UPDATE social_posts SET shares_count = shares_count + 1 WHERE id = :id", [':id' => $id]);
+            echo json_encode(['status' => 'success']);
+        } catch (\Throwable $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
      * Commentaires : liste
      */
     public function getComments(int $id) {
