@@ -183,6 +183,7 @@
             <!-- Barre de saisie de réponse -->
             <footer class="chatbox-footer">
                 <form id="adminReplyForm" onsubmit="sendAdminReply(event)">
+                    <input type="hidden" name="_csrf" id="livechatCsrf" value="{{CSRF_TOKEN}}">
                     <input type="hidden" id="replyConvId" value="{{activeConversation.id}}">
                     <div class="reply-input-wrap">
                         <textarea id="replyMessage"
@@ -219,6 +220,7 @@
             <button type="button" class="modal-close" onclick="toggleSettingsModal(false)">&times;</button>
         </header>
         <form id="liveChatConfigForm" onsubmit="saveLiveChatConfig(event)">
+            <input type="hidden" name="_csrf" value="{{CSRF_TOKEN}}">
             <div class="modal-body">
                 <div class="form-group-chat">
                     <label for="cfg_webhook"><strong>URL de Webhook Discord</strong></label>
@@ -1266,9 +1268,17 @@ function sendAdminReply(e) {
     const formData = new FormData();
     formData.append('conversation_id', activeConvId);
     formData.append('message', msg);
+    const csrfEl = document.getElementById('livechatCsrf');
+    if (csrfEl && csrfEl.value) {
+        formData.append('_csrf', csrfEl.value);
+    }
 
     fetch('/admin/livechat/reply', {
         method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': (csrfEl && csrfEl.value) ? csrfEl.value : ''
+        },
         body: formData
     })
     .then(r => r.json())
@@ -1348,9 +1358,17 @@ function appendMessageToChat(msg, isMine) {
 function toggleConvStatus(convId) {
     const formData = new FormData();
     formData.append('conversation_id', convId);
+    const csrfEl = document.getElementById('livechatCsrf');
+    if (csrfEl && csrfEl.value) {
+        formData.append('_csrf', csrfEl.value);
+    }
 
     fetch('/admin/livechat/toggle-status', {
         method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': (csrfEl && csrfEl.value) ? csrfEl.value : ''
+        },
         body: formData
     })
     .then(r => r.json())
@@ -1370,12 +1388,17 @@ function saveLiveChatConfig(e) {
     const form = document.getElementById('liveChatConfigForm');
     const btn = document.getElementById('btnSaveConfig');
     const feedback = document.getElementById('cfgFeedback');
+    const csrfEl = document.getElementById('livechatCsrf');
 
     btn.disabled = true;
     const formData = new FormData(form);
 
     fetch('/admin/livechat/config', {
         method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': (csrfEl && csrfEl.value) ? csrfEl.value : ''
+        },
         body: formData
     })
     .then(r => r.json())

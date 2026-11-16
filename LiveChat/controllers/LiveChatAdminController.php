@@ -49,9 +49,15 @@ class LiveChatAdminController extends AdminController
         $search = trim((string)($_GET['q'] ?? ''));
         $limit = 50;
 
-        $conversations = $this->service->getAllConversations($limit, $status, $search, 0);
-        $totalMatching = $this->service->countConversations($status, $search);
-        $stats = $this->service->getConversationStats();
+        try {
+            $conversations = $this->service->getAllConversations($limit, $status, $search, 0);
+            $totalMatching = $this->service->countConversations($status, $search);
+            $stats = $this->service->getConversationStats();
+        } catch (\Throwable $e) {
+            $conversations = [];
+            $totalMatching = 0;
+            $stats = ['all' => 0, 'open' => 0, 'closed' => 0, 'unread' => 0];
+        }
 
         $activeConversation = null;
         $activeMessages = [];
@@ -64,9 +70,11 @@ class LiveChatAdminController extends AdminController
             }
         } elseif (!$mobileList && !empty($conversations)) {
             $activeConversation = $conversations[0];
-            $activeConvId = (int)$activeConversation['id'];
-            $activeMessages = $this->service->getMessages($activeConvId, 0);
-            $this->service->markAsRead($activeConvId, 'admin');
+            $activeConvId = (int)($activeConversation['id'] ?? 0);
+            if ($activeConvId > 0) {
+                $activeMessages = $this->service->getMessages($activeConvId, 0);
+                $this->service->markAsRead($activeConvId, 'admin');
+            }
         }
 
         $tpl = $response->createPluginTemplate('LiveChat', 'admin');
@@ -84,6 +92,7 @@ class LiveChatAdminController extends AdminController
         $tpl->set('pageLimit', $limit);
         $tpl->set('mobileList', $mobileList);
         $tpl->set('config', $this->service->getConfig());
+        $tpl->set('CSRF_TOKEN', \Core\Security\Csrf::token());
         $response->addTemplate($tpl);
 
         return $response;
@@ -196,7 +205,12 @@ class LiveChatAdminController extends AdminController
         $adminName = trim($_POST['admin_name'] ?? 'Équipe Support');
         $welcome = trim($_POST['welcome_message'] ?? '');
 
-        $configFile = DATA_PLUGIN . 'LiveChat/config.json';
+        $dir = DATA_PLUGIN . 'LiveChat';
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+
+        $configFile = $dir . '/config.json';
         $current = $this->service->getConfig();
         $current['discord_webhook'] = $webhook;
         $current['admin_name'] = $adminName ?: 'Équipe Support';
@@ -204,14 +218,14 @@ class LiveChatAdminController extends AdminController
             $current['welcome_message'] = $welcome;
         }
 
-        file_put_contents($configFile, json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        @file_put_contents($configFile, json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
 
         // Mettre à jour aussi dans config_pro_chat.json si utile
-        $proConfigFile = DATA_PLUGIN . 'LiveChat/config_pro_chat.json';
+        $proConfigFile = $dir . '/config_pro_chat.json';
         if (file_exists($proConfigFile)) {
             $p = json_decode(file_get_contents($proConfigFile), true) ?: [];
             $p['discord_webhook'] = $webhook;
-            file_put_contents($proConfigFile, json_encode($p, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            @file_put_contents($proConfigFile, json_encode($p, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
         }
 
         return $this->jsonResponse(['success' => true, 'message' => 'Configuration enregistrée']);

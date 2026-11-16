@@ -18,9 +18,10 @@ $router->map('GET',  '/admin/livechat[/?]',              'LiveChat\\Controllers\
 $router->map('GET',  '/admin/LiveChat[/?]',              'LiveChat\\Controllers\\LiveChatAdminController#index',        'admin-livechat-camel');
 $router->map('GET',  '/admin/plugins/livechat[/?]',      'LiveChat\\Controllers\\LiveChatAdminController#index',        'admin-livechat-plugin');
 $router->map('GET',  '/admin/plugins/LiveChat[/?]',      'LiveChat\\Controllers\\LiveChatAdminController#index',        'admin-livechat-plugin-camel');
+$router->map('GET',  '/admin/livechat/config[/?]',       'LiveChat\\Controllers\\LiveChatAdminController#index',        'admin-livechat-config-get');
+$router->map('GET',  '/admin/livechat/params[/?]',       'LiveChat\\Controllers\\LiveChatAdminController#index',        'admin-livechat-params-get');
 $router->map('GET',  '/admin/livechat/conversations[/?]', 'LiveChat\\Controllers\\LiveChatAdminController#listConversations', 'admin-livechat-conversations');
 $router->map('POST', '/admin/livechat/reply[/?]',        'LiveChat\\Controllers\\LiveChatAdminController#adminReply',   'admin-livechat-reply');
 $router->map('GET',  '/admin/livechat/poll[/?]',         'LiveChat\\Controllers\\LiveChatAdminController#adminPoll',    'admin-livechat-poll');
 $router->map('POST', '/admin/livechat/toggle-status[/?]', 'LiveChat\\Controllers\\LiveChatAdminController#toggleStatus', 'admin-livechat-toggle');
 $router->map('POST', '/admin/livechat/config[/?]',        'LiveChat\\Controllers\\LiveChatAdminController#saveConfig',   'admin-livechat-config');
-

@@ -6,23 +6,51 @@ defined('ROOT') or exit('Access denied!');
 
 class LiveChatService
 {
-    private \PDO $pdo;
+    private ?\PDO $pdo = null;
     private array $config;
 
     public function __construct()
     {
-        $this->pdo = \Core\Database::getInstance()->getPdo();
+        try {
+            $this->pdo = \Core\Database::getInstance()->getPdo();
+        } catch (\Throwable $e) {
+            // Secours SQLite dédié si la connexion centrale n'est pas joignable
+            try {
+                $sqlitePath = (defined('DATA') ? DATA : (defined('ROOT') ? ROOT . 'data/' : 'data/')) . 'storage' . DIRECTORY_SEPARATOR . 'livechat.sqlite';
+                $dir = dirname($sqlitePath);
+                if (!is_dir($dir)) {
+                    @mkdir($dir, 0755, true);
+                }
+                $this->pdo = new \PDO('sqlite:' . $sqlitePath, null, null, [
+                    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
+                ]);
+            } catch (\Throwable $ex) {
+                $this->pdo = null;
+            }
+        }
         $this->ensureSchema();
         $this->loadConfig();
     }
 
-    private function ensureSchema(): void
+    public function ensureSchema(): void
     {
+        if (!$this->pdo) {
+            return;
+        }
+
+        $isSqlite = ($this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite');
+
+        // 1. Table vb_livechat_conversations
+        $convExists = false;
         try {
-            $this->pdo->query("SELECT 1 FROM vb_livechat_conversations LIMIT 1");
+            $res = $this->pdo->query("SELECT 1 FROM vb_livechat_conversations LIMIT 1");
+            $convExists = ($res !== false);
         } catch (\Throwable $e) {
+            $convExists = false;
+        }
+
+        if (!$convExists) {
             try {
-                $isSqlite = ($this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite');
                 if ($isSqlite) {
                     $this->pdo->exec("CREATE TABLE IF NOT EXISTS vb_livechat_conversations (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,17 +61,8 @@ class LiveChatService
                         unread_admin INTEGER NOT NULL DEFAULT 0,
                         unread_visitor INTEGER NOT NULL DEFAULT 0,
                         status VARCHAR(20) NOT NULL DEFAULT 'open',
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )");
-                    $this->pdo->exec("CREATE TABLE IF NOT EXISTS vb_livechat_messages (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        conversation_id INTEGER NOT NULL,
-                        sender VARCHAR(20) NOT NULL,
-                        sender_name VARCHAR(120) NULL,
-                        message TEXT NOT NULL,
-                        is_read INTEGER NOT NULL DEFAULT 0,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                     )");
                 } else {
                     $this->pdo->exec("CREATE TABLE IF NOT EXISTS vb_livechat_conversations (
@@ -55,9 +74,42 @@ class LiveChatService
                         unread_admin INT NOT NULL DEFAULT 0,
                         unread_visitor INT NOT NULL DEFAULT 0,
                         status VARCHAR(20) NOT NULL DEFAULT 'open',
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                }
+            } catch (\Throwable $ex) {
+                if (class_exists('\Core\Core')) {
+                    \Core\Core::getInstance()->getLogger()->log(\Core\Logger::LEVEL_ERROR, "LiveChat ensureSchema conversations error: " . $ex->getMessage());
+                }
+            }
+        } else {
+            // Vérifier les colonnes nécessaires si la table existait déjà
+            $this->ensureConversationColumns($isSqlite);
+        }
+
+        // 2. Table vb_livechat_messages
+        $msgExists = false;
+        try {
+            $res = $this->pdo->query("SELECT 1 FROM vb_livechat_messages LIMIT 1");
+            $msgExists = ($res !== false);
+        } catch (\Throwable $e) {
+            $msgExists = false;
+        }
+
+        if (!$msgExists) {
+            try {
+                if ($isSqlite) {
+                    $this->pdo->exec("CREATE TABLE IF NOT EXISTS vb_livechat_messages (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        conversation_id INTEGER NOT NULL,
+                        sender VARCHAR(20) NOT NULL,
+                        sender_name VARCHAR(120) NULL,
+                        message TEXT NOT NULL,
+                        is_read INTEGER NOT NULL DEFAULT 0,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )");
+                } else {
                     $this->pdo->exec("CREATE TABLE IF NOT EXISTS vb_livechat_messages (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         conversation_id INT NOT NULL,
@@ -65,11 +117,36 @@ class LiveChatService
                         sender_name VARCHAR(120) NULL,
                         message TEXT NOT NULL,
                         is_read TINYINT(1) NOT NULL DEFAULT 0,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        INDEX (conversation_id)
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        INDEX idx_conv (conversation_id)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
                 }
-            } catch (\Throwable $ex) {}
+            } catch (\Throwable $ex) {
+                if (class_exists('\Core\Core')) {
+                    \Core\Core::getInstance()->getLogger()->log(\Core\Logger::LEVEL_ERROR, "LiveChat ensureSchema messages error: " . $ex->getMessage());
+                }
+            }
+        }
+    }
+
+    private function ensureConversationColumns(bool $isSqlite): void
+    {
+        $columns = [
+            'unread_admin' => $isSqlite ? 'INTEGER NOT NULL DEFAULT 0' : 'INT NOT NULL DEFAULT 0',
+            'unread_visitor' => $isSqlite ? 'INTEGER NOT NULL DEFAULT 0' : 'INT NOT NULL DEFAULT 0',
+            'status' => "VARCHAR(20) NOT NULL DEFAULT 'open'",
+            'visitor_contact' => 'VARCHAR(160) NULL',
+            'last_message' => 'TEXT NULL',
+        ];
+
+        foreach ($columns as $col => $definition) {
+            try {
+                $this->pdo->query("SELECT {$col} FROM vb_livechat_conversations LIMIT 1");
+            } catch (\Throwable $e) {
+                try {
+                    $this->pdo->exec("ALTER TABLE vb_livechat_conversations ADD COLUMN {$col} {$definition}");
+                } catch (\Throwable $alterEx) {}
+            }
         }
     }
 
@@ -101,58 +178,80 @@ class LiveChatService
      */
     public function getOrCreateConversation(string $sessionToken, ?string $name = null, ?string $contact = null): array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM vb_livechat_conversations WHERE session_token = ? LIMIT 1');
-        $stmt->execute([$sessionToken]);
-        $conv = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        if ($conv) {
-            // Mettre à jour nom/contact si fournis
-            $updates = [];
-            $params = [];
-            if (!empty($name) && $conv['visitor_name'] !== $name) {
-                $updates[] = 'visitor_name = ?';
-                $params[] = $name;
-                $conv['visitor_name'] = $name;
-            }
-            if (!empty($contact) && $conv['visitor_contact'] !== $contact) {
-                $updates[] = 'visitor_contact = ?';
-                $params[] = $contact;
-                $conv['visitor_contact'] = $contact;
-            }
-            if (!empty($updates)) {
-                $params[] = $conv['id'];
-                $this->pdo->prepare('UPDATE vb_livechat_conversations SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($params);
-            }
-            return $conv;
+        if (!$this->pdo) {
+            return [];
         }
 
-        $visitorName = !empty($name) ? $name : 'Visiteur #' . substr(md5($sessionToken), 0, 4);
-        $insert = $this->pdo->prepare('
-            INSERT INTO vb_livechat_conversations (session_token, visitor_name, visitor_contact, status, created_at, updated_at)
-            VALUES (?, ?, ?, \'open\', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        ');
-        $insert->execute([$sessionToken, $visitorName, $contact]);
-        $id = (int)$this->pdo->lastInsertId();
+        try {
+            $stmt = $this->pdo->prepare('SELECT * FROM vb_livechat_conversations WHERE session_token = ? LIMIT 1');
+            $stmt->execute([$sessionToken]);
+            $conv = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        // Insérer le message de bienvenue automatique de l'admin
-        $welcomeMsg = $this->config['welcome_message'] ?? 'Bonjour ! Comment pouvons-nous vous aider ?';
-        $this->addMessage($id, 'admin', $welcomeMsg, $this->config['admin_name']);
+            if ($conv) {
+                $updates = [];
+                $params = [];
+                if (!empty($name) && $conv['visitor_name'] !== $name) {
+                    $updates[] = 'visitor_name = ?';
+                    $params[] = $name;
+                    $conv['visitor_name'] = $name;
+                }
+                if (!empty($contact) && $conv['visitor_contact'] !== $contact) {
+                    $updates[] = 'visitor_contact = ?';
+                    $params[] = $contact;
+                    $conv['visitor_contact'] = $contact;
+                }
+                if (!empty($updates)) {
+                    $params[] = $conv['id'];
+                    $this->pdo->prepare('UPDATE vb_livechat_conversations SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($params);
+                }
+                return $conv;
+            }
 
-        return $this->getConversationById($id);
+            $visitorName = !empty($name) ? $name : 'Visiteur #' . substr(md5($sessionToken), 0, 4);
+            $insert = $this->pdo->prepare('
+                INSERT INTO vb_livechat_conversations (session_token, visitor_name, visitor_contact, status, created_at, updated_at)
+                VALUES (?, ?, ?, \'open\', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ');
+            $insert->execute([$sessionToken, $visitorName, $contact]);
+            $id = (int)$this->pdo->lastInsertId();
+
+            // Message de bienvenue automatique de l'admin
+            $welcomeMsg = $this->config['welcome_message'] ?? 'Bonjour ! Comment pouvons-nous vous aider ?';
+            $this->addMessage($id, 'admin', $welcomeMsg, $this->config['admin_name']);
+
+            return $this->getConversationById($id) ?: [];
+        } catch (\Throwable $e) {
+            $this->ensureSchema();
+            return [];
+        }
     }
 
     public function getConversationById(int $id): ?array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM vb_livechat_conversations WHERE id = ? LIMIT 1');
-        $stmt->execute([$id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        if (!$this->pdo) {
+            return null;
+        }
+        try {
+            $stmt = $this->pdo->prepare('SELECT * FROM vb_livechat_conversations WHERE id = ? LIMIT 1');
+            $stmt->execute([$id]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     public function getConversationByToken(string $sessionToken): ?array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM vb_livechat_conversations WHERE session_token = ? LIMIT 1');
-        $stmt->execute([$sessionToken]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        if (!$this->pdo) {
+            return null;
+        }
+        try {
+            $stmt = $this->pdo->prepare('SELECT * FROM vb_livechat_conversations WHERE session_token = ? LIMIT 1');
+            $stmt->execute([$sessionToken]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**
@@ -160,44 +259,48 @@ class LiveChatService
      */
     public function addMessage(int $conversationId, string $sender, string $message, ?string $senderName = null): array
     {
-        $message = trim($message);
-        if ($message === '') {
-            throw new \InvalidArgumentException('Message vide.');
+        if (!$this->pdo) {
+            return [];
         }
 
-        $stmt = $this->pdo->prepare('
-            INSERT INTO vb_livechat_messages (conversation_id, sender, sender_name, message, created_at, is_read)
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 0)
-        ');
-        $stmt->execute([$conversationId, $sender, $senderName, $message]);
-        $msgId = (int)$this->pdo->lastInsertId();
+        try {
+            $stmt = $this->pdo->prepare('
+                INSERT INTO vb_livechat_messages (conversation_id, sender, sender_name, message, created_at, is_read)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 0)
+            ');
+            $stmt->execute([$conversationId, $sender, $senderName, $message]);
+            $msgId = (int)$this->pdo->lastInsertId();
 
-        // Mettre à jour la conversation
-        $unreadField = ($sender === 'visitor') ? 'unread_admin = unread_admin + 1' : 'unread_visitor = unread_visitor + 1';
-        $updateConv = $this->pdo->prepare("
-            UPDATE vb_livechat_conversations 
-            SET last_message = ?, updated_at = CURRENT_TIMESTAMP, status = 'open', {$unreadField}
-            WHERE id = ?
-        ");
-        $updateConv->execute([mb_substr($message, 0, 150), $conversationId]);
+            // Mettre à jour la conversation
+            $unreadField = ($sender === 'visitor') ? 'unread_admin = unread_admin + 1' : 'unread_visitor = unread_visitor + 1';
+            $updateConv = $this->pdo->prepare("
+                UPDATE vb_livechat_conversations 
+                SET last_message = ?, updated_at = CURRENT_TIMESTAMP, status = 'open', {$unreadField}
+                WHERE id = ?
+            ");
+            $updateConv->execute([mb_substr($message, 0, 150), $conversationId]);
 
-        // Si le visiteur écrit, notifier Discord
-        if ($sender === 'visitor') {
-            $conv = $this->getConversationById($conversationId);
-            $visitorName = $conv['visitor_name'] ?? 'Visiteur';
-            $contact = $conv['visitor_contact'] ?? '';
-            $this->sendDiscordNotification($visitorName, $contact, $message, $conversationId);
+            // Si le visiteur écrit, notifier Discord
+            if ($sender === 'visitor') {
+                $conv = $this->getConversationById($conversationId);
+                $visitorName = $conv['visitor_name'] ?? 'Visiteur';
+                $contact = $conv['visitor_contact'] ?? '';
+                $this->sendDiscordNotification($visitorName, $contact, $message, $conversationId);
+            }
+
+            return [
+                'id' => $msgId,
+                'conversation_id' => $conversationId,
+                'sender' => $sender,
+                'sender_name' => $senderName,
+                'message' => $message,
+                'created_at' => date('Y-m-d H:i:s'),
+                'is_read' => 0
+            ];
+        } catch (\Throwable $e) {
+            $this->ensureSchema();
+            return [];
         }
-
-        return [
-            'id' => $msgId,
-            'conversation_id' => $conversationId,
-            'sender' => $sender,
-            'sender_name' => $senderName,
-            'message' => $message,
-            'created_at' => date('Y-m-d H:i:s'),
-            'is_read' => 0
-        ];
     }
 
     /**
@@ -205,22 +308,30 @@ class LiveChatService
      */
     public function getMessages(int $conversationId, int $afterId = 0): array
     {
-        if ($afterId > 0) {
-            $stmt = $this->pdo->prepare('
-                SELECT * FROM vb_livechat_messages 
-                WHERE conversation_id = ? AND id > ? 
-                ORDER BY id ASC
-            ');
-            $stmt->execute([$conversationId, $afterId]);
-        } else {
-            $stmt = $this->pdo->prepare('
-                SELECT * FROM vb_livechat_messages 
-                WHERE conversation_id = ? 
-                ORDER BY id ASC
-            ');
-            $stmt->execute([$conversationId]);
+        if (!$this->pdo) {
+            return [];
         }
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        try {
+            if ($afterId > 0) {
+                $stmt = $this->pdo->prepare('
+                    SELECT * FROM vb_livechat_messages 
+                    WHERE conversation_id = ? AND id > ? 
+                    ORDER BY id ASC
+                ');
+                $stmt->execute([$conversationId, $afterId]);
+            } else {
+                $stmt = $this->pdo->prepare('
+                    SELECT * FROM vb_livechat_messages 
+                    WHERE conversation_id = ? 
+                    ORDER BY id ASC
+                ');
+                $stmt->execute([$conversationId]);
+            }
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     /**
@@ -228,13 +339,19 @@ class LiveChatService
      */
     public function markAsRead(int $conversationId, string $readerRole): void
     {
-        if ($readerRole === 'admin') {
-            $this->pdo->prepare("UPDATE vb_livechat_messages SET is_read = 1 WHERE conversation_id = ? AND sender = 'visitor'")->execute([$conversationId]);
-            $this->pdo->prepare('UPDATE vb_livechat_conversations SET unread_admin = 0 WHERE id = ?')->execute([$conversationId]);
-        } else {
-            $this->pdo->prepare("UPDATE vb_livechat_messages SET is_read = 1 WHERE conversation_id = ? AND sender = 'admin'")->execute([$conversationId]);
-            $this->pdo->prepare('UPDATE vb_livechat_conversations SET unread_visitor = 0 WHERE id = ?')->execute([$conversationId]);
+        if (!$this->pdo) {
+            return;
         }
+
+        try {
+            if ($readerRole === 'admin') {
+                $this->pdo->prepare("UPDATE vb_livechat_messages SET is_read = 1 WHERE conversation_id = ? AND sender = 'visitor'")->execute([$conversationId]);
+                $this->pdo->prepare('UPDATE vb_livechat_conversations SET unread_admin = 0 WHERE id = ?')->execute([$conversationId]);
+            } else {
+                $this->pdo->prepare("UPDATE vb_livechat_messages SET is_read = 1 WHERE conversation_id = ? AND sender = 'admin'")->execute([$conversationId]);
+                $this->pdo->prepare('UPDATE vb_livechat_conversations SET unread_visitor = 0 WHERE id = ?')->execute([$conversationId]);
+            }
+        } catch (\Throwable $e) {}
     }
 
     /**
@@ -274,20 +391,43 @@ class LiveChatService
      */
     public function getAllConversations(int $limit = 50, string $status = 'all', string $search = '', int $offset = 0): array
     {
+        if (!$this->pdo) {
+            return [];
+        }
+
         $limit = max(1, min(1000, $limit));
         $offset = max(0, $offset);
         [$where, $params] = $this->buildConversationFilter($status, $search);
 
-        $stmt = $this->pdo->prepare("
-            SELECT c.*, 
-                   (SELECT COUNT(*) FROM vb_livechat_messages m WHERE m.conversation_id = c.id) as total_messages
-            FROM vb_livechat_conversations c
-            {$where}
-            ORDER BY c.unread_admin DESC, c.updated_at DESC, c.id DESC
-            LIMIT {$limit} OFFSET {$offset}
-        ");
-        $stmt->execute($params);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT c.*, 
+                       (SELECT COUNT(*) FROM vb_livechat_messages m WHERE m.conversation_id = c.id) as total_messages
+                FROM vb_livechat_conversations c
+                {$where}
+                ORDER BY c.unread_admin DESC, c.updated_at DESC, c.id DESC
+                LIMIT {$limit} OFFSET {$offset}
+            ");
+            $stmt->execute($params);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {
+            // Tentative d'auto-réparation du schéma si la table manque
+            $this->ensureSchema();
+            try {
+                $stmt = $this->pdo->prepare("
+                    SELECT c.*, 
+                           (SELECT COUNT(*) FROM vb_livechat_messages m WHERE m.conversation_id = c.id) as total_messages
+                    FROM vb_livechat_conversations c
+                    {$where}
+                    ORDER BY c.unread_admin DESC, c.updated_at DESC, c.id DESC
+                    LIMIT {$limit} OFFSET {$offset}
+                ");
+                $stmt->execute($params);
+                return $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            } catch (\Throwable $e2) {
+                return [];
+            }
+        }
     }
 
     /**
@@ -295,10 +435,18 @@ class LiveChatService
      */
     public function countConversations(string $status = 'all', string $search = ''): int
     {
+        if (!$this->pdo) {
+            return 0;
+        }
+
         [$where, $params] = $this->buildConversationFilter($status, $search);
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM vb_livechat_conversations c {$where}");
-        $stmt->execute($params);
-        return (int)$stmt->fetchColumn();
+        try {
+            $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM vb_livechat_conversations c {$where}");
+            $stmt->execute($params);
+            return (int)$stmt->fetchColumn();
+        } catch (\Throwable $e) {
+            return 0;
+        }
     }
 
     /**
@@ -306,22 +454,40 @@ class LiveChatService
      */
     public function getConversationStats(): array
     {
-        $stmt = $this->pdo->query("
-            SELECT
-                COUNT(*) AS all_count,
-                COALESCE(SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END), 0) AS open_count,
-                COALESCE(SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END), 0) AS closed_count,
-                COALESCE(SUM(CASE WHEN unread_admin > 0 THEN 1 ELSE 0 END), 0) AS unread_count
-            FROM vb_livechat_conversations
-        ");
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC) ?: [];
-
-        return [
-            'all' => (int)($row['all_count'] ?? 0),
-            'open' => (int)($row['open_count'] ?? 0),
-            'closed' => (int)($row['closed_count'] ?? 0),
-            'unread' => (int)($row['unread_count'] ?? 0),
+        $default = [
+            'all' => 0,
+            'open' => 0,
+            'closed' => 0,
+            'unread' => 0,
         ];
+
+        if (!$this->pdo) {
+            return $default;
+        }
+
+        try {
+            $stmt = $this->pdo->query("
+                SELECT
+                    COUNT(*) AS all_count,
+                    COALESCE(SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END), 0) AS open_count,
+                    COALESCE(SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END), 0) AS closed_count,
+                    COALESCE(SUM(CASE WHEN unread_admin > 0 THEN 1 ELSE 0 END), 0) AS unread_count
+                FROM vb_livechat_conversations
+            ");
+            $row = $stmt ? $stmt->fetch(\PDO::FETCH_ASSOC) : null;
+            if (!$row) {
+                return $default;
+            }
+
+            return [
+                'all' => (int)($row['all_count'] ?? 0),
+                'open' => (int)($row['open_count'] ?? 0),
+                'closed' => (int)($row['closed_count'] ?? 0),
+                'unread' => (int)($row['unread_count'] ?? 0),
+            ];
+        } catch (\Throwable $e) {
+            return $default;
+        }
     }
 
     /**
@@ -329,12 +495,20 @@ class LiveChatService
      */
     public function toggleStatus(int $conversationId): bool
     {
-        $conv = $this->getConversationById($conversationId);
-        if (!$conv) return false;
+        if (!$this->pdo) {
+            return false;
+        }
 
-        $newStatus = ($conv['status'] === 'open') ? 'closed' : 'open';
-        $stmt = $this->pdo->prepare('UPDATE vb_livechat_conversations SET status = ? WHERE id = ?');
-        return $stmt->execute([$newStatus, $conversationId]);
+        try {
+            $conv = $this->getConversationById($conversationId);
+            if (!$conv) return false;
+
+            $newStatus = ($conv['status'] === 'open') ? 'closed' : 'open';
+            $stmt = $this->pdo->prepare('UPDATE vb_livechat_conversations SET status = ? WHERE id = ?');
+            return $stmt->execute([$newStatus, $conversationId]);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     /**
@@ -344,7 +518,6 @@ class LiveChatService
     {
         $webhookUrl = trim($this->config['discord_webhook'] ?? '');
         if (empty($webhookUrl)) {
-            // Vérifier aussi dans config_pro_chat.json si présent
             $proConfig = DATA_PLUGIN . 'LiveChat/config_pro_chat.json';
             if (file_exists($proConfig)) {
                 $p = json_decode(file_get_contents($proConfig), true);
