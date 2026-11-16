@@ -47,7 +47,7 @@
             
             <div class="faq-submit-container">
                 {% if antispam %}
-                    <div class="faq-captcha">{{ antispamField }}</div>
+                    <div class="faq-captcha">{{ antispamField|raw }}</div>
                 {% endif %}
                 <button type="submit" class="button">{{ Lang.faq.send-question }}</button>
             </div>

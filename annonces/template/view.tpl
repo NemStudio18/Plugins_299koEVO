@@ -84,7 +84,7 @@
 
                     {% if antispam %}
                         <div class="annonce-antispam-wrap">
-                            {{antispamField}}
+                            {{antispamField|raw}}
                         </div>
                     {% endif %}
 

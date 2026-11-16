@@ -116,7 +116,7 @@
 					</p>
 					{% IF !isLogged %}
 						{% IF antispam %}
-							{{antispamField}}
+							{{antispamField|raw}}
 						{% ENDIF %}
 					{% ENDIF %}
 					<p><input type="submit" value="{{Lang.blog.comments.send}}"/></p>

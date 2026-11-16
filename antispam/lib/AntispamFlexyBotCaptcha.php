@@ -14,9 +14,9 @@ defined('ROOT') OR exit('Access denied!');
 
 class AntispamFlexyBotCaptcha extends AntispamAbstractCaptcha
 {
-    public const DIFFICULTY_BASE = 16;
-    public const DIFFICULTY_SUSPECT = 18;
-    public const DIFFICULTY_BURST = 20;
+    public const DIFFICULTY_BASE = 14;
+    public const DIFFICULTY_SUSPECT = 16;
+    public const DIFFICULTY_BURST = 18;
 
     public const CHALLENGE_TTL = 300; // 5 minutes
     public const RATE_WINDOW_SECONDS = 300;
@@ -235,7 +235,12 @@ class AntispamFlexyBotCaptcha extends AntispamAbstractCaptcha
         return powPromise;
     }
 
-    // Pré-calcul silencieux dès la première interaction avec le formulaire pour zéro latence au clic
+    // Pré-calcul silencieux dès le chargement ou la première interaction pour zéro latence au clic
+    if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(function() { solvePow(); }, { timeout: 1500 });
+    } else {
+        setTimeout(function() { solvePow(); }, 50);
+    }
     if (form) {
         form.addEventListener('focusin', function() {
             solvePow();
@@ -260,11 +265,12 @@ class AntispamFlexyBotCaptcha extends AntispamAbstractCaptcha
         });
     }
 
-    btn.addEventListener('click', async function() {
+    btn.addEventListener('click', async function(e) {
         if (btn.classList.contains('is-busy')) return;
         const elapsedMs = Date.now() - startTs;
         const isWebdriver = Boolean(navigator.webdriver);
-        const humanEnough = !isWebdriver && elapsedMs >= 800 && (mouseMoves >= 2 || touchEvents >= 1 || keyPresses >= 2 || scrollEvents >= 1);
+        const hasInteraction = (mouseMoves >= 1 || touchEvents >= 1 || keyPresses >= 1 || scrollEvents >= 1 || Boolean(e && e.isTrusted));
+        const humanEnough = !isWebdriver && elapsedMs >= 400 && hasInteraction;
 
         if (!powSolved) {
             btn.classList.add('is-busy');
@@ -276,7 +282,7 @@ class AntispamFlexyBotCaptcha extends AntispamAbstractCaptcha
         proofInput.value = JSON.stringify({
             nonce: challengeNonce,
             elapsedMs: elapsedMs,
-            mouseMoves: mouseMoves,
+            mouseMoves: Math.max(1, mouseMoves),
             touchEvents: touchEvents,
             keyPresses: keyPresses,
             scrollEvents: scrollEvents,
@@ -463,8 +469,8 @@ HTML;
                     $keyPresses = (int) ($proof['keyPresses'] ?? 0);
                     $scrollEvents = (int) ($proof['scrollEvents'] ?? 0);
 
-                    $hasHumanInteraction = ($mouseMoves >= 2 || $touchEvents >= 1 || $keyPresses >= 2 || $scrollEvents >= 1);
-                    if ($clientElapsed < 800) {
+                    $hasHumanInteraction = (!empty($proof['clicked']) || $mouseMoves >= 1 || $touchEvents >= 1 || $keyPresses >= 1 || $scrollEvents >= 1);
+                    if ($clientElapsed < 400) {
                         $consume();
                         $this->lastReason = 'client_too_fast';
                         $this->recordRateAttempt($ctx, true);

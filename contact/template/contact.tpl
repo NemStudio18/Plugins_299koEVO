@@ -55,7 +55,7 @@
             {% endif %}
             {% if antispam %}
                 <div class="form-group antispam-wrapper">
-                    {{antispamField}}
+                    {{antispamField|raw}}
                 </div>
             {% endif %}
             <div class="contact-submit-wrap">
