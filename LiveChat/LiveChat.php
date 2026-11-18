@@ -4,13 +4,26 @@ namespace LiveChat {
 
     defined('ROOT') or exit('No direct script access allowed');
 
-    require_once PLUGINS . 'LiveChat/services/LiveChatService.php';
+    $livechatDir = is_dir(PLUGINS . 'LiveChat') ? 'LiveChat' : (is_dir(PLUGINS . 'livechat') ? 'livechat' : 'LiveChat');
+    if (file_exists(PLUGINS . $livechatDir . '/services/LiveChatService.php')) {
+        require_once PLUGINS . $livechatDir . '/services/LiveChatService.php';
+    }
 
     class Hooks
     {
+        public static function getDirName(): string
+        {
+            return is_dir(PLUGINS . 'LiveChat') ? 'LiveChat' : (is_dir(PLUGINS . 'livechat') ? 'livechat' : 'LiveChat');
+        }
+
+        public static function getDataDir(): string
+        {
+            return is_dir(DATA_PLUGIN . 'LiveChat') ? DATA_PLUGIN . 'LiveChat' : (is_dir(DATA_PLUGIN . 'livechat') ? DATA_PLUGIN . 'livechat' : DATA_PLUGIN . 'LiveChat');
+        }
+
         public static function install(): void
         {
-            $dir = DATA_PLUGIN . 'LiveChat';
+            $dir = self::getDataDir();
             if (!is_dir($dir)) {
                 @mkdir($dir, 0755, true);
             }
@@ -27,8 +40,10 @@ namespace LiveChat {
                 @file_put_contents($configFile, json_encode($initial, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
             }
             try {
-                $service = new \LiveChat\Services\LiveChatService();
-                $service->ensureSchema();
+                if (class_exists('\\LiveChat\\Services\\LiveChatService')) {
+                    $service = new \LiveChat\Services\LiveChatService();
+                    $service->ensureSchema();
+                }
             } catch (\Throwable $e) {}
         }
 
@@ -47,18 +62,19 @@ namespace LiveChat {
                 return;
             }
 
-            $cssFile = PLUGINS . 'LiveChat/assets/livechat.css';
-            $jsFile = PLUGINS . 'LiveChat/assets/livechat.js';
+            $dirName = self::getDirName();
+            $cssFile = PLUGINS . $dirName . '/assets/livechat.css';
+            $jsFile = PLUGINS . $dirName . '/assets/livechat.js';
             $cssVer = file_exists($cssFile) ? filemtime($cssFile) : '1.0';
             $jsVer = file_exists($jsFile) ? filemtime($jsFile) : '1.0';
 
-            echo '<link rel="stylesheet" href="/plugin/LiveChat/assets/livechat.css?v=' . $cssVer . '">';
-            echo '<script src="/plugin/LiveChat/assets/livechat.js?v=' . $jsVer . '" defer></script>';
+            echo '<link rel="stylesheet" href="/plugin/' . $dirName . '/assets/livechat.css?v=' . $cssVer . '">';
+            echo '<script src="/plugin/' . $dirName . '/assets/livechat.js?v=' . $jsVer . '" defer></script>';
         }
 
         public static function getConfig(): array
         {
-            $configFile = DATA_PLUGIN . 'LiveChat/config.json';
+            $configFile = self::getDataDir() . '/config.json';
             if (file_exists($configFile)) {
                 $data = json_decode(file_get_contents($configFile), true);
                 if (is_array($data)) {
@@ -82,8 +98,19 @@ namespace {
             \LiveChat\Hooks::install();
         }
     }
+    if (!function_exists('livechatInstall')) {
+        function livechatInstall(): void
+        {
+            \LiveChat\Hooks::install();
+        }
+    }
     if (!function_exists('LiveChatUninstall')) {
         function LiveChatUninstall(): void
+        {
+        }
+    }
+    if (!function_exists('livechatUninstall')) {
+        function livechatUninstall(): void
         {
         }
     }
