@@ -663,13 +663,21 @@ class LightStatsLogsManager {
             $page = $log->page ?? '/';
             $pagesCount[$page] = ($pagesCount[$page] ?? 0) + 1;
             
-            // Compter les référents (exclure admin et test)
+            // Compter les référents consolidés (exclure admin et test, regrouper les plateformes comme Facebook, Instagram, Google...)
             $referer = $log->referer ?? '';
-            if (!empty($referer)) {
-                $referersCount[$referer] = ($referersCount[$referer] ?? 0) + 1;
-            } else {
-                $referersCount[''] = ($referersCount[''] ?? 0) + 1;
+            $canon = self::canonicalizeReferer($referer);
+            $refKey = $canon['key'];
+            if (!isset($referersCount[$refKey])) {
+                $referersCount[$refKey] = [
+                    'label' => $canon['label'],
+                    'url' => $canon['url'],
+                    'is_direct' => $canon['is_direct'],
+                    'hits' => 0,
+                    'count' => 0
+                ];
             }
+            $referersCount[$refKey]['hits']++;
+            $referersCount[$refKey]['count']++;
             
             // Compter les navigateurs
             $browser = $log->browser ?? 'Unknown';
@@ -689,8 +697,10 @@ class LightStatsLogsManager {
         arsort($pagesCount);
         $topPages = array_slice($pagesCount, 0, 10, true);
         
-        // Top 10 référents
-        arsort($referersCount);
+        // Top 10 référents (triés par hits décroissants)
+        uasort($referersCount, function ($a, $b) {
+            return ($b['hits'] ?? 0) <=> ($a['hits'] ?? 0);
+        });
         $topReferers = array_slice($referersCount, 0, 10, true);
         
         // Top navigateurs
@@ -745,6 +755,173 @@ class LightStatsLogsManager {
         return $kpis;
     }
     
+    /**
+     * Consolide et normalise les référents (regroupement des variantes Facebook, Instagram, Google, etc.)
+     */
+    public static function canonicalizeReferer(string $referer): array
+    {
+        $raw = trim($referer);
+        if ($raw === '' || $raw === 'direct' || $raw === '(direct)') {
+            return [
+                'key' => 'direct',
+                'label' => 'Direct / Accès direct',
+                'url' => '',
+                'is_direct' => true
+            ];
+        }
+
+        $host = '';
+        if (str_starts_with($raw, 'android-app://')) {
+            $app = substr($raw, 14);
+            if (str_contains($app, 'facebook')) {
+                return [
+                    'key' => 'facebook',
+                    'label' => 'Facebook',
+                    'url' => 'https://www.facebook.com',
+                    'is_direct' => false
+                ];
+            }
+            if (str_contains($app, 'instagram')) {
+                return [
+                    'key' => 'instagram',
+                    'label' => 'Instagram',
+                    'url' => 'https://www.instagram.com',
+                    'is_direct' => false
+                ];
+            }
+            if (str_contains($app, 'twitter')) {
+                return [
+                    'key' => 'twitter',
+                    'label' => 'X / Twitter',
+                    'url' => 'https://x.com',
+                    'is_direct' => false
+                ];
+            }
+            $host = $app;
+        } else {
+            $parsed = parse_url($raw);
+            $host = strtolower($parsed['host'] ?? '');
+        }
+
+        if (empty($host)) {
+            $host = strtolower(preg_replace('#^https?://#i', '', $raw));
+            $host = explode('/', $host)[0];
+            $host = explode(':', $host)[0];
+        }
+
+        // Nettoyer le préfixe www.
+        $cleanHost = preg_replace('/^www\./', '', $host);
+
+        // Groupements des grands réseaux et moteurs de recherche
+        if (str_contains($cleanHost, 'facebook.com') || str_contains($cleanHost, 'fb.com') || str_contains($cleanHost, 'messenger.com')) {
+            return [
+                'key' => 'facebook',
+                'label' => 'Facebook',
+                'url' => 'https://www.facebook.com',
+                'is_direct' => false
+            ];
+        }
+
+        if (str_contains($cleanHost, 'instagram.com')) {
+            return [
+                'key' => 'instagram',
+                'label' => 'Instagram',
+                'url' => 'https://www.instagram.com',
+                'is_direct' => false
+            ];
+        }
+
+        if (str_contains($cleanHost, 'google.') || $cleanHost === 'google') {
+            return [
+                'key' => 'google',
+                'label' => 'Google',
+                'url' => 'https://www.google.fr',
+                'is_direct' => false
+            ];
+        }
+
+        if ($cleanHost === 't.co' || str_contains($cleanHost, 'twitter.com') || str_contains($cleanHost, 'x.com')) {
+            return [
+                'key' => 'twitter',
+                'label' => 'X / Twitter',
+                'url' => 'https://x.com',
+                'is_direct' => false
+            ];
+        }
+
+        if (str_contains($cleanHost, 'linkedin.com') || $cleanHost === 'lnkd.in') {
+            return [
+                'key' => 'linkedin',
+                'label' => 'LinkedIn',
+                'url' => 'https://www.linkedin.com',
+                'is_direct' => false
+            ];
+        }
+
+        if (str_contains($cleanHost, 'tiktok.com')) {
+            return [
+                'key' => 'tiktok',
+                'label' => 'TikTok',
+                'url' => 'https://www.tiktok.com',
+                'is_direct' => false
+            ];
+        }
+
+        if (str_contains($cleanHost, 'bing.com')) {
+            return [
+                'key' => 'bing',
+                'label' => 'Bing',
+                'url' => 'https://www.bing.com',
+                'is_direct' => false
+            ];
+        }
+
+        if (str_contains($cleanHost, 'pinterest.')) {
+            return [
+                'key' => 'pinterest',
+                'label' => 'Pinterest',
+                'url' => 'https://www.pinterest.com',
+                'is_direct' => false
+            ];
+        }
+
+        if (str_contains($cleanHost, 'youtube.com') || $cleanHost === 'youtu.be') {
+            return [
+                'key' => 'youtube',
+                'label' => 'YouTube',
+                'url' => 'https://www.youtube.com',
+                'is_direct' => false
+            ];
+        }
+
+        if (str_contains($cleanHost, 'qwant.com')) {
+            return [
+                'key' => 'qwant',
+                'label' => 'Qwant',
+                'url' => 'https://www.qwant.com',
+                'is_direct' => false
+            ];
+        }
+
+        if (str_contains($cleanHost, 'duckduckgo.com')) {
+            return [
+                'key' => 'duckduckgo',
+                'label' => 'DuckDuckGo',
+                'url' => 'https://duckduckgo.com',
+                'is_direct' => false
+            ];
+        }
+
+        // Par défaut : groupe par nom d'hôte propre
+        $scheme = (isset($parsed['scheme']) && $parsed['scheme'] === 'http') ? 'http://' : 'https://';
+        return [
+            'key' => $cleanHost,
+            'label' => $cleanHost,
+            'url' => $scheme . $cleanHost,
+            'is_direct' => false
+        ];
+    }
+
     /**
      * Formate une durée en secondes en format lisible (ex: "3 min 12 s")
      */

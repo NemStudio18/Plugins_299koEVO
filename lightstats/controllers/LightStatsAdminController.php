@@ -118,22 +118,25 @@ class LightStatsAdminController extends AdminController
         // Normaliser les référents
         if (isset($kpis['top_referers']) && is_array($kpis['top_referers'])) {
             $normalizedReferers = [];
-            foreach ($kpis['top_referers'] as $referer => $count) {
-                if ($referer === '') {
+            foreach ($kpis['top_referers'] as $referer => $data) {
+                if (is_array($data) && isset($data['label'])) {
+                    $normalizedReferers[$referer] = $data;
+                } elseif ($referer === '') {
                     $normalizedReferers['Direct'] = [
-                        'label' => 'Direct',
+                        'label' => 'Direct / Accès direct',
                         'url' => '',
                         'is_direct' => true,
-                        'count' => $count,
-                        'hits' => $count
+                        'count' => (int)$data,
+                        'hits' => (int)$data
                     ];
                 } else {
+                    $canon = LightStatsLogsManager::canonicalizeReferer((string)$referer);
                     $normalizedReferers[$referer] = [
-                        'label' => $referer,
-                        'url' => $referer,
-                        'is_direct' => false,
-                        'count' => $count,
-                        'hits' => $count
+                        'label' => $canon['label'],
+                        'url' => $canon['url'],
+                        'is_direct' => $canon['is_direct'],
+                        'count' => (int)$data,
+                        'hits' => (int)$data
                     ];
                 }
             }
