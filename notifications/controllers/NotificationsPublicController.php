@@ -48,6 +48,47 @@ class NotificationsPublicController extends PublicController
     }
 
     /**
+     * Affiche le détail d'une notification
+     */
+    public function view($id = null)
+    {
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('notifications:access'), $ctx)) {
+            Show::msg('Vous devez être connecté.', 'error');
+            return $this->core->redirect('/');
+        }
+
+        $user = UsersManager::getCurrentUser();
+        $userId = $user->attributes['id'] ?? 0;
+        $notificationId = trim((string) ($id ?? ''));
+
+        require_once PLUGINS . 'notifications/entities/NotificationManager.php';
+        $manager = new \Notifications\Entities\NotificationManager();
+
+        $notification = $manager->getNotification($notificationId, $userId);
+        if (!$notification) {
+            Show::msg('Notification introuvable.', 'error');
+            return $this->core->redirect('/notifications');
+        }
+
+        // Marquer automatiquement comme lue lors de la consultation
+        if (empty($notification['is_read'])) {
+            $manager->markAsRead($notificationId, $userId);
+            $notification['is_read'] = 1;
+        }
+
+        $response = new PublicResponse();
+        $tpl = $response->createPluginTemplate('notifications', 'detail');
+        $tpl->set('notification', $notification);
+        $tpl->set('csrfToken', Csrf::token());
+
+        $response->setTitle($notification['title'] ?? 'Détail de la notification');
+        $response->addTemplate($tpl);
+        return $response;
+    }
+
+    /**
      * Marque une notification comme lue
      */
     /**

@@ -22,13 +22,22 @@
             <div class="notification {% if notif.is_read == 0 %}unread{% endif %}" id="notif-{{notif.id}}">
                 <div class="notif-source">{{notif.source_plugin}}</div>
                 <div class="notif-content">
-                    <strong>{{notif.title}}</strong>
+                    <strong><a href="/notifications/view/{{notif.id}}" style="color: inherit; text-decoration: none;">{{notif.title}}</a></strong>
                     {% if notif.message %}
-                        <p>{{notif.message}}</p>
+                        <div class="notif-message-preview" style="white-space: pre-wrap; margin: 0.5rem 0; line-height: 1.5; color: var(--evo-text-muted);">{{notif.message}}</div>
                     {% endif %}
-                    {% if notif.link_url %}
-                        <a href="{{notif.link_url}}" class="notif-link">Voir le détail</a>
-                    {% endif %}
+                    <div class="notif-actions" style="display: flex; gap: 12px; align-items: center; margin-top: 0.75rem;">
+                        <a href="/notifications/view/{{notif.id}}" class="notif-link" style="margin-top: 0;">Voir le détail</a>
+                        {% if notif.link_url %}
+                            <a href="{{notif.link_url}}" class="notif-external-link" style="font-size: 0.85rem; color: var(--evo-text-muted); text-decoration: underline;">
+                                {% if notif.link_url == '/admin' or notif.link_url == '/admin/' %}
+                                    Aller au Dashboard <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                {% else %}
+                                    Aller au lien <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                {% endif %}
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="notif-meta">
                     <span class="notif-time">{{ notif.created_at|date("d/m/Y H:i") }}</span>

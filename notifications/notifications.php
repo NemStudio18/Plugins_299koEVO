@@ -242,10 +242,18 @@ namespace {
                 }
                 $createdAt = !empty($notif['created_at']) ? date('d/m H:i', strtotime((string) $notif['created_at'])) : '';
 
-                echo '<a href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '" class="adm-notif-item' . ($unread ? ' is-unread' : '') . '" data-notif-id="' . htmlspecialchars($nid, ENT_QUOTES, 'UTF-8') . '" data-token="' . htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') . '">';
+                $message = (string) ($notif['message'] ?? ($data['message'] ?? ''));
+                $hasMessage = $message !== '' ? '1' : '0';
+                $detailUrl = $siteUrl . '/notifications/view/' . rawurlencode($nid);
+
+                echo '<a href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '" class="adm-notif-item' . ($unread ? ' is-unread' : '') . '" data-notif-id="' . htmlspecialchars($nid, ENT_QUOTES, 'UTF-8') . '" data-token="' . htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') . '" data-has-message="' . $hasMessage . '" data-title="' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '" data-message="' . htmlspecialchars($message, ENT_QUOTES, 'UTF-8') . '" data-src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" data-date="' . htmlspecialchars($createdAt, ENT_QUOTES, 'UTF-8') . '" data-url="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '" data-detail-url="' . htmlspecialchars($detailUrl, ENT_QUOTES, 'UTF-8') . '">';
                 echo '<span class="adm-notif-dot" aria-hidden="true"></span>';
                 echo '<span class="adm-notif-body">';
                 echo '<span class="adm-notif-title">' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</span>';
+                if ($message !== '') {
+                    $preview = mb_strlen($message) > 90 ? mb_substr($message, 0, 87) . '...' : $message;
+                    echo '<span class="adm-notif-preview" style="display: block; font-size: 0.8rem; color: var(--adm-text-muted, #64748b); margin: 2px 0 4px; line-height: 1.3;">' . htmlspecialchars($preview, ENT_QUOTES, 'UTF-8') . '</span>';
+                }
                 echo '<span class="adm-notif-meta"><span>' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '</span>';
                 if ($createdAt !== '') {
                     echo '<span>' . htmlspecialchars($createdAt, ENT_QUOTES, 'UTF-8') . '</span>';
@@ -261,11 +269,55 @@ namespace {
         echo '</div>';
         echo '</div></div>';
 
+        // Modal for notification details in admin
+        echo '<div id="admNotifModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(2px); z-index: 999999; align-items: center; justify-content: center; padding: 20px;">';
+        echo '<div style="background: var(--section-bg-color, #ffffff); color: var(--font-color, #334155); border-radius: 12px; width: 100%; max-width: 620px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; overflow: hidden; max-height: 85vh; border: 1px solid var(--adm-border, #e2e8f0);">';
+        echo '<div style="padding: 18px 24px; border-bottom: 1px solid var(--adm-border, #e2e8f0); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">';
+        echo '<div>';
+        echo '<div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">';
+        echo '<span id="admNotifModalSrc" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700; background: #e2e8f0; color: #475569; padding: 2px 8px; border-radius: 4px;"></span>';
+        echo '<span id="admNotifModalDate" style="font-size: 0.8rem; color: #94a3b8;"></span>';
+        echo '</div>';
+        echo '<h3 id="admNotifModalTitle" style="margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--adm-text-strong, #0f172a);"></h3>';
+        echo '</div>';
+        echo '<button type="button" id="admNotifModalClose" style="background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #94a3b8; line-height: 1; padding: 0 4px;">&times;</button>';
+        echo '</div>';
+        echo '<div id="admNotifModalBody" style="padding: 20px 24px; overflow-y: auto; white-space: pre-wrap; line-height: 1.65; font-size: 0.95rem; color: var(--font-color, #334155); flex: 1;"></div>';
+        echo '<div style="padding: 14px 24px; border-top: 1px solid var(--adm-border, #e2e8f0); background: var(--section-head-bg-color, #f8fafc); display: flex; justify-content: space-between; align-items: center;">';
+        echo '<a id="admNotifModalDetailLink" href="#" style="font-size: 0.85rem; color: var(--primary-color, #1f62a9); text-decoration: underline;">Page de détail complète</a>';
+        echo '<div style="display: flex; gap: 10px;">';
+        echo '<a id="admNotifModalActionLink" href="#" style="display: none; padding: 7px 14px; background: var(--primary-color, #1f62a9); color: #fff; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85rem;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ouvrir le lien</a>';
+        echo '<button type="button" id="admNotifModalDismiss" style="padding: 7px 14px; background: #e2e8f0; color: #334155; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">Fermer</button>';
+        echo '</div>';
+        echo '</div>';
+        echo '</div></div>';
+
         echo '<script>
 (function(){
     var wrap = document.getElementById("admNotifWrap");
     if (!wrap || wrap.dataset.bound) return;
     wrap.dataset.bound = "1";
+    var modal = document.getElementById("admNotifModal");
+    var modalClose = document.getElementById("admNotifModalClose");
+    var modalDismiss = document.getElementById("admNotifModalDismiss");
+    var modalTitle = document.getElementById("admNotifModalTitle");
+    var modalBody = document.getElementById("admNotifModalBody");
+    var modalSrc = document.getElementById("admNotifModalSrc");
+    var modalDate = document.getElementById("admNotifModalDate");
+    var modalAction = document.getElementById("admNotifModalActionLink");
+    var modalDetail = document.getElementById("admNotifModalDetailLink");
+
+    function closeModal() {
+        if (modal) modal.style.display = "none";
+    }
+    if (modalClose) modalClose.addEventListener("click", closeModal);
+    if (modalDismiss) modalDismiss.addEventListener("click", closeModal);
+    if (modal) {
+        modal.addEventListener("click", function(e) {
+            if (e.target === modal) closeModal();
+        });
+    }
+
     var markAll = wrap.querySelector(".adm-notif-markall");
     if (markAll) {
         markAll.addEventListener("click", function(e){
@@ -289,17 +341,60 @@ namespace {
             }).catch(function(){});
         });
     }
-    wrap.querySelectorAll(".adm-notif-item.is-unread").forEach(function(link){
-        link.addEventListener("click", function(){
+    wrap.querySelectorAll(".adm-notif-item").forEach(function(link){
+        link.addEventListener("click", function(e){
             var nid = link.dataset.notifId;
-            if (!nid) return;
-            var fd = new FormData();
-            fd.append("id", nid);
-            fd.append("token", link.dataset.token || "");
-            if (navigator.sendBeacon) {
-                navigator.sendBeacon(' . json_encode($siteUrl . '/notifications/mark-read/') . ' + encodeURIComponent(nid), fd);
-            } else {
-                fetch(' . json_encode($siteUrl . '/notifications/mark-read/') . ' + encodeURIComponent(nid), { method: "POST", body: fd, keepalive: true });
+            var hasMsg = link.dataset.hasMessage === "1";
+            var msg = link.dataset.message || "";
+            var title = link.dataset.title || "";
+            var src = link.dataset.src || "";
+            var date = link.dataset.date || "";
+            var targetUrl = link.dataset.url || "";
+            var detailUrl = link.dataset.detailUrl || "";
+
+            // Marquer comme lue
+            if (link.classList.contains("is-unread")) {
+                link.classList.remove("is-unread");
+                var cnt = document.getElementById("admNotifCount");
+                if (cnt) {
+                    var n = parseInt(cnt.textContent) - 1;
+                    if (n <= 0) {
+                        cnt.remove();
+                        var btn = wrap.querySelector(".adm-notif-btn");
+                        if (btn) btn.classList.remove("has-unread");
+                    } else {
+                        cnt.textContent = n;
+                    }
+                }
+                var fd = new FormData();
+                fd.append("id", nid);
+                fd.append("token", link.dataset.token || "");
+                if (navigator.sendBeacon) {
+                    navigator.sendBeacon(' . json_encode($siteUrl . '/notifications/mark-read/') . ' + encodeURIComponent(nid), fd);
+                } else {
+                    fetch(' . json_encode($siteUrl . '/notifications/mark-read/') . ' + encodeURIComponent(nid), { method: "POST", body: fd, keepalive: true });
+                }
+            }
+
+            // Si la notification contient un message détaillé, ouvrir la modale au lieu de naviguer bêtement
+            if (hasMsg && modal) {
+                e.preventDefault();
+                e.stopPropagation();
+                modalTitle.textContent = title;
+                modalBody.textContent = msg;
+                modalSrc.textContent = src;
+                modalDate.textContent = date;
+                modalDetail.href = detailUrl;
+
+                var isCurrentOrAdmin = !targetUrl || targetUrl === "/admin" || targetUrl === "/admin/" || targetUrl === window.location.pathname;
+                if (!isCurrentOrAdmin && targetUrl !== detailUrl) {
+                    modalAction.href = targetUrl;
+                    modalAction.style.display = "inline-flex";
+                } else {
+                    modalAction.style.display = "none";
+                }
+
+                modal.style.display = "flex";
             }
         });
     });
@@ -503,11 +598,21 @@ namespace {
                 $html .= '<div class="notif-source notif-profile-source">' . htmlspecialchars((string) ($notif['source_plugin'] ?? 'core')) . '</div>';
                 
                 $html .= '<div class="notif-content">';
-                $html .= '<strong class="notif-profile-title">' . htmlspecialchars($title) . '</strong>';
+                $html .= '<strong class="notif-profile-title"><a href="/notifications/view/' . htmlspecialchars((string) $notif['id']) . '" style="color: inherit; text-decoration: none;">' . htmlspecialchars($title) . '</a></strong>';
                 
-                if (!empty($data['url'])) {
-                    $html .= '<a href="' . htmlspecialchars($data['url']) . '" class="notif-link notif-profile-link">Détails <i class="fa-solid fa-external-link"></i></a>';
+                $msg = (string) ($notif['message'] ?? ($data['message'] ?? ''));
+                if ($msg !== '') {
+                    $html .= '<div class="notif-profile-message" style="margin: 6px 0 10px 0; color: var(--font-color, #475569); font-size: 0.9em; line-height: 1.5; white-space: pre-wrap;">' . htmlspecialchars($msg) . '</div>';
                 }
+                
+                $html .= '<div class="notif-profile-actions" style="display: flex; gap: 12px; align-items: center; margin-top: 6px;">';
+                $html .= '<a href="/notifications/view/' . htmlspecialchars((string) $notif['id']) . '" class="notif-link notif-profile-link" style="font-weight: 600;">Voir le détail</a>';
+                if (!empty($data['url'])) {
+                    $u = (string) $data['url'];
+                    $lbl = ($u === '/admin' || $u === '/admin/') ? 'Tableau de bord' : 'Ouvrir le lien';
+                    $html .= '<a href="' . htmlspecialchars($u) . '" class="notif-external-link" style="font-size: 0.85em; color: #64748b; text-decoration: underline;">' . $lbl . ' <i class="fa-solid fa-arrow-up-right-from-square"></i></a>';
+                }
+                $html .= '</div>';
                 $html .= '</div>';
                 
                 $html .= '<div class="notif-meta notif-profile-meta">';

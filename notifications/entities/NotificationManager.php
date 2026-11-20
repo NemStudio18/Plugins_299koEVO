@@ -187,6 +187,29 @@ class NotificationManager
         return $output;
     }
 
+    public function getNotification(int|string $notificationId, $userId): ?array
+    {
+        if ($notificationId === '' || $notificationId === 0 || $notificationId === '0') {
+            return null;
+        }
+        $notif = Notification::findPK($notificationId);
+        if (!$notif || (int) ($notif->attributes['user_id'] ?? $notif->user_id ?? 0) !== (int) $userId) {
+            return null;
+        }
+        $attrs = $notif->attributes;
+        $isRead = !empty($attrs['is_read']) || !empty($attrs['read_at']);
+        $data = is_array($attrs['data'] ?? null) ? $attrs['data'] : [];
+        $type = (string) ($attrs['type'] ?? '');
+        $attrs['id']         = $attrs['id'] ?? ($notif->id ?? '');
+        $attrs['is_read']    = $isRead ? 1 : 0;
+        $attrs['read_at']    = $attrs['read_at'] ?? null;
+        $attrs['created_at'] = $attrs['created_at'] ?? null;
+        $attrs['title']      = self::formatTitle($type, $data);
+        $attrs['message']    = (string) ($data['message'] ?? '');
+        $attrs['link_url']   = (string) ($data['url'] ?? '');
+        return $attrs;
+    }
+
     public function getUnreadCount($userId): int
     {
         $results = Notification::query()
