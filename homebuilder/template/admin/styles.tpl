@@ -21,6 +21,7 @@
         <!-- Colonne GAUCHE : Contrôles de style -->
         <div class="hb-studio-controls">
             <form id="styles-form" method="POST" action="{{ edit_link }}">
+    {{SHOW.tokenField}}
 
                 <!-- PANNEAU 1 : ARRIÈRE-PLAN -->
                 <div class="hb-control-panel">

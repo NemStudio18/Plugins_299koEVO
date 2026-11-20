@@ -148,6 +148,14 @@ class PublicRdvController extends Controller
      */
     public function postReserve()
     {
+        $__csrf = $_POST['_csrf'] ?? ($_POST['csrf_token'] ?? ($_POST['token'] ?? null));
+        if (!\Core\Security\Csrf::validate($__csrf, false)) {
+            if (class_exists('\Utils\Show')) {
+                \Utils\Show::msg("Session expirée ou jeton de sécurité invalide. Veuillez réessayer.", 'error');
+            }
+            return $this->defaultIndex();
+        }
+
         // Piège à robots (honeypot)
         if (!empty($_POST['website_hp'])) {
             header("HTTP/1.1 200 OK");

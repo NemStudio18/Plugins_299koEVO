@@ -303,6 +303,14 @@ class BlogReadController extends PublicController
 
     public function send()
     {
+        $__csrf = $_POST['_csrf'] ?? ($_POST['csrf_token'] ?? ($_POST['token'] ?? null));
+        if (!\Core\Security\Csrf::validate($__csrf, false)) {
+            if (class_exists('\Utils\Show')) {
+                \Utils\Show::msg("Session expirée ou jeton de sécurité invalide. Veuillez réessayer.", 'error');
+            }
+            return $this->read($id);
+        }
+
         $newsManager = new NewsManager();
         // quelques contrôle et temps mort volontaire avant le send...
         sleep(2);

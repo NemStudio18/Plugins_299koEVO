@@ -2,6 +2,7 @@
     <header>{% if don.id %}Modifier le don #{{ don.id }}{% else %}Ajouter un don manuel{% endif %}</header>
     <p><a href="{{ backUrl }}" class="button secondary small">&larr; Retour à la liste des dons</a></p>
     <form method="post" action="{{ saveUrl }}" class="admin-form">
+    {{SHOW.tokenField}}
         <input type="hidden" name="token" value="{{ token }}" />
         {% if don.id %}<input type="hidden" name="id" value="{{ don.id }}" />{% endif %}
         <div class="form-group">

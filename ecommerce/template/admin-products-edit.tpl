@@ -11,6 +11,7 @@
     </div>
 
     <form method="post" action="{% IF product %}{{ ROUTER.generate('admin-ecommerce-products-edit', {'id': product.getId()}) }}{% ELSE %}{{ ROUTER.generate('admin-ecommerce-products-add') }}{% ENDIF %}">
+    {{SHOW.tokenField}}
         <input type="hidden" name="token" value="{{ token }}" />
         {% IF product %}
         <input type="hidden" name="id" value="{{ product.getId() }}" />

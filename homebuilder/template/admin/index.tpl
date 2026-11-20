@@ -78,6 +78,7 @@
                         <i class="fa-solid fa-palette"></i> <span>Design</span>
                     </a>
                     <form method="POST" action="{{ block.deleteUrl }}" style="display: inline; margin: 0;">
+    {{SHOW.tokenField}}
                         <button type="submit" class="button small alert hb-btn-del" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette section ?')" title="Supprimer ce bloc">
                             <i class="fa-regular fa-trash-can"></i>
                         </button>

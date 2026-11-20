@@ -162,6 +162,14 @@ class HomeBuilderAdminController extends AdminController
 
     public function addSend()
     {
+        $__csrf = $_POST['_csrf'] ?? ($_POST['csrf_token'] ?? ($_POST['token'] ?? null));
+        if (!\Core\Security\Csrf::validate($__csrf, false)) {
+            if (class_exists('\Utils\Show')) {
+                \Utils\Show::msg("Session expirée ou jeton de sécurité invalide. Veuillez réessayer.", 'error');
+            }
+            return $this->index();
+        }
+
         $manager = new BlockManager();
 
         $blockData = [
@@ -263,6 +271,14 @@ class HomeBuilderAdminController extends AdminController
 
     public function editSend($id)
     {
+        $__csrf = $_POST['_csrf'] ?? ($_POST['csrf_token'] ?? ($_POST['token'] ?? null));
+        if (!\Core\Security\Csrf::validate($__csrf, false)) {
+            if (class_exists('\Utils\Show')) {
+                \Utils\Show::msg("Session expirée ou jeton de sécurité invalide. Veuillez réessayer.", 'error');
+            }
+            return $this->index();
+        }
+
         $BlockManager = new BlockManager();
         $block = $BlockManager->getBlock($id);
         
@@ -322,6 +338,14 @@ class HomeBuilderAdminController extends AdminController
 
     public function reorder()
     {
+        $__csrf = $_POST['_csrf'] ?? ($_POST['csrf_token'] ?? ($_POST['token'] ?? null));
+        if (!\Core\Security\Csrf::validate($__csrf, false)) {
+            if (class_exists('\Utils\Show')) {
+                \Utils\Show::msg("Session expirée ou jeton de sécurité invalide. Veuillez réessayer.", 'error');
+            }
+            return null;
+        }
+
         $payload = file_get_contents('php://input');
         $data = json_decode($payload, true);
 

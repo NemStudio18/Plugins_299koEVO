@@ -162,6 +162,14 @@ class SondageAdminController extends AdminController
 
     public function save()
     {
+        $__csrf = $_POST['_csrf'] ?? ($_POST['csrf_token'] ?? ($_POST['token'] ?? null));
+        if (!\Core\Security\Csrf::validate($__csrf, false)) {
+            if (class_exists('\Utils\Show')) {
+                \Utils\Show::msg("Session expirée ou jeton de sécurité invalide. Veuillez réessayer.", 'error');
+            }
+            return $this->list();
+        }
+
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);
         if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('sondage:admin'), $ctx)) {

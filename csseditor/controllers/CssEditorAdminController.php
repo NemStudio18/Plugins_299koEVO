@@ -120,6 +120,14 @@ class CssEditorAdminController extends AdminController {
      * Sauvegarde le CSS dans le fichier data/plugin/csseditor/custom.css
      */
     public function saveCss() {
+        $__csrf = $_POST['_csrf'] ?? ($_POST['csrf_token'] ?? ($_POST['token'] ?? null));
+        if (!\Core\Security\Csrf::validate($__csrf, false)) {
+            if (class_exists('\Utils\Show')) {
+                \Utils\Show::msg("Session expirée ou jeton de sécurité invalide. Veuillez réessayer.", 'error');
+            }
+            return $this->home();
+        }
+
         if (!$this->checkAdminAccess() || !$this->user->isAuthorized()) {
             echo 'error:unauthorized';
             exit;

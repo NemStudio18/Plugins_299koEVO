@@ -273,6 +273,14 @@ class DonController extends PublicController
 
     public function createStripePayment()
     {
+        $__csrf = $_POST['_csrf'] ?? ($_POST['csrf_token'] ?? ($_POST['token'] ?? null));
+        if (!\Core\Security\Csrf::validate($__csrf, false)) {
+            if (class_exists('\Utils\Show')) {
+                \Utils\Show::msg("Session expirée ou jeton de sécurité invalide. Veuillez réessayer.", 'error');
+            }
+            return $this->home();
+        }
+
         $amount = floatval($_POST['amount'] ?? 0) * 100; // Stripe utilise les centimes
         $firstName = filter_var($_POST['firstName'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $lastName = filter_var($_POST['lastName'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS);

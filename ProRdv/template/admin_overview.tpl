@@ -26,6 +26,7 @@
             <i class="fa-solid fa-plus-circle" style="color:var(--evo-color-success, #10b981);"></i> Créer un nouvel agenda de rendez-vous
         </h3>
         <form action="/admin/prordv" method="post" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;align-items:end;">
+    {{SHOW.tokenField}}
             <div>
                 <label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:4px;color:var(--evo-text-secondary, #475569);">Nom de l'établissement / service *</label>
                 <input type="text" name="standalone_nom" required placeholder="Ex: Cabinet Conseil, Salon..." style="width:100%;margin:0;">
@@ -110,11 +111,13 @@
                                 <i class="fa-solid fa-gear"></i> Configurer
                             </a>
                             <form action="/admin/prordv/toggle/{{ c.id }}" method="post" style="margin:0;display:inline;">
+    {{SHOW.tokenField}}
                                 <button type="submit" class="button" style="background:var(--evo-bg-elevated, #fff);border:1px solid var(--evo-border, #cbd5e1);color:{% if c.is_active %}var(--evo-color-warning, #d97706){% else %}var(--evo-color-success, #059669){% endif %};padding:6px 10px;font-size:0.82rem;">
                                     {% if c.is_active %}Pause{% else %}Activer{% endif %}
                                 </button>
                             </form>
                             <form action="/admin/prordv/delete/{{ c.id }}" method="post" style="margin:0;display:inline;" onsubmit="return confirm('Supprimer définitivement cet agenda et ses rendez-vous ?');">
+    {{SHOW.tokenField}}
                                 <button type="submit" class="button alert" style="padding:6px 10px;font-size:0.82rem;" title="Supprimer">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>

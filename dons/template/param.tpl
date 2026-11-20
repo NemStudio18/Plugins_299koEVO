@@ -1,4 +1,5 @@
 <form method="post" action="{ ROUTER.generate("dons-admin-save-params") }" class="admin-form">
+    {{SHOW.tokenField}}
     <input type="hidden" name="token" value="{{ token }}" />
     
     <fieldset>

@@ -87,6 +87,7 @@
 
                     {% if rdv.statut == 'attente' %}
                     <form action="/pro/rdv/action" method="post" style="display:inline;">
+    {{SHOW.tokenField}}
                         <input type="hidden" name="id" value="{{ rdv.id }}">
                         <input type="hidden" name="act" value="confirme">
                         <input type="hidden" name="d" value="{{ d }}">
@@ -97,6 +98,7 @@
                     {% endif %}
 
                     <form action="/pro/rdv/action" method="post" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?');">
+    {{SHOW.tokenField}}
                         <input type="hidden" name="id" value="{{ rdv.id }}">
                         <input type="hidden" name="act" value="annule">
                         <input type="hidden" name="d" value="{{ d }}">

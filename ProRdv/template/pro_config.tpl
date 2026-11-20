@@ -120,6 +120,7 @@
 
                             <!-- Toggle Actif / Inactif -->
                             <form action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post" style="margin:0;">
+    {{SHOW.tokenField}}
                                 <input type="hidden" name="subaction" value="presta_toggle">
                                 <input type="hidden" name="active_tab" value="prestations">
                                 <input type="hidden" name="presta_id" value="{{ p.id }}">
@@ -131,6 +132,7 @@
 
                             <!-- Supprimer Prestation -->
                             <form action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post" style="margin:0;" onsubmit="return confirm('Confirmez-vous la suppression définitive de cette prestation ?');">
+    {{SHOW.tokenField}}
                                 <input type="hidden" name="subaction" value="presta_delete">
                                 <input type="hidden" name="active_tab" value="prestations">
                                 <input type="hidden" name="presta_id" value="{{ p.id }}">
@@ -144,6 +146,7 @@
                     <!-- Formulaire d'édition masqué par défaut -->
                     <div id="edit-presta-{{ p.id }}" style="display:none;margin-top:16px;padding-top:16px;border-top:1px dashed #cbd5e1;">
                         <form action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;align-items:end;">
+    {{SHOW.tokenField}}
                             <input type="hidden" name="subaction" value="presta_edit">
                             <input type="hidden" name="active_tab" value="prestations">
                             <input type="hidden" name="presta_id" value="{{ p.id }}">
@@ -185,6 +188,7 @@
                     <i class="fa-solid fa-circle-plus" style="color:#0f766e;"></i> Ajouter une nouvelle prestation
                 </h3>
                 <form action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;align-items:end;">
+    {{SHOW.tokenField}}
                     <input type="hidden" name="subaction" value="presta_add">
                     <input type="hidden" name="active_tab" value="prestations">
                     <div>
@@ -251,6 +255,7 @@
                         </ul>
                     </div>
                     <form action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post" style="margin:0;" onsubmit="return confirm('Appliquer le preset Beauté & Bien-être ?');">
+    {{SHOW.tokenField}}
                         <input type="hidden" name="subaction" value="apply_preset">
                         <input type="hidden" name="preset_key" value="beaute">
                         <input type="hidden" name="active_tab" value="presets">
@@ -280,6 +285,7 @@
                         </ul>
                     </div>
                     <form action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post" style="margin:0;" onsubmit="return confirm('Appliquer le preset Artisan & Chantier ?');">
+    {{SHOW.tokenField}}
                         <input type="hidden" name="subaction" value="apply_preset">
                         <input type="hidden" name="preset_key" value="artisan">
                         <input type="hidden" name="active_tab" value="presets">
@@ -309,6 +315,7 @@
                         </ul>
                     </div>
                     <form action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post" style="margin:0;" onsubmit="return confirm('Appliquer le preset Atelier & Réparation ?');">
+    {{SHOW.tokenField}}
                         <input type="hidden" name="subaction" value="apply_preset">
                         <input type="hidden" name="preset_key" value="reparation">
                         <input type="hidden" name="active_tab" value="presets">
@@ -338,6 +345,7 @@
                         </ul>
                     </div>
                     <form action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post" style="margin:0;" onsubmit="return confirm('Appliquer le preset Conseil & Services ?');">
+    {{SHOW.tokenField}}
                         <input type="hidden" name="subaction" value="apply_preset">
                         <input type="hidden" name="preset_key" value="conseil">
                         <input type="hidden" name="active_tab" value="presets">
@@ -363,6 +371,7 @@
             </p>
 
             <form action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post">
+    {{SHOW.tokenField}}
                 <input type="hidden" name="subaction" value="save_settings">
                 <input type="hidden" name="active_tab" value="rules">
                 <input type="hidden" name="rules_form_submitted" value="1">
@@ -502,6 +511,7 @@
 
             <!-- Interrupteur Choix Collaborateur -->
             <form action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post" style="background:var(--evo-bg-tertiary, #f8fafc);border:1px solid var(--evo-border, #e2e8f0);border-radius:10px;padding:14px 18px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    {{SHOW.tokenField}}
                 <input type="hidden" name="subaction" value="toggle_choix_collab">
                 <input type="hidden" name="active_tab" value="equipe">
                 <div>
@@ -541,6 +551,7 @@
 
                         <!-- Toggle -->
                         <form action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post" style="margin:0;">
+    {{SHOW.tokenField}}
                             <input type="hidden" name="subaction" value="collab_toggle">
                             <input type="hidden" name="active_tab" value="equipe">
                             <input type="hidden" name="collab_id" value="{{ c.id }}">
@@ -551,6 +562,7 @@
 
                         <!-- Supprimer -->
                         <form action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post" style="margin:0;" onsubmit="return confirm('Supprimer ce collaborateur ?');">
+    {{SHOW.tokenField}}
                             <input type="hidden" name="subaction" value="collab_delete">
                             <input type="hidden" name="active_tab" value="equipe">
                             <input type="hidden" name="collab_id" value="{{ c.id }}">
@@ -570,6 +582,7 @@
 
             <!-- Formulaire ajout collaborateur -->
             <form action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post" style="background:var(--evo-bg-tertiary, #f8fafc);padding:16px;border-radius:10px;border:1px solid var(--evo-border, #e2e8f0);display:flex;gap:10px;">
+    {{SHOW.tokenField}}
                 <input type="hidden" name="subaction" value="collab_add">
                 <input type="hidden" name="active_tab" value="equipe">
                 <input type="text" name="collab_nom" placeholder="Prénom ou nom du membre de l'équipe (ex: Sophie, Thomas...)" required style="flex:1;padding:10px 12px;border:1px solid var(--evo-border, #cbd5e1);border-radius:6px;font-size:0.9rem;">
@@ -595,6 +608,7 @@
             </div>
 
             <form action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post">
+    {{SHOW.tokenField}}
                 <input type="hidden" name="subaction" value="save_horaires">
                 <input type="hidden" name="active_tab" value="horaires">
 
@@ -642,6 +656,7 @@
 
     <!-- Formulaire fantôme pour renommage rapide d'un collaborateur -->
     <form id="collab-rename-form" action="/pro/rdv/config?commerce_id={{ commerce.id }}" method="post" style="display:none;">
+    {{SHOW.tokenField}}
         <input type="hidden" name="subaction" value="collab_edit">
         <input type="hidden" name="active_tab" value="equipe">
         <input type="hidden" name="collab_id" id="collab-rename-id" value="">

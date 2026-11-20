@@ -80,6 +80,12 @@ class ContactController extends PublicController
 
     public function send()
     {
+        $csrf = $_POST['_csrf'] ?? ($_POST['csrf_token'] ?? ($_POST['token'] ?? null));
+        if (!\Core\Security\Csrf::validate($csrf, false)) {
+            Show::msg("Session expirée ou jeton de sécurité invalide. Veuillez réessayer.", 'error');
+            return $this->home();
+        }
+
         $sendError = false;
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);

@@ -41,6 +41,7 @@
         {% endif %}
 
         <form action="/rdv/reserver" method="post" id="prordv-form">
+    {{SHOW.tokenField}}
             <input type="hidden" name="commerce_id" value="{{ commerce.id }}">
             <!-- Honeypot anti-bot -->
             <input type="text" name="website_hp" style="display:none;" tabindex="-1" autocomplete="off">

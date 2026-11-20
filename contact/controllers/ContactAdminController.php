@@ -71,6 +71,10 @@ class ContactAdminController extends AdminController {
     }
 
     public function saveParams() {
+        if (!\Core\Security\Csrf::validate($_POST['_csrf'] ?? ($_POST['token'] ?? null), false)) {
+            Show::msg("Session expirée ou jeton de sécurité invalide. Veuillez réessayer.", 'error');
+            return $this->home();
+        }
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);
         if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('contact:admin'), $ctx)) {

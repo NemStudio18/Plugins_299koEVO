@@ -8,6 +8,7 @@
     </div>
 
     <form method="POST" action="{{ edit_send_link }}">
+    {{SHOW.tokenField}}
         <div style="background: var(--evo-card-bg,#fff); border: 1px solid var(--adm-border); border-radius: 10px; padding: 20px; margin-bottom: 16px;">
             <h3 style="margin-top: 0;">Configuration principale</h3>
 

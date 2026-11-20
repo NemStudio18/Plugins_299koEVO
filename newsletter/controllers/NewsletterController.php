@@ -35,6 +35,14 @@ class NewsletterController extends PublicController
 
     public function subscribe()
     {
+        $__csrf = $_POST['_csrf'] ?? ($_POST['csrf_token'] ?? ($_POST['token'] ?? null));
+        if (!\Core\Security\Csrf::validate($__csrf, false)) {
+            if (class_exists('\Utils\Show')) {
+                \Utils\Show::msg("Session expirée ou jeton de sécurité invalide. Veuillez réessayer.", 'error');
+            }
+            return $this->home();
+        }
+
         $newsletterManager = new NewsletterManager();
         
         $email = filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL);
@@ -103,6 +111,14 @@ class NewsletterController extends PublicController
 
     public function unsubscribePost()
     {
+        $__csrf = $_POST['_csrf'] ?? ($_POST['csrf_token'] ?? ($_POST['token'] ?? null));
+        if (!\Core\Security\Csrf::validate($__csrf, false)) {
+            if (class_exists('\Utils\Show')) {
+                \Utils\Show::msg("Session expirée ou jeton de sécurité invalide. Veuillez réessayer.", 'error');
+            }
+            return $this->home();
+        }
+
         $token = filter_var($_POST['token'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         
         if (empty($token)) {

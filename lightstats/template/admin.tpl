@@ -82,6 +82,7 @@
         </div>
         <div class="ls-header-badges" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
             <form method="post" action="{{saveConfigUrl}}" style="display: inline-flex; align-items: center; gap: 6px; margin: 0;">
+    {{SHOW.tokenField}}
                 <input type="hidden" name="token" value="{{token}}">
                 <select name="privacy_mode" onchange="this.form.submit()" aria-label="Mode de confidentialité LightStats" style="padding: 6px 10px; border-radius: 8px; border: 1px solid var(--ls-slate-200); background: #fff; font-size: 0.8rem; font-weight: 600; color: var(--ls-slate-700); margin: 0;">
                     <option value="consent_banner" {% IF !isCnilExempt %}selected{% ENDIF %}>Mode avec bandeau (suivi récurrent 7j)</option>
