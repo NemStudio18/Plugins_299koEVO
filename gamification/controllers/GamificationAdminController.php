@@ -309,7 +309,7 @@ class GamificationAdminController extends AdminController
             $dbConfig = $this->getDbConfig();
             $dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', 
                 $dbConfig['sql_host'] ?? 'localhost', 
-                $dbConfig['sql_db'] ?? 'vivrebourges');
+                $dbConfig['sql_db'] ?? '299ko_db');
             $pdo = new \PDO($dsn, $dbConfig['sql_user'] ?? '', $dbConfig['sql_pass'] ?? '', [
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                 \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
@@ -370,7 +370,7 @@ class GamificationAdminController extends AdminController
             $dbConfig = $this->getDbConfig();
             $dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', 
                 $dbConfig['sql_host'] ?? 'localhost', 
-                $dbConfig['sql_db'] ?? 'vivrebourges');
+                $dbConfig['sql_db'] ?? '299ko_db');
             $pdo = new \PDO($dsn, $dbConfig['sql_user'] ?? '', $dbConfig['sql_pass'] ?? '', [
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                 \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
