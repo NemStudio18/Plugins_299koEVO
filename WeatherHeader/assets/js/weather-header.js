@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
         b.style.display = "none";
     });
 
-    var defaultCity = scene.getAttribute("data-city") || "Bourges";
+    var defaultCity = scene.getAttribute("data-city") || "Paris";
     var lat = parseFloat(scene.getAttribute("data-lat")) || 47.0810;
     var lon = parseFloat(scene.getAttribute("data-lon")) || 2.3988;
     var autoGeo = scene.getAttribute("data-auto-geo") === "1";

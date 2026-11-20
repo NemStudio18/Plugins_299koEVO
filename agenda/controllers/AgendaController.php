@@ -80,13 +80,13 @@ class AgendaController extends PublicController
             $loc = mb_strtolower($event->getLocation() ?? '');
             $eventId = (string)$event->getId();
 
-            $isCgr = ($eventId === 'cgr_master_bourges' || str_contains($t, 'cgr') || str_contains($loc, 'cgr'));
+            $isCgr = (str_contains($t, 'cgr') || str_contains($loc, 'cgr'));
             $isAlhambra = (str_contains($t, 'alhambra') || str_contains($loc, 'alhambra') || str_contains($t, 'maison de la culture') || str_contains($loc, 'maison de la culture'));
             $eventData['is_cgr'] = $isCgr;
             $eventData['is_alhambra'] = $isAlhambra;
 
             if ($isCgr) {
-                $eventData['category'] = 'Méga CGR';
+                $eventData['category'] = 'Cinéma & Films';
                 $eventData['category_slug'] = 'cinema';
                 $eventData['category_icon'] = 'fa-film';
             } elseif (str_contains($t, 'cinéma') || str_contains($t, 'cinema') || str_contains($t, 'film') || str_contains($t, 'séance') || str_contains($t, 'seance') || str_contains($t, 'projection') || $isAlhambra) {
@@ -202,12 +202,7 @@ class AgendaController extends PublicController
             );
         }
 
-        // Programmation complète du Méga CGR de Bourges
         $cgrMovies = [];
-        $cgrFile = DATA_PLUGIN . 'agenda/cgr_movies.json';
-        if (file_exists($cgrFile)) {
-            $cgrMovies = json_decode(file_get_contents($cgrFile), true) ?: [];
-        }
         $tpl->set('cgrMovies', $cgrMovies);
         $tpl->set('cgrCount', count($cgrMovies));
 
@@ -343,14 +338,8 @@ class AgendaController extends PublicController
         }
         $tpl->set('linkedOffers', $linkedOffers);
 
-        // Injecter les films du Méga CGR si événement CGR
         $cgrMovies = [];
-        $isCgrMaster = ($id === 'cgr_master_bourges' || stripos($eventTitle, 'CGR') !== false || stripos($event->getLocation() ?? '', 'CGR') !== false);
-        $cgrFile = DATA_PLUGIN . 'agenda/cgr_movies.json';
-        if (file_exists($cgrFile)) {
-            $raw = @file_get_contents($cgrFile);
-            $cgrMovies = json_decode($raw, true) ?: [];
-        }
+        $isCgrMaster = false;
         $tpl->set('isCgrMaster', $isCgrMaster);
         $tpl->set('cgrMovies', $cgrMovies);
         $tpl->set('cgrCount', count($cgrMovies));
