@@ -68,6 +68,11 @@ namespace LiveChat {
             $cssVer = file_exists($cssFile) ? filemtime($cssFile) : '1.0';
             $jsVer = file_exists($jsFile) ? filemtime($jsFile) : '1.0';
 
+            $bubbleColor = !empty($config['bubble_color']) ? htmlspecialchars($config['bubble_color'], ENT_QUOTES, 'UTF-8') : '';
+            if (!empty($bubbleColor)) {
+                echo '<style>:root { --evo-accent: ' . $bubbleColor . '; --evo-accent-hover: ' . $bubbleColor . '; --lc-bubble-color: ' . $bubbleColor . '; }</style>' . "\n";
+            }
+
             echo '<link rel="stylesheet" href="/plugin/' . $dirName . '/assets/livechat.css?v=' . $cssVer . '">';
             echo '<script src="/plugin/' . $dirName . '/assets/livechat.js?v=' . $jsVer . '" defer></script>';
         }

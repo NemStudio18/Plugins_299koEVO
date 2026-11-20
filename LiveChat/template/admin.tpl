@@ -241,6 +241,23 @@
                     <small>Ce message s'affiche automatiquement au démarrage de la discussion chez le visiteur.</small>
                 </div>
 
+                <div class="form-group-chat">
+                    <label for="cfg_bubble_color"><strong>Couleur de la bulle de chat (Widget & Admin)</strong></label>
+                    <div class="lc-color-picker-wrap">
+                        <input type="color" id="cfg_bubble_color" name="bubble_color" value="{{config.bubble_color|default('#1f62a9')}}" class="lc-color-input" oninput="updateLivePreviewColor(this.value)">
+                        <input type="text" id="cfg_bubble_color_hex" value="{{config.bubble_color|default('#1f62a9')}}" class="lc-hex-input" maxlength="7" oninput="updateFromHexInput(this.value)">
+                        <div class="lc-swatches">
+                            <button type="button" class="lc-swatch" style="background:#1f62a9" title="Bleu Déclic" onclick="setBubbleColor('#1f62a9')"></button>
+                            <button type="button" class="lc-swatch" style="background:#ea580c" title="Orange Bourges" onclick="setBubbleColor('#ea580c')"></button>
+                            <button type="button" class="lc-swatch" style="background:#059669" title="Vert Émeraude" onclick="setBubbleColor('#059669')"></button>
+                            <button type="button" class="lc-swatch" style="background:#7c3aed" title="Violet Électrique" onclick="setBubbleColor('#7c3aed')"></button>
+                            <button type="button" class="lc-swatch" style="background:#e11d48" title="Rose Framboise" onclick="setBubbleColor('#e11d48')"></button>
+                            <button type="button" class="lc-swatch" style="background:#0f172a" title="Nuit Profonde" onclick="setBubbleColor('#0f172a')"></button>
+                        </div>
+                    </div>
+                    <small>Personnalisez la couleur de la bulle visiteur sur votre site et de l'interface admin, ou choisissez une teinte prédéfinie.</small>
+                </div>
+
                 <div id="cfgFeedback" style="display:none; padding:10px; border-radius:8px; margin-top:10px;"></div>
             </div>
             <footer class="modal-footer">
@@ -254,13 +271,57 @@
 <style>
 /* --- STYLES DU TABLEAU DE BORD LIVECHAT ADMIN --- */
 .livechat-admin-container {
-    --lc-accent: #1f62a9;
-    --lc-accent-dark: #164980;
-    --lc-accent-soft: #eff6ff;
-    --lc-accent-border: #93c5fd;
+    --lc-accent: {% if config.bubble_color %}{{config.bubble_color}}{% else %}var(--primary-color, #1f62a9){% endif %};
+    --lc-accent-dark: {% if config.bubble_color %}{{config.bubble_color}}{% else %}var(--primary-hover-color, #164980){% endif %};
+    --lc-accent-soft: rgba(31, 98, 169, 0.08);
+    --lc-accent-border: rgba(31, 98, 169, 0.25);
     max-width: 1400px;
     margin: 0 auto;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+.lc-color-picker-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+.lc-color-input {
+    width: 44px;
+    height: 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 2px;
+    background: #fff;
+}
+.lc-hex-input {
+    width: 90px;
+    height: 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0 10px;
+    font-family: monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+.lc-swatches {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.lc-swatch {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 1px #cbd5e1;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.lc-swatch:hover {
+    transform: scale(1.18);
+    box-shadow: 0 0 0 2px var(--lc-accent, #1f62a9);
 }
 .livechat-admin-header {
     display: flex;
@@ -1377,6 +1438,32 @@ function toggleConvStatus(convId) {
             window.location.reload();
         }
     });
+}
+
+function setBubbleColor(color) {
+    const cInput = document.getElementById('cfg_bubble_color');
+    const hInput = document.getElementById('cfg_bubble_color_hex');
+    if (cInput) cInput.value = color;
+    if (hInput) hInput.value = color;
+    updateLivePreviewColor(color);
+}
+
+function updateFromHexInput(hex) {
+    if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
+        const cInput = document.getElementById('cfg_bubble_color');
+        if (cInput) cInput.value = hex;
+        updateLivePreviewColor(hex);
+    }
+}
+
+function updateLivePreviewColor(color) {
+    const hInput = document.getElementById('cfg_bubble_color_hex');
+    if (hInput) hInput.value = color;
+    const container = document.querySelector('.livechat-admin-container');
+    if (container) {
+        container.style.setProperty('--lc-accent', color);
+        container.style.setProperty('--lc-accent-dark', color);
+    }
 }
 
 function toggleSettingsModal(show) {

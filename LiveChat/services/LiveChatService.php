@@ -156,7 +156,8 @@ class LiveChatService
             'discord_webhook' => '',
             'admin_name' => 'Équipe Support',
             'welcome_message' => 'Bonjour ! Une question sur le site ? Discutons en direct.',
-            'auto_notify_discord' => true
+            'auto_notify_discord' => true,
+            'bubble_color' => '',
         ];
         
         $configFile = DATA_PLUGIN . 'LiveChat/config.json';

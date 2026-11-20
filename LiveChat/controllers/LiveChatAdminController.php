@@ -204,6 +204,7 @@ class LiveChatAdminController extends AdminController
         $webhook = trim($_POST['discord_webhook'] ?? '');
         $adminName = trim($_POST['admin_name'] ?? 'Équipe Support');
         $welcome = trim($_POST['welcome_message'] ?? '');
+        $bubbleColor = trim($_POST['bubble_color'] ?? '');
 
         $dir = DATA_PLUGIN . 'LiveChat';
         if (!is_dir($dir)) {
@@ -217,8 +218,13 @@ class LiveChatAdminController extends AdminController
         if (!empty($welcome)) {
             $current['welcome_message'] = $welcome;
         }
+        if (!empty($bubbleColor) && preg_match('/^#[0-9a-fA-F]{3,8}$/', $bubbleColor)) {
+            $current['bubble_color'] = $bubbleColor;
+        } else {
+            $current['bubble_color'] = '';
+        }
 
-        @file_put_contents($configFile, json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        @file_put_contents($configFile, json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), LOCK_EX);
 
         // Mettre à jour aussi dans config_pro_chat.json si utile
         $proConfigFile = $dir . '/config_pro_chat.json';

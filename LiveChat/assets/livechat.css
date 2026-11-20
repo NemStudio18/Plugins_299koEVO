@@ -9,8 +9,8 @@
     bottom: 24px !important;
     right: 24px !important;
     z-index: 9998 !important;
-    background: var(--evo-accent, #2563eb);
-    background: linear-gradient(135deg, var(--evo-accent, #2563eb) 0%, var(--evo-accent-hover, #1d4ed8) 100%) !important;
+    background: var(--evo-accent, var(--primary-color, #1f62a9));
+    background: linear-gradient(135deg, var(--evo-accent, var(--primary-color, #1f62a9)) 0%, var(--evo-accent-hover, var(--primary-hover-color, #164980)) 100%) !important;
     color: var(--evo-accent-text, #ffffff) !important;
     border: none !important;
     border-radius: 50px !important;
