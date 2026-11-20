@@ -19,6 +19,7 @@ class LightStatsLogsManager {
     public $datas = [];
 
     public function __construct($dateStart = false, $dateEnd = false) {
+        @ini_set('memory_limit', '512M');
         $this->path = DATA_PLUGIN . 'lightstats/logs/';
 
         // Conversion tolérante de la date de début
@@ -98,9 +99,9 @@ class LightStatsLogsManager {
             // Nouveau format : JSONL (1 objet par ligne)
             rewind($handle);
             $logs = [];
-            while (($line = fgets($handle)) !== false) {
+            while (($line = fgets($handle, 8192)) !== false) {
                 $line = trim($line);
-                if ($line === '') continue;
+                if ($line === '' || $line[0] !== '{') continue;
                 $item = json_decode($line, true);
                 if (is_array($item)) {
                     $logs[] = $item;
@@ -194,6 +195,7 @@ class LightStatsLogsManager {
                 $dayVisitors[$log['ip']] = 1;
             }
             $this->datas[$day]['visitors'] = count($dayVisitors);
+            unset($dayLogs, $minuteCounts, $hasJsByIp, $scraperIps, $dayVisitors);
         }
     }
     

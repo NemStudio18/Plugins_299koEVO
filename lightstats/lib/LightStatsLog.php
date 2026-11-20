@@ -15,11 +15,8 @@ if (!function_exists('donatj\UserAgent\parse_user_agent')) {
 
 class LightStatsLog {
     
-    protected $log;
-    
-    protected $parser;
-    
-    protected $ua;
+    protected static $sharedParser = null;
+    protected static $uaCache = [];
     
     public $ip;
     public $ipHash;
@@ -37,35 +34,49 @@ class LightStatsLog {
     public $hasJs;
     public $sessionId;
 
-    public function __construct($log) {
-        $this->log = $log;
-        $this->parser = new UserAgentParser();
-        $this->loadInfos();
+    public function __construct(array $log) {
+        $this->loadInfos($log);
     }
     
-    protected function loadInfos() {
-        $rawUa = $this->log['userAgent'] ?? '';
-        $this->ua = $this->parser->parse($rawUa);
-        $this->platform = $this->ua->platform();
-        $this->browser = $this->ua->browser();
-        $this->browserVersion = $this->ua->browserVersion();
+    protected function loadInfos(array $log) {
+        $rawUa = $log['userAgent'] ?? '';
+        if ($rawUa !== '') {
+            if (!isset(self::$uaCache[$rawUa])) {
+                if (self::$sharedParser === null) {
+                    self::$sharedParser = new UserAgentParser();
+                }
+                $ua = self::$sharedParser->parse($rawUa);
+                self::$uaCache[$rawUa] = [
+                    'platform' => $ua->platform(),
+                    'browser' => $ua->browser(),
+                    'browserVersion' => $ua->browserVersion(),
+                ];
+            }
+            $this->platform = self::$uaCache[$rawUa]['platform'];
+            $this->browser = self::$uaCache[$rawUa]['browser'];
+            $this->browserVersion = self::$uaCache[$rawUa]['browserVersion'];
+        } else {
+            $this->platform = 'Unknown';
+            $this->browser = 'Unknown';
+            $this->browserVersion = '';
+        }
         
-        $this->ip = $this->log['ip'] ?? 'unknown';
-        $this->ipHash = $this->log['ipHash'] ?? null;
-        $this->page = $this->log['page'] ?? '/';
-        $this->query = $this->log['query'] ?? null;
-        $this->referer = $this->log['referer'] ?? '';
-        $this->date = $this->log['date'] ?? '1970-01-01 00:00:00';
-        $this->isBot = (bool)($this->log['isBot'] ?? false);
-        $this->botCategory = $this->log['botCategory'] ?? ($this->isBot ? 'declared_bot' : 'probable_human');
-        $this->status = isset($this->log['status']) && is_int($this->log['status']) ? $this->log['status'] : null;
+        $this->ip = $log['ip'] ?? 'unknown';
+        $this->ipHash = $log['ipHash'] ?? null;
+        $this->page = $log['page'] ?? '/';
+        $this->query = $log['query'] ?? null;
+        $this->referer = $log['referer'] ?? '';
+        $this->date = $log['date'] ?? '1970-01-01 00:00:00';
+        $this->isBot = (bool)($log['isBot'] ?? false);
+        $this->botCategory = $log['botCategory'] ?? ($this->isBot ? 'declared_bot' : 'probable_human');
+        $this->status = isset($log['status']) && is_int($log['status']) ? $log['status'] : null;
         
-        $this->isAdmin = (bool)($this->log['isAdmin'] ?? false);
+        $this->isAdmin = (bool)($log['isAdmin'] ?? false);
         if (!$this->isAdmin && (strpos($this->page, '/admin/') === 0 || $this->page === '/admin')) {
             $this->isAdmin = true;
         }
-        $this->hasJs = (bool)($this->log['hasJs'] ?? false);
-        $this->sessionId = $this->log['sessionId'] ?? null;
+        $this->hasJs = (bool)($log['hasJs'] ?? false);
+        $this->sessionId = $log['sessionId'] ?? null;
 
         // Rétrocompatibilité / Détection renforcée sur logs historiques
         if (!$this->isBot) {
