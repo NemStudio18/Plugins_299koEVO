@@ -1,7 +1,0 @@
-{
-    "endFrontHead": "weatherHeaderEndFrontHead",
-    "endFrontBody": "weatherHeaderEndFrontBody",
-    "afterHeader": "weatherHeaderRenderBanner",
-    "weatherHeaderRenderBanner": "weatherHeaderRenderBanner",
-    "headerBanner": "weatherHeaderRenderBanner"
-}
