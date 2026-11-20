@@ -4,10 +4,11 @@ namespace Ecommerce\Controllers;
 
 use Core\Controllers\PublicController;
 use Core\Responses\PublicResponse;
-use Utils\Show;
+use Core\Responses\ApiResponse;
+use Core\Core;
 use Core\Lang;
 use Utils\Util;
-use Core\Core;
+use Core\Auth\UsersManager;
 
 defined('ROOT') or exit('Access denied!');
 
@@ -25,16 +26,33 @@ class EcommerceController extends PublicController
         $this->orderManager = new \Ecommerce\Entities\OrderManager();
     }
 
+    private function getStripeDriver(): ?\StripeDriver
+    {
+        $stripeDriverPath = PLUGINS . 'paiement/drivers/StripeDriver.php';
+        if (file_exists($stripeDriverPath)) {
+            require_once $stripeDriverPath;
+            if (class_exists('StripeDriver')) {
+                $driver = new \StripeDriver();
+                if ($driver->isConfigured()) {
+                    return $driver;
+                }
+            }
+        }
+        return null;
+    }
+
     public function shop()
     {
         $response = new PublicResponse();
         $tpl = $response->createPluginTemplate('ecommerce', 'shop');
         
-        $products = $this->productManager->getAll(true);
+        $products = $this->productManager->getAll();
         $categories = $this->categoryManager->getAll();
         
         $tpl->set('products', $products);
         $tpl->set('categories', $categories);
+        $tpl->set('isLogged', UsersManager::isLogged());
+        $tpl->set('myOrdersUrl', Util::urlBuild('/ecommerce/mes-commandes'));
         
         $response->addTemplate($tpl);
         return $response;
@@ -46,12 +64,13 @@ class EcommerceController extends PublicController
         $id = (int)$this->router->getParam('id');
         
         $product = $this->productManager->getById($id);
-        if (!$product || !$product->isActive()) {
+        if (!$product) {
             return Core::getInstance()->redirect('/shop');
         }
         
         $tpl = $response->createPluginTemplate('ecommerce', 'product');
         $tpl->set('product', $product);
+        $tpl->set('token', \Core\Security\Csrf::hiddenField());
         
         $response->addTemplate($tpl);
         return $response;
@@ -67,11 +86,15 @@ class EcommerceController extends PublicController
             return Core::getInstance()->redirect('/shop');
         }
         
-        $products = $this->productManager->getByCategory($id, true);
+        $products = $this->productManager->getByCategory($id);
+        $categories = $this->categoryManager->getAll();
         
-        $tpl = $response->createPluginTemplate('ecommerce', 'category');
-        $tpl->set('category', $category);
+        $tpl = $response->createPluginTemplate('ecommerce', 'shop');
         $tpl->set('products', $products);
+        $tpl->set('categories', $categories);
+        $tpl->set('currentCategory', $category);
+        $tpl->set('isLogged', UsersManager::isLogged());
+        $tpl->set('myOrdersUrl', Util::urlBuild('/ecommerce/mes-commandes'));
         
         $response->addTemplate($tpl);
         return $response;
@@ -84,7 +107,6 @@ class EcommerceController extends PublicController
         
         $items = \Ecommerce\Entities\Cart::getItemsWithProducts();
         $total = \Ecommerce\Entities\Cart::getTotal();
-        
         $plugin = \Core\Plugin\PluginsManager::getInstance()->getPlugin('ecommerce');
         $shippingCost = (float)$plugin->getConfigVal('shippingCost');
         $freeShippingThreshold = (float)$plugin->getConfigVal('freeShippingThreshold');
@@ -96,6 +118,9 @@ class EcommerceController extends PublicController
         $tpl->set('subtotal', $total);
         $tpl->set('shipping', $finalShipping);
         $tpl->set('total', $grandTotal);
+        $tpl->set('freeShippingThreshold', $freeShippingThreshold);
+        $tpl->set('remainingForFreeShipping', max(0, $freeShippingThreshold - $total));
+        $tpl->set('token', \Core\Security\Csrf::hiddenField());
         
         $response->addTemplate($tpl);
         return $response;
@@ -105,27 +130,37 @@ class EcommerceController extends PublicController
     {
         $response = new \Core\Responses\ApiResponse();
         
+        $token = $_POST['token'] ?? ($_POST['_csrf'] ?? '');
+        if (!\Core\Security\Csrf::validate($token, false)) {
+            $response->status = \Core\Responses\ApiResponse::STATUS_BAD_REQUEST;
+            $response->message = Lang::get('core.bad-token');
+            return $response;
+        }
+        
         $productId = (int)($_POST['product_id'] ?? 0);
         $quantity = (int)($_POST['quantity'] ?? 1);
         
         $product = $this->productManager->getById($productId);
-        if (!$product || !$product->isActive() || !$product->isInStock()) {
-            $response->status = \Core\Responses\ApiResponse::STATUS_ERROR;
-            $response->message = Lang::get('ecommerce.product-unavailable');
+        if (!$product) {
+            $response->status = \Core\Responses\ApiResponse::STATUS_NOT_FOUND;
+            $response->message = Lang::get('ecommerce.product-not-found');
             return $response;
         }
         
-        if ($quantity > $product->getStock()) {
+        if (!$product->isInStock()) {
             $response->status = \Core\Responses\ApiResponse::STATUS_ERROR;
-            $response->message = Lang::get('ecommerce.insufficient-stock');
+            $response->message = Lang::get('ecommerce.out-of-stock');
             return $response;
         }
         
         \Ecommerce\Entities\Cart::add($productId, $quantity);
         
         $response->status = \Core\Responses\ApiResponse::STATUS_SUCCESS;
-        $response->message = Lang::get('ecommerce.product-added-to-cart');
-        $response->data = ['cart_count' => \Ecommerce\Entities\Cart::getItemCount()];
+        $response->message = Lang::get('ecommerce.added-to-cart');
+        $response->body = [
+            'cartCount' => \Ecommerce\Entities\Cart::getCount(),
+            'cartTotal' => \Ecommerce\Entities\Cart::getTotal()
+        ];
         
         return $response;
     }
@@ -134,8 +169,15 @@ class EcommerceController extends PublicController
     {
         $response = new \Core\Responses\ApiResponse();
         
+        $token = $_POST['token'] ?? ($_POST['_csrf'] ?? '');
+        if (!\Core\Security\Csrf::validate($token, false)) {
+            $response->status = \Core\Responses\ApiResponse::STATUS_BAD_REQUEST;
+            $response->message = Lang::get('core.bad-token');
+            return $response;
+        }
+        
         $productId = (int)($_POST['product_id'] ?? 0);
-        $quantity = (int)($_POST['quantity'] ?? 0);
+        $quantity = (int)($_POST['quantity'] ?? 1);
         
         if ($quantity <= 0) {
             \Ecommerce\Entities\Cart::remove($productId);
@@ -174,11 +216,18 @@ class EcommerceController extends PublicController
         
         $finalShipping = ($total >= $freeShippingThreshold) ? 0 : $shippingCost;
         $grandTotal = $total + $finalShipping;
+
+        $stripeDriver = $this->getStripeDriver();
+        $hasStripe = ($stripeDriver !== null);
         
+        $currentUser = UsersManager::getCurrentUser();
+
         $tpl->set('items', $items);
         $tpl->set('subtotal', $total);
         $tpl->set('shipping', $finalShipping);
         $tpl->set('total', $grandTotal);
+        $tpl->set('hasStripe', $hasStripe);
+        $tpl->set('user', $currentUser);
         $tpl->set('token', \Core\Security\Csrf::hiddenField());
         
         $response->addTemplate($tpl);
@@ -203,7 +252,7 @@ class EcommerceController extends PublicController
             return $response;
         }
         
-        // Validate stock
+        // Validation des stocks
         foreach ($items as $item) {
             $product = $item['product'];
             if (!$product->isInStock() || $item['quantity'] > $product->getStock()) {
@@ -219,36 +268,69 @@ class EcommerceController extends PublicController
         $freeShippingThreshold = (float)$plugin->getConfigVal('freeShippingThreshold');
         $finalShipping = ($total >= $freeShippingThreshold) ? 0 : $shippingCost;
         $grandTotal = $total + $finalShipping;
+
+        $paymentMethod = $_POST['payment_method'] ?? 'bank_transfer';
+        $currentUser = UsersManager::getCurrentUser();
         
         $orderData = [
-            'customer_name' => $_POST['customer_name'] ?? '',
-            'customer_email' => $_POST['customer_email'] ?? '',
-            'customer_address' => $_POST['customer_address'] ?? '',
-            'customer_phone' => $_POST['customer_phone'] ?? '',
-            'total' => $grandTotal,
-            'status' => 'pending',
-            'payment_method' => $_POST['payment_method'] ?? 'bank_transfer',
+            'user_id'          => $currentUser ? (int)$currentUser->id : null,
+            'customer_name'    => trim((string)($_POST['customer_name'] ?? '')),
+            'customer_email'   => trim((string)($_POST['customer_email'] ?? '')),
+            'customer_address' => trim((string)($_POST['customer_address'] ?? '')),
+            'customer_phone'   => trim((string)($_POST['customer_phone'] ?? '')),
+            'total'            => $grandTotal,
+            'status'           => ($paymentMethod === 'cash_on_delivery') ? 'processing' : 'pending_payment',
+            'payment_method'   => $paymentMethod,
         ];
         
         $orderItems = [];
         foreach ($items as $item) {
             $orderItems[] = [
-                'product_id' => $item['product']->getId(),
+                'product_id'   => $item['product']->getId(),
                 'product_name' => $item['product']->getName(),
-                'quantity' => $item['quantity'],
-                'price' => $item['product']->getPrice(),
+                'quantity'     => $item['quantity'],
+                'price'        => $item['product']->getPrice(),
             ];
         }
         
         $order = $this->orderManager->create($orderData, $orderItems);
         
         if ($order) {
-            // Decrease stock
+            // Décrémentation immédiate du stock
             foreach ($items as $item) {
                 $this->productManager->decreaseStock($item['product']->getId(), $item['quantity']);
             }
             
             \Ecommerce\Entities\Cart::clear();
+
+            // Paiement par carte bancaire via Stripe si sélectionné
+            if ($paymentMethod === 'stripe') {
+                $stripeDriver = $this->getStripeDriver();
+                if ($stripeDriver) {
+                    $siteName = (string)($this->core->getConfigVal('siteName') ?: 'Boutique');
+                    $successUrl = Util::urlBuild('/order/success/' . $order->getId());
+                    $cancelUrl = Util::urlBuild('/checkout');
+                    $description = "Commande #" . $order->getOrderNumber() . " sur " . $siteName;
+
+                    $stripeUrl = $stripeDriver->createSession(
+                        $grandTotal,
+                        $description,
+                        $successUrl,
+                        $cancelUrl,
+                        [
+                            'type'     => 'ecommerce_order',
+                            'order_id' => (string)$order->getId(),
+                        ]
+                    );
+
+                    if ($stripeUrl) {
+                        $response->status = \Core\Responses\ApiResponse::STATUS_SUCCESS;
+                        $response->message = 'Redirection vers la passerelle de paiement sécurisée...';
+                        $response->redirect = $stripeUrl;
+                        return $response;
+                    }
+                }
+            }
 
             // Envoi des emails de confirmation et notification
             $this->sendOrderEmails($order, $orderItems, $orderData, $plugin);
@@ -272,6 +354,13 @@ class EcommerceController extends PublicController
             return $this->core->redirect(Util::urlBuild('/shop'));
         }
 
+        // Si retour de paiement Stripe (avec session_id dans l'URL)
+        if (!empty($_GET['session_id']) && $order->getStatus() !== 'paid') {
+            $this->orderManager->updateStatus($order->getId(), 'paid');
+            $order = $this->orderManager->findById((int)$id);
+            \Utils\Show::msg('Paiement par carte validé avec succès ! Votre commande est confirmée.', 'success');
+        }
+
         $plugin = \Core\Plugin\PluginsManager::getInstance()->getPlugin('ecommerce');
         $currency = $plugin ? $plugin->getConfigVal('currency') : '€';
 
@@ -289,6 +378,33 @@ class EcommerceController extends PublicController
             'bic' => $plugin ? ($plugin->getConfigVal('bank_bic') ?: 'BNPAFRPPXXX') : '',
         ];
         $tpl->set('bankDetails', $bankDetails);
+
+        $response->addTemplate($tpl);
+        return $response;
+    }
+
+    /**
+     * Espace Client : Mes commandes.
+     */
+    public function myOrders()
+    {
+        $currentUser = UsersManager::getCurrentUser();
+        if (!$currentUser) {
+            \Utils\Show::msg('Veuillez vous connecter pour consulter vos commandes.', 'info');
+            return $this->core->redirect('/users/login?redirect=' . urlencode(Util::urlBuild('/ecommerce/mes-commandes')));
+        }
+
+        $orders = $this->orderManager->getByUser((int)$currentUser->id, (string)$currentUser->email);
+        $plugin = \Core\Plugin\PluginsManager::getInstance()->getPlugin('ecommerce');
+        $currency = $plugin ? $plugin->getConfigVal('currency') : '€';
+
+        $response = new PublicResponse();
+        $tpl = $response->createPluginTemplate('ecommerce', 'my-orders');
+        $response->setTitle('<i class="fa-solid fa-box-archive"></i> Mes commandes');
+
+        $tpl->set('orders', $orders);
+        $tpl->set('currency', $currency ?: '€');
+        $tpl->set('shopUrl', Util::urlBuild('/shop'));
 
         $response->addTemplate($tpl);
         return $response;
@@ -314,7 +430,7 @@ class EcommerceController extends PublicController
             $clientMsg .= "Nous vous remercions pour votre commande #" . $order->getId() . " passée sur notre boutique " . $siteName . ".\n\n";
             $clientMsg .= "Détail de vos articles :\n" . $itemsText . "\n";
             $clientMsg .= "Total TTC : " . number_format((float)$orderData['total'], 2) . " " . $currency . "\n";
-            $clientMsg .= "Mode de paiement : " . $orderData['payment_method'] . "\n\n";
+            $clientMsg .= "Mode de paiement : " . $order->getPaymentMethodLabel() . "\n\n";
             $clientMsg .= "Adresse de livraison :\n" . $orderData['customer_address'] . "\n\n";
             if ($orderData['payment_method'] === 'bank_transfer') {
                 $iban = $plugin ? ($plugin->getConfigVal('bank_iban') ?: 'FR76 1234 5678 9012 3456 7890 123') : '';
@@ -334,7 +450,7 @@ class EcommerceController extends PublicController
             $adminMsg .= "Client : " . $orderData['customer_name'] . " (" . $orderData['customer_email'] . ")\n";
             $adminMsg .= "Téléphone : " . ($orderData['customer_phone'] ?: 'Non renseigné') . "\n";
             $adminMsg .= "Total : " . number_format((float)$orderData['total'], 2) . " " . $currency . "\n";
-            $adminMsg .= "Mode de règlement : " . $orderData['payment_method'] . "\n\n";
+            $adminMsg .= "Mode de règlement : " . $order->getPaymentMethodLabel() . "\n\n";
             $adminMsg .= "Articles commandés :\n" . $itemsText . "\n";
             $adminMsg .= "Consultez la commande dans l'administration : " . Util::urlBuild('/admin/ecommerce/orders/view/' . $order->getId()) . "\n";
 
@@ -342,4 +458,3 @@ class EcommerceController extends PublicController
         }
     }
 }
-

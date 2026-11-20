@@ -20,6 +20,11 @@ class Order extends \Core\Storage\JsonActiveRecord
         return $this->attributes['order_number'] ?? '';
     }
 
+    public function getUserId(): ?int
+    {
+        return isset($this->attributes['user_id']) ? (int)$this->attributes['user_id'] : null;
+    }
+
     public function getCustomerName(): string
     {
         return $this->attributes['customer_name'] ?? '';
@@ -50,9 +55,43 @@ class Order extends \Core\Storage\JsonActiveRecord
         return $this->attributes['status'] ?? 'pending';
     }
 
+    public function getStatusLabel(): string
+    {
+        $map = [
+            'pending_payment' => 'En attente de paiement',
+            'pending'         => 'En attente de paiement',
+            'paid'            => 'Payée',
+            'processing'      => 'En préparation',
+            'shipped'         => 'Expédiée',
+            'delivered'       => 'Livrée',
+            'completed'       => 'Terminée',
+            'cancelled'       => 'Annulée',
+        ];
+        $st = $this->getStatus();
+        return $map[$st] ?? $st;
+    }
+
     public function getPaymentMethod(): string
     {
         return $this->attributes['payment_method'] ?? '';
+    }
+
+    public function getPaymentMethodLabel(): string
+    {
+        $map = [
+            'stripe'           => 'Carte bancaire (Stripe)',
+            'paypal'           => 'PayPal',
+            'bank_transfer'    => 'Virement bancaire',
+            'check'            => 'Chèque',
+            'cash_on_delivery' => 'Paiement à la livraison',
+        ];
+        $m = $this->getPaymentMethod();
+        return $map[$m] ?? $m;
+    }
+
+    public function getTrackingNumber(): string
+    {
+        return $this->attributes['tracking_number'] ?? '';
     }
 
     /**
@@ -65,4 +104,3 @@ class Order extends \Core\Storage\JsonActiveRecord
             ->get();
     }
 }
-

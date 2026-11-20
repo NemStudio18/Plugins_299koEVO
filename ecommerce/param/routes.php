@@ -35,4 +35,6 @@ $router->map('GET', '/cart/remove/[i:id]', '\\Ecommerce\\Controllers\\EcommerceC
 $router->map('GET', '/checkout[/?]', '\\Ecommerce\\Controllers\\EcommerceController#checkout', 'ecommerce-checkout');
 $router->map('POST', '/checkout/process', '\\Ecommerce\\Controllers\\EcommerceController#processCheckout', 'ecommerce-checkout-process');
 $router->map('GET', '/order/success/[i:id]', '\\Ecommerce\\Controllers\\EcommerceController#orderSuccess', 'ecommerce-order-success');
+$router->map('GET', '/ecommerce/mes-commandes[/?]', '\\Ecommerce\\Controllers\\EcommerceController#myOrders', 'ecommerce-my-orders');
+
 
