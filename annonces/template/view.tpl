@@ -3,7 +3,18 @@
         <a href="{{backUrl}}" class="annonce-back-link">
             <i class="fa-solid fa-arrow-left"></i> Retour aux petites annonces
         </a>
+        {% if canEdit %}
+            <a href="{{editUrl}}" class="button small primary" style="float: right;">
+                <i class="fa-solid fa-pen-to-square"></i> Modifier cette annonce
+            </a>
+        {% endif %}
     </p>
+
+    {% if annonce.is_pending %}
+        <div class="annonce-notice annonce-notice-warning">
+            <i class="fa-solid fa-hourglass-half"></i> <strong>Cette annonce est en cours de modération.</strong> Elle n'est visible pour l'instant que par vous et l'équipe d'administration.
+        </div>
+    {% endif %}
 
     <div class="annonce-detail-grid">
         <div class="annonce-detail-box">
@@ -40,8 +51,24 @@
 
             <div class="annonce-card-price annonce-detail-price">{{annonce.price_label}}</div>
 
+            <div class="annonce-author-card">
+                <div class="annonce-author-avatar">
+                    <i class="fa-solid fa-circle-user fa-2x"></i>
+                </div>
+                <div class="annonce-author-info">
+                    <span class="author-label">Déposée par :</span>
+                    <strong class="author-name">{{annonce.author_name}}</strong>
+                    <span class="author-date">Publiée le {{annonce.created_at}}</span>
+                </div>
+                {% if annonce.phone %}
+                    <div class="annonce-author-phone">
+                        <a href="tel:{{annonce.phone}}" class="button small success"><i class="fa-solid fa-phone"></i> {{annonce.phone}}</a>
+                    </div>
+                {% endif %}
+            </div>
+
             <div class="annonce-description">
-                {{annonce.description}}
+                {{annonce.description|raw}}
             </div>
 
             {% if annonce.contact_info %}
@@ -79,7 +106,7 @@
                     </p>
                     <p>
                         <label for="res_msg">Message / disponibilités *</label>
-                        <textarea id="res_msg" name="message" rows="4" required placeholder="Précisez vos disponibilités ou questions…"></textarea>
+                        <textarea id="res_msg" name="message" rows="4" required placeholder="Précisez vos disponibilités ou questions au vendeur…"></textarea>
                     </p>
 
                     {% if antispam %}
@@ -89,12 +116,16 @@
                     {% endif %}
 
                     <button type="submit" class="annonce-card-btn annonce-submit-btn">
-                        <i class="fa-solid fa-paper-plane"></i> Envoyer ma demande de réservation
+                        <i class="fa-solid fa-paper-plane"></i> Contacter le vendeur pour réserver
                     </button>
                 </form>
             {% elseif annonce.is_reserved %}
                 <div class="annonce-notice annonce-notice-reserved">
                     <i class="fa-solid fa-lock"></i> Cette annonce est actuellement <strong>réservée</strong>. Aucune nouvelle demande ne peut être envoyée pour le moment.
+                </div>
+            {% elseif annonce.is_sold %}
+                <div class="annonce-notice annonce-notice-sold">
+                    <i class="fa-solid fa-circle-check"></i> Cette annonce a été marquée comme <strong>vendue</strong>.
                 </div>
             {% else %}
                 <div class="annonce-notice">
@@ -118,4 +149,3 @@ function annonceSwitchPhoto(url, el, ev) {
     if (el) el.classList.add('active');
 }
 </script>
-

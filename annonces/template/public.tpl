@@ -1,7 +1,19 @@
 <section class="annonces-wrap">
-    {% if introText %}
-        <div class="annonces-intro">{{introText}}</div>
-    {% endif %}
+    <div class="annonces-hero-bar">
+        <div>
+            {% if introText %}
+                <div class="annonces-intro">{{introText}}</div>
+            {% endif %}
+        </div>
+        <div class="annonces-top-actions">
+            {% if allowPublicSubmission %}
+                <a href="{{deposerUrl}}" class="button success"><i class="fa-solid fa-plus-circle"></i> Déposer une annonce</a>
+            {% endif %}
+            {% if isLogged %}
+                <a href="{{mesAnnoncesUrl}}" class="button"><i class="fa-solid fa-user-tag"></i> Mes annonces{% if myAnnoncesCount > 0 %} ({{myAnnoncesCount}}){% endif %}</a>
+            {% endif %}
+        </div>
+    </div>
 
     <form method="get" action="{{listUrl}}" class="annonces-filters">
         <input type="text" name="q" value="{{queryFilter}}" placeholder="Rechercher une annonce (titre, lieu…)" aria-label="Rechercher" />
@@ -15,6 +27,7 @@
             <option value="">Tous statuts</option>
             <option value="available" {% if statusFilter == 'available' %}selected{% endif %}>Disponible</option>
             <option value="reserved" {% if statusFilter == 'reserved' %}selected{% endif %}>Réservée</option>
+            <option value="sold" {% if statusFilter == 'sold' %}selected{% endif %}>Vendue</option>
         </select>
         <button type="submit"><i class="fa-solid fa-magnifying-glass"></i> Filtrer</button>
     </form>
@@ -44,10 +57,13 @@
                         {% if item.excerpt %}
                             <p class="annonce-card-excerpt">{{item.excerpt}}</p>
                         {% endif %}
-                        <a href="{{item.url}}" class="button primary annonce-card-btn">
-                            <i class="fa-solid fa-eye"></i>
-                            {% if item.is_available %}Voir &amp; réserver{% else %}Voir l'annonce{% endif %}
-                        </a>
+                        <div class="annonce-card-footer">
+                            <span class="annonce-card-author"><i class="fa-regular fa-user"></i> {{item.author_name}}</span>
+                            <a href="{{item.url}}" class="button primary annonce-card-btn">
+                                <i class="fa-solid fa-eye"></i>
+                                {% if item.is_available %}Voir &amp; réserver{% else %}Voir l'annonce{% endif %}
+                            </a>
+                        </div>
                     </div>
                 </article>
             {% endfor %}
@@ -59,4 +75,3 @@
         </div>
     {% endif %}
 </section>
-

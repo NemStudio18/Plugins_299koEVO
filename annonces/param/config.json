@@ -6,7 +6,11 @@
     "currency": "€",
     "notifyEmail": "",
     "onReserveStatus": "mark_reserved",
-    "reservationNotice": "Réservation sans paiement en ligne : votre demande est transmise directement à l'administrateur pour validation.",
-    "requireAntispam": "1"
+    "reservationNotice": "Réservation sans paiement en ligne : votre demande est transmise directement au vendeur pour convenir des modalités.",
+    "requireAntispam": "1",
+    "allowPublicSubmission": "1",
+    "requireLoginToPost": "1",
+    "moderationMode": "pre",
+    "maxPhotos": "5"
 }
 

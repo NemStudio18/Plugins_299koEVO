@@ -73,20 +73,49 @@ class AnnoncesAdminController extends AdminController
         }
 
         $annonces = [];
+        $moderationAnnonces = [];
+        $pendingModerationCount = 0;
+
         foreach ($allAnnonces as $item) {
             $aid = (string) $item->getId();
             $attrs = $item->attributes;
             $images = $item->getImages();
+            $modStatus = (string) ($attrs['moderation_status'] ?? 'approved');
+            $isPending = ($modStatus === Annonce::MODERATION_PENDING);
+
+            if ($isPending) {
+                $pendingModerationCount++;
+                $moderationAnnonces[] = [
+                    'id'                 => $aid,
+                    'title'              => (string) ($attrs['title'] ?? ''),
+                    'category'           => (string) ($attrs['category'] ?? ''),
+                    'price_label'        => (string) ($attrs['price_label'] ?? ''),
+                    'location'           => (string) ($attrs['location'] ?? ''),
+                    'author_name'        => $item->getAuthorName(),
+                    'author_email'       => $item->getAuthorEmail(),
+                    'image'              => $item->getMainImage(),
+                    'images_count'       => count($images),
+                    'description'        => (string) ($attrs['description'] ?? ''),
+                    'created_at'         => (string) ($attrs['created_at'] ?? ''),
+                    'moderate_url'       => $this->router->generate('admin-annonces-moderate', ['id' => $aid]),
+                    'edit_url'           => $this->router->generate('admin-annonces-edit-id', ['id' => $aid]),
+                    'delete_url'         => $this->router->generate('admin-annonces-delete', ['id' => $aid, 'token' => $this->user->token]),
+                ];
+            }
+
             $annonces[] = [
                 'id'                 => $aid,
                 'title'              => (string) ($attrs['title'] ?? ''),
                 'category'           => (string) ($attrs['category'] ?? ''),
                 'price_label'        => (string) ($attrs['price_label'] ?? ''),
                 'location'           => (string) ($attrs['location'] ?? ''),
+                'author_name'        => $item->getAuthorName(),
                 'image'              => $item->getMainImage(),
                 'images_count'       => count($images),
                 'status'             => (string) ($attrs['status'] ?? 'available'),
                 'status_label'       => $item->getStatusLabel(),
+                'moderation_status'  => $modStatus,
+                'moderation_label'   => $item->getModerationLabel(),
                 'is_featured'        => !empty($attrs['is_featured']),
                 'created_at'         => (string) ($attrs['created_at'] ?? ''),
                 'reservations_count' => $resCounts[$aid] ?? 0,
@@ -99,6 +128,8 @@ class AnnoncesAdminController extends AdminController
         $response = new AdminResponse();
         $tpl = $response->createPluginTemplate('annonces', 'admin-home');
         $tpl->set('annonces', $annonces);
+        $tpl->set('moderationAnnonces', $moderationAnnonces);
+        $tpl->set('pendingModerationCount', $pendingModerationCount);
         $tpl->set('reservations', $reservations);
         $tpl->set('pendingCount', $pendingCount);
         $tpl->set('createUrl', $this->router->generate('admin-annonces-edit'));
@@ -112,6 +143,10 @@ class AnnoncesAdminController extends AdminController
         $tpl->set('cfgOnReserveStatus', (string) ($this->runPlugin->getConfigVal('onReserveStatus') ?? 'mark_reserved'));
         $tpl->set('cfgReservationNotice', (string) ($this->runPlugin->getConfigVal('reservationNotice') ?? ''));
         $tpl->set('cfgRequireAntispam', (string) ($this->runPlugin->getConfigVal('requireAntispam') ?? '1') === '1');
+        $tpl->set('cfgAllowPublicSubmission', (string) ($this->runPlugin->getConfigVal('allowPublicSubmission') ?? '1') === '1');
+        $tpl->set('cfgRequireLoginToPost', (string) ($this->runPlugin->getConfigVal('requireLoginToPost') ?? '1') === '1');
+        $tpl->set('cfgModerationMode', (string) ($this->runPlugin->getConfigVal('moderationMode') ?? 'pre'));
+        $tpl->set('cfgMaxPhotos', (int) ($this->runPlugin->getConfigVal('maxPhotos') ?? 5));
         $response->addTemplate($tpl);
         return $response;
     }
@@ -347,6 +382,92 @@ class AnnoncesAdminController extends AdminController
         return null;
     }
 
+    public function moderate(string $id)
+    {
+        if (!$this->checkAdminAccess()) {
+            return null;
+        }
+
+        if ($this->user->token !== ($_POST['token'] ?? '') && !Csrf::validate($_POST['_csrf'] ?? null, false)) {
+            Show::msg('Action non autorisée.', 'error');
+            $this->core->redirect($this->router->generate('admin-annonces-home') . '?tab=moderation');
+            return null;
+        }
+
+        $item = Annonce::findPK($id);
+        if (!$item) {
+            Show::msg('Annonce introuvable.', 'error');
+            $this->core->redirect($this->router->generate('admin-annonces-home') . '?tab=moderation');
+            return null;
+        }
+
+        $action = trim((string) ($_POST['action'] ?? ''));
+        $reason = trim((string) ($_POST['rejection_reason'] ?? ''));
+        $title = (string) ($item->attributes['title'] ?? 'Annonce');
+        $authorEmail = $item->getAuthorEmail();
+        $authorUserId = (int) ($item->attributes['user_id'] ?? 0);
+        $siteName = (string) ($this->core->getConfigVal('siteName') ?? 'Site');
+
+        if ($action === 'approve') {
+            $item->moderation_status = Annonce::MODERATION_APPROVED;
+            $item->status = 'available';
+            $item->updated_at = date('Y-m-d H:i:s');
+            $item->save();
+
+            // Notifier l'auteur de la validation
+            if ($authorEmail !== '' && filter_var($authorEmail, FILTER_VALIDATE_EMAIL)) {
+                $subject = '[' . $siteName . '] Votre annonce a été validée et publiée !';
+                $body = "Bonjour,\n\nBonne nouvelle ! Votre petite annonce « {$title} » a été validée par notre équipe et est désormais visible par tous les visiteurs sur le site.\n\n"
+                    . "Consulter votre annonce : " . $item->getPublicUrl() . "\n";
+                $from = 'no-reply@' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+                try {
+                    Util::sendEmail($from, $from, $authorEmail, $subject, $body);
+                } catch (\Throwable $e) {}
+            }
+
+            if ($authorUserId > 0 && \Core\Plugin\PluginsManager::isActivePlugin('notifications')) {
+                try {
+                    $this->core->callHook('notifications:send', [
+                        'user_id'       => [$authorUserId],
+                        'type'          => 'annonces.approved',
+                        'source_plugin' => 'annonces',
+                        'data'          => [
+                            'key'            => 'annonces.approved',
+                            'fallback_title' => 'Votre annonce « %s » est désormais en ligne !',
+                            'params'         => [$title],
+                            'url'            => '/annonces/mes-annonces',
+                        ],
+                    ]);
+                } catch (\Throwable $e) {}
+            }
+
+            Show::msg("L'annonce « {$title} » a été validée et mise en ligne.", 'success');
+        } elseif ($action === 'reject') {
+            $item->moderation_status = Annonce::MODERATION_REJECTED;
+            $item->status = 'draft';
+            $item->rejection_reason = $reason;
+            $item->updated_at = date('Y-m-d H:i:s');
+            $item->save();
+
+            // Notifier l'auteur du refus avec le motif
+            if ($authorEmail !== '' && filter_var($authorEmail, FILTER_VALIDATE_EMAIL)) {
+                $subject = '[' . $siteName . '] Information concernant votre annonce « ' . $title . ' »';
+                $body = "Bonjour,\n\nVotre petite annonce « {$title} » n'a pas pu être validée pour la raison suivante :\n\n"
+                    . ($reason !== '' ? "Motif : {$reason}\n\n" : "Motif : Non-respect des critères de publication.\n\n")
+                    . "Vous pouvez modifier votre annonce depuis votre espace membre pour la corriger et la soumettre à nouveau.\n";
+                $from = 'no-reply@' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+                try {
+                    Util::sendEmail($from, $from, $authorEmail, $subject, $body);
+                } catch (\Throwable $e) {}
+            }
+
+            Show::msg("L'annonce « {$title} » a été refusée.", 'warning');
+        }
+
+        $this->core->redirect($this->router->generate('admin-annonces-home') . '?tab=moderation');
+        return null;
+    }
+
     public function saveConf()
     {
         if (!$this->checkAdminAccess()) {
@@ -365,6 +486,10 @@ class AnnoncesAdminController extends AdminController
         $this->runPlugin->setConfigVal('onReserveStatus', $onReserve);
         $this->runPlugin->setConfigVal('reservationNotice', trim((string) ($_POST['reservationNotice'] ?? '')));
         $this->runPlugin->setConfigVal('requireAntispam', isset($_POST['requireAntispam']) ? '1' : '0');
+        $this->runPlugin->setConfigVal('allowPublicSubmission', isset($_POST['allowPublicSubmission']) ? '1' : '0');
+        $this->runPlugin->setConfigVal('requireLoginToPost', isset($_POST['requireLoginToPost']) ? '1' : '0');
+        $this->runPlugin->setConfigVal('moderationMode', in_array($_POST['moderationMode'] ?? '', ['pre', 'post'], true) ? $_POST['moderationMode'] : 'pre');
+        $this->runPlugin->setConfigVal('maxPhotos', max(1, min(10, (int) ($_POST['maxPhotos'] ?? 5))));
         $this->pluginsManager->savePluginConfig($this->runPlugin);
 
         Show::msg(Lang::get('annonces.config-saved') ?: 'Paramètres enregistrés.', 'success');
