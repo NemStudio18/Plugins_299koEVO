@@ -13,6 +13,7 @@ defined('ROOT') or exit('No direct script access allowed');
 class LightStatsAdminController extends AdminController
 {
     public function home() {
+        // Mémoire optimisée en streaming
         require_once PLUGINS . 'lightstats/lib/UserAgent/UserAgentInterface.php';
         require_once PLUGINS . 'lightstats/lib/UserAgent/Browsers.php';
         require_once PLUGINS . 'lightstats/lib/UserAgent/Platforms.php';
@@ -146,10 +147,10 @@ class LightStatsAdminController extends AdminController
         // Pagination
         $itemsPerPage = 50;
         $currentPage = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-        $totalItems = count($logs);
+        $totalItems = $logsManager->getTotalLogsCount();
         $totalPages = max(1, (int)ceil($totalItems / $itemsPerPage));
         $offset = ($currentPage - 1) * $itemsPerPage;
-        $paginatedLogs = array_slice($logs, $offset, $itemsPerPage);
+        $paginatedLogs = ($activeTab === 'raw') ? $logsManager->getPaginatedLogs($offset, $itemsPerPage) : [];
         
         $paginationStart = $totalItems > 0 ? $offset + 1 : 0;
         $paginationEnd = min($offset + $itemsPerPage, $totalItems);
