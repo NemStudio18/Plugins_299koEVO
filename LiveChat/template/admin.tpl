@@ -1,13 +1,17 @@
-<div class="livechat-admin-container">
-    <div class="livechat-admin-header">
-        <div class="livechat-title-wrap">
-            <h1 class="livechat-title"><i class="fa-solid fa-comments"></i> LiveChat Direct</h1>
-            <span class="livechat-subtitle">Échanges en direct avec les commerçants et internautes</span>
-        </div>
-        <button type="button" class="livechat-btn-settings" onclick="toggleSettingsModal(true)">
-            <i class="fa-solid fa-sliders"></i> <span>Configuration & Webhook Discord</span>
-        </button>
-    </div>
+<div class="tabs-container" data-tab-key="livechat">
+    <ul class="tabs-header">
+        <li data-tab="conversations" class="default-tab">
+            <i class="fa-solid fa-comments"></i> Discussions
+            <span class="tab-unread-badge" id="tabUnreadBadge" style="{% if not stats.unread %}display:none;{% endif %}background:var(--lc-accent, #1f62a9);color:#fff;border-radius:10px;padding:2px 8px;font-size:0.75rem;margin-left:6px;font-weight:700;">{{stats.unread|default(0)}}</span>
+        </li>
+        <li data-tab="config">
+            <i class="fa-solid fa-gear"></i> Configuration & Apparence
+        </li>
+    </ul>
+    <ul class="tabs">
+        <!-- ONGLET 1 : DISCUSSIONS EN DIRECT -->
+        <li class="tab" style="padding: 12px 14px;">
+            <div class="livechat-admin-container">
 
     <div class="livechat-main-layout {% if mobileList or not activeConversation %}mobile-show-list{% endif %}"
          id="livechatMainLayout"
@@ -210,62 +214,118 @@
         </section>
     </div>
 </div>
+        </li>
 
-<!-- MODAL CONFIGURATION DISCORD & BIENVENUE -->
-<div id="settingsModal" class="livechat-modal" style="display: none;">
-    <div class="modal-backdrop" onclick="toggleSettingsModal(false)"></div>
-    <div class="modal-content">
-        <header class="modal-header">
-            <h3><i class="fa-solid fa-sliders"></i> Configuration LiveChat</h3>
-            <button type="button" class="modal-close" onclick="toggleSettingsModal(false)">&times;</button>
-        </header>
-        <form id="liveChatConfigForm" onsubmit="saveLiveChatConfig(event)">
-            <input type="hidden" name="_csrf" value="{{CSRF_TOKEN}}">
-            <div class="modal-body">
-                <div class="form-group-chat">
-                    <label for="cfg_webhook"><strong>URL de Webhook Discord</strong></label>
-                    <input type="url" id="cfg_webhook" name="discord_webhook" value="{{config.discord_webhook}}"
-                           placeholder="https://discord.com/api/webhooks/..." class="chat-input-full">
-                    <small>Dès qu'un visiteur vous écrit sur le site, une notification avec le message et un lien direct pour répondre sur votre smartphone sera envoyée sur ce salon.</small>
-                </div>
+        <!-- ONGLET 2 : CONFIGURATION & APPARENCE -->
+        <li class="tab" style="padding: 24px;">
+            <div class="livechat-config-view">
+                <form id="liveChatConfigForm" onsubmit="saveLiveChatConfig(event)">
+                    <input type="hidden" name="_csrf" value="{{CSRF_TOKEN}}">
 
-                <div class="form-group-chat">
-                    <label for="cfg_name"><strong>Nom de l'administrateur / Expéditeur</strong></label>
-                    <input type="text" id="cfg_name" name="admin_name" value="{{config.admin_name|default('Équipe Déclic')}}"
-                           class="chat-input-full">
-                </div>
+                    <div class="lc-config-grid">
+                        <!-- Carte Notifications & Expéditeur -->
+                        <div class="lc-config-card">
+                            <div class="lc-config-card-header">
+                                <i class="fa-brands fa-discord"></i>
+                                <div>
+                                    <h3>Notifications Discord & Expéditeur</h3>
+                                    <p>Alertes en temps réel et signature des messages.</p>
+                                </div>
+                            </div>
+                            <div class="lc-config-card-body">
+                                <div class="form-group-chat">
+                                    <label for="cfg_webhook"><strong>URL de Webhook Discord</strong></label>
+                                    <input type="url" id="cfg_webhook" name="discord_webhook" value="{{config.discord_webhook}}"
+                                           placeholder="https://discord.com/api/webhooks/..." class="chat-input-full">
+                                    <small>Dès qu'un internaute pose une question, une alerte détaillée avec le message et un lien direct pour répondre sur smartphone est envoyée sur ce salon Discord.</small>
+                                </div>
 
-                <div class="form-group-chat">
-                    <label for="cfg_welcome"><strong>Message de bienvenue automatique</strong></label>
-                    <textarea id="cfg_welcome" name="welcome_message" rows="3" class="chat-input-full">{{config.welcome_message}}</textarea>
-                    <small>Ce message s'affiche automatiquement au démarrage de la discussion chez le visiteur.</small>
-                </div>
+                                <div class="form-group-chat" style="margin-top: 14px;">
+                                    <label for="cfg_name"><strong>Nom de l'administrateur / Expéditeur</strong></label>
+                                    <input type="text" id="cfg_name" name="admin_name" value="{{config.admin_name|default('Équipe Déclic')}}"
+                                           class="chat-input-full">
+                                    <small>Ce nom apparaît sous vos bulles de réponse pour rassurer l'internaute.</small>
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="form-group-chat">
-                    <label for="cfg_bubble_color"><strong>Couleur de la bulle de chat (Widget & Admin)</strong></label>
-                    <div class="lc-color-picker-wrap">
-                        <input type="color" id="cfg_bubble_color" name="bubble_color" value="{{config.bubble_color|default('#1f62a9')}}" class="lc-color-input" oninput="updateLivePreviewColor(this.value)">
-                        <input type="text" id="cfg_bubble_color_hex" value="{{config.bubble_color|default('#1f62a9')}}" class="lc-hex-input" maxlength="7" oninput="updateFromHexInput(this.value)">
-                        <div class="lc-swatches">
-                            <button type="button" class="lc-swatch" style="background:#1f62a9" title="Bleu Déclic" onclick="setBubbleColor('#1f62a9')"></button>
-                            <button type="button" class="lc-swatch" style="background:#ea580c" title="Orange Bourges" onclick="setBubbleColor('#ea580c')"></button>
-                            <button type="button" class="lc-swatch" style="background:#059669" title="Vert Émeraude" onclick="setBubbleColor('#059669')"></button>
-                            <button type="button" class="lc-swatch" style="background:#7c3aed" title="Violet Électrique" onclick="setBubbleColor('#7c3aed')"></button>
-                            <button type="button" class="lc-swatch" style="background:#e11d48" title="Rose Framboise" onclick="setBubbleColor('#e11d48')"></button>
-                            <button type="button" class="lc-swatch" style="background:#0f172a" title="Nuit Profonde" onclick="setBubbleColor('#0f172a')"></button>
+                        <!-- Carte Message de bienvenue -->
+                        <div class="lc-config-card">
+                            <div class="lc-config-card-header">
+                                <i class="fa-solid fa-comment-dots"></i>
+                                <div>
+                                    <h3>Message d'accueil automatique</h3>
+                                    <p>Premier contact chaleureux dès l'ouverture du widget.</p>
+                                </div>
+                            </div>
+                            <div class="lc-config-card-body">
+                                <div class="form-group-chat">
+                                    <label for="cfg_welcome"><strong>Texte de bienvenue</strong></label>
+                                    <textarea id="cfg_welcome" name="welcome_message" rows="5" class="chat-input-full" placeholder="Bonjour ! Comment pouvons-nous vous aider aujourd'hui ?">{{config.welcome_message}}</textarea>
+                                    <small>Ce message s'affiche immédiatement au démarrage du tchat chez le visiteur pour l'inviter à échanger.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Carte Apparence 2D Color Picker -->
+                        <div class="lc-config-card lc-card-wide">
+                            <div class="lc-config-card-header">
+                                <i class="fa-solid fa-palette"></i>
+                                <div>
+                                    <h3>Couleur de la bulle (Palette visuelle 2D & Nuancier)</h3>
+                                    <p>Personnalisez la couleur d'accentuation de la bulle publique et de votre panneau d'administration.</p>
+                                </div>
+                            </div>
+                            <div class="lc-config-card-body">
+                                <div class="lc-picker-container">
+                                    <!-- Grand carré de saturation & luminosité -->
+                                    <div class="lc-sat-val-box" id="lcSatValBox">
+                                        <div class="lc-sat-white"></div>
+                                        <div class="lc-val-black"></div>
+                                        <div class="lc-picker-handle" id="lcSatValHandle"></div>
+                                    </div>
+
+                                    <!-- Glissière Teinte Arc-en-ciel (Hue) -->
+                                    <div class="lc-hue-slider-wrap">
+                                        <input type="range" min="0" max="360" value="210" class="lc-hue-slider" id="lcHueSlider" oninput="onHueSliderChange(this.value)">
+                                    </div>
+
+                                    <!-- Barre inférieure : Aperçu, Code Hexadécimal & Nuances rapides -->
+                                    <div class="lc-picker-bottom-bar">
+                                        <div class="lc-preview-box" id="lcColorPreview" title="Aperçu en direct"></div>
+                                        <div class="lc-hex-field-wrap">
+                                            <span class="lc-hash">#</span>
+                                            <input type="text" id="cfg_bubble_color_hex" value="{{config.bubble_color|default('#1f62a9')|replace({'#': ''})}}" class="lc-hex-input" maxlength="6" oninput="onManualHexChange(this.value)">
+                                        </div>
+                                        <input type="hidden" id="cfg_bubble_color" name="bubble_color" value="{{config.bubble_color|default('#1f62a9')}}">
+
+                                        <div class="lc-swatches-row">
+                                            <button type="button" class="lc-swatch" style="background:#1f62a9" title="Bleu Déclic (#1f62a9)" onclick="applyColor('#1f62a9')"></button>
+                                            <button type="button" class="lc-swatch" style="background:#ea580c" title="Orange Bourges (#ea580c)" onclick="applyColor('#ea580c')"></button>
+                                            <button type="button" class="lc-swatch" style="background:#059669" title="Vert Émeraude (#059669)" onclick="applyColor('#059669')"></button>
+                                            <button type="button" class="lc-swatch" style="background:#7c3aed" title="Violet Électrique (#7c3aed)" onclick="applyColor('#7c3aed')"></button>
+                                            <button type="button" class="lc-swatch" style="background:#e11d48" title="Rose Framboise (#e11d48)" onclick="applyColor('#e11d48')"></button>
+                                            <button type="button" class="lc-swatch" style="background:#0f172a" title="Nuit Profonde (#0f172a)" onclick="applyColor('#0f172a')"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <small style="display:block; margin-top:10px; color:#64748b;">
+                                    <i class="fa-solid fa-circle-info"></i> Glissez ou cliquez dans le grand carré pour ajuster précisément la nuance et la clarté. L'interface s'ajuste en direct.
+                                </small>
+                            </div>
                         </div>
                     </div>
-                    <small>Personnalisez la couleur de la bulle visiteur sur votre site et de l'interface admin, ou choisissez une teinte prédéfinie.</small>
-                </div>
 
-                <div id="cfgFeedback" style="display:none; padding:10px; border-radius:8px; margin-top:10px;"></div>
+                    <div class="lc-config-actions-bar">
+                        <button type="submit" id="btnSaveConfig" class="button">
+                            <i class="fa-solid fa-floppy-disk"></i> Enregistrer les paramètres
+                        </button>
+                        <div id="cfgFeedback" style="display:none; padding:8px 16px; border-radius:8px; font-weight:600;"></div>
+                    </div>
+                </form>
             </div>
-            <footer class="modal-footer">
-                <button type="button" class="btn-cancel" onclick="toggleSettingsModal(false)">Annuler</button>
-                <button type="submit" id="btnSaveConfig" class="btn-save">Enregistrer</button>
-            </footer>
-        </form>
-    </div>
+        </li>
+    </ul>
 </div>
 
 <style>
@@ -279,36 +339,131 @@
     margin: 0 auto;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
-.lc-color-picker-wrap {
+.lc-picker-container {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 14px;
+    margin-top: 8px;
+    user-select: none;
+}
+.lc-sat-val-box {
+    position: relative;
+    width: 100%;
+    height: 160px;
+    border-radius: 10px;
+    cursor: crosshair;
+    overflow: hidden;
+    background-color: #2563eb;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.lc-sat-white {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, #ffffff, rgba(255, 255, 255, 0));
+}
+.lc-val-black {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, #000000, rgba(0, 0, 0, 0));
+}
+.lc-picker-handle {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.65), inset 0 0 2px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+}
+.lc-hue-slider-wrap {
+    margin-top: 12px;
+}
+.lc-hue-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 14px;
+    border-radius: 7px;
+    background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+    outline: none;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+.lc-hue-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2.5px solid #0f172a;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+}
+.lc-hue-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2.5px solid #0f172a;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+}
+.lc-picker-bottom-bar {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-top: 6px;
+    gap: 12px;
+    margin-top: 12px;
     flex-wrap: wrap;
 }
-.lc-color-input {
-    width: 44px;
+.lc-preview-box {
+    width: 38px;
     height: 38px;
-    border: 1px solid #cbd5e1;
     border-radius: 8px;
-    cursor: pointer;
-    padding: 2px;
-    background: #fff;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 1px #cbd5e1;
+    background: #1f62a9;
+    flex-shrink: 0;
+}
+.lc-hex-field-wrap {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0 8px;
+    height: 38px;
+}
+.lc-hex-field-wrap:focus-within {
+    border-color: var(--lc-accent, #1f62a9);
+    box-shadow: 0 0 0 3px rgba(31, 98, 169, 0.12);
+}
+.lc-hash {
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-right: 4px;
 }
 .lc-hex-input {
-    width: 90px;
-    height: 38px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 0 10px;
+    border: none;
+    outline: none;
     font-family: monospace;
     font-size: 0.95rem;
     font-weight: 700;
+    width: 75px;
+    color: #0f172a;
+    background: transparent;
+    text-transform: uppercase;
 }
-.lc-swatches {
+.lc-swatches-row {
     display: flex;
-    gap: 6px;
+    gap: 7px;
     align-items: center;
+    margin-left: auto;
 }
 .lc-swatch {
     width: 26px;
@@ -318,6 +473,7 @@
     box-shadow: 0 0 0 1px #cbd5e1;
     cursor: pointer;
     transition: transform 0.15s, box-shadow 0.15s;
+    padding: 0;
 }
 .lc-swatch:hover {
     transform: scale(1.18);
@@ -931,105 +1087,77 @@
     transform: translateY(-1px);
 }
 
-/* Modal */
-.livechat-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Configuration Page View (Tabs) */
+.livechat-config-view {
+    max-width: 1000px;
+    margin: 0 auto;
 }
-.modal-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.5);
-    backdrop-filter: blur(2px);
+.lc-config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
 }
-.modal-content {
-    position: relative;
+.lc-config-card {
     background: #ffffff;
-    border-radius: 16px;
-    width: 90%;
-    max-width: 550px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
     overflow: hidden;
-    z-index: 1;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 }
-.modal-header {
-    padding: 16px 20px;
+.lc-card-wide {
+    grid-column: 1 / -1;
+}
+.lc-config-card-header {
+    padding: 14px 18px;
+    background: #f8fafc;
     border-bottom: 1px solid #e2e8f0;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 12px;
 }
-.modal-header h3 {
+.lc-config-card-header i {
+    font-size: 1.25rem;
+    color: var(--lc-accent, #1f62a9);
+}
+.lc-config-card-header h3 {
     margin: 0;
-    font-size: 1.15rem;
+    font-size: 1.05rem;
+    font-weight: 700;
     color: #0f172a;
 }
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #94a3b8;
-}
-.modal-body {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-.form-group-chat {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.form-group-chat label {
-    font-size: 0.88rem;
-    color: #334155;
-}
-.form-group-chat small {
+.lc-config-card-header p {
+    margin: 2px 0 0;
     font-size: 0.8rem;
     color: #64748b;
 }
-.chat-input-full {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    box-sizing: border-box;
+.lc-config-card-body {
+    padding: 18px;
 }
-.chat-input-full:focus {
-    border-color: var(--lc-accent);
-    outline: none;
-}
-.modal-footer {
-    padding: 14px 20px;
-    border-top: 1px solid #e2e8f0;
-    background: #f8fafc;
+.lc-config-actions-bar {
     display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+    align-items: center;
+    gap: 16px;
+    padding-top: 10px;
 }
-.btn-cancel {
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    padding: 8px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-}
-.btn-save {
-    background: var(--lc-accent);
-    color: #fff;
+.lc-config-actions-bar .button {
+    background: var(--lc-accent, #1f62a9);
+    color: #ffffff;
     border: none;
-    padding: 8px 18px;
+    padding: 10px 22px;
     border-radius: 8px;
-    cursor: pointer;
     font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(31, 98, 169, 0.25);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.lc-config-actions-bar .button:hover {
+    transform: translateY(-1px);
+    opacity: 0.95;
 }
 .is-hidden {
     display: none;
@@ -1440,35 +1568,180 @@ function toggleConvStatus(convId) {
     });
 }
 
-function setBubbleColor(color) {
-    const cInput = document.getElementById('cfg_bubble_color');
-    const hInput = document.getElementById('cfg_bubble_color_hex');
-    if (cInput) cInput.value = color;
-    if (hInput) hInput.value = color;
-    updateLivePreviewColor(color);
+// --- 2D COLOR PICKER ENGINE ---
+let currentH = 210;
+let currentS = 0.8;
+let currentV = 0.65;
+let isDraggingSquare = false;
+let colorPickerInitialized = false;
+
+function hsvToRgb(h, s, v) {
+    let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
+    let r = Math.round(f(5) * 255);
+    let g = Math.round(f(3) * 255);
+    let b = Math.round(f(1) * 255);
+    return { r, g, b };
 }
 
-function updateFromHexInput(hex) {
-    if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
-        const cInput = document.getElementById('cfg_bubble_color');
-        if (cInput) cInput.value = hex;
-        updateLivePreviewColor(hex);
+function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+function hexToHsv(hex) {
+    let r = 0, g = 0, b = 0;
+    hex = String(hex).replace('#', '').trim();
+    if (hex.length === 3) {
+        r = parseInt(hex[0] + hex[0], 16);
+        g = parseInt(hex[1] + hex[1], 16);
+        b = parseInt(hex[2] + hex[2], 16);
+    } else if (hex.length >= 6) {
+        r = parseInt(hex.substring(0, 2), 16);
+        g = parseInt(hex.substring(2, 4), 16);
+        b = parseInt(hex.substring(4, 6), 16);
+    }
+    if (isNaN(r) || isNaN(g) || isNaN(b)) {
+        return { h: 210, s: 0.8, v: 0.65 };
+    }
+    r /= 255; g /= 255; b /= 255;
+    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let d = max - min;
+    let h = 0, s = max === 0 ? 0 : d / max, v = max;
+    if (max !== min) {
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h *= 60;
+    }
+    return { h: Math.round(h), s, v };
+}
+
+function applyColor(hex, updateInputs = true) {
+    const hsv = hexToHsv(hex);
+    currentH = hsv.h;
+    currentS = hsv.s;
+    currentV = hsv.v;
+    updateFromHSV(updateInputs);
+}
+
+function onHueSliderChange(hue) {
+    currentH = parseFloat(hue);
+    updateFromHSV(true);
+}
+
+function onManualHexChange(hexVal) {
+    let clean = hexVal.replace('#', '').trim();
+    if (/^[0-9a-fA-F]{6}$/.test(clean)) {
+        applyColor('#' + clean, false);
+        const hiddenInput = document.getElementById('cfg_bubble_color');
+        if (hiddenInput) hiddenInput.value = '#' + clean;
     }
 }
 
-function updateLivePreviewColor(color) {
-    const hInput = document.getElementById('cfg_bubble_color_hex');
-    if (hInput) hInput.value = color;
+function updateFromHSV(updateInputs = true) {
+    const box = document.getElementById('lcSatValBox');
+    const handle = document.getElementById('lcSatValHandle');
+    const slider = document.getElementById('lcHueSlider');
+    const preview = document.getElementById('lcColorPreview');
+    const hexInput = document.getElementById('cfg_bubble_color_hex');
+    const hiddenInput = document.getElementById('cfg_bubble_color');
+
+    if (box) {
+        box.style.backgroundColor = `hsl(${currentH}, 100%, 50%)`;
+    }
+    if (slider) {
+        slider.value = currentH;
+    }
+    if (box && handle) {
+        const x = currentS * box.offsetWidth;
+        const y = (1 - currentV) * box.offsetHeight;
+        handle.style.left = `${x}px`;
+        handle.style.top = `${y}px`;
+    }
+
+    const { r, g, b } = hsvToRgb(currentH, currentS, currentV);
+    const hex = rgbToHex(r, g, b);
+
+    if (preview) {
+        preview.style.backgroundColor = hex;
+    }
+    if (updateInputs) {
+        if (hexInput) hexInput.value = hex.replace('#', '').toUpperCase();
+        if (hiddenInput) hiddenInput.value = hex;
+    }
+
     const container = document.querySelector('.livechat-admin-container');
     if (container) {
-        container.style.setProperty('--lc-accent', color);
-        container.style.setProperty('--lc-accent-dark', color);
+        container.style.setProperty('--lc-accent', hex);
+        container.style.setProperty('--lc-accent-dark', hex);
     }
 }
 
-function toggleSettingsModal(show) {
-    document.getElementById('settingsModal').style.display = show ? 'flex' : 'none';
+function initColorPicker() {
+    const hidden = document.getElementById('cfg_bubble_color');
+    const initialHex = hidden && hidden.value ? hidden.value : '#1f62a9';
+    applyColor(initialHex, true);
+
+    const box = document.getElementById('lcSatValBox');
+    if (!box || colorPickerInitialized) return;
+    colorPickerInitialized = true;
+
+    function handleBoxDrag(e) {
+        const rect = box.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        let x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+        let y = Math.max(0, Math.min(rect.height, clientY - rect.top));
+
+        currentS = rect.width > 0 ? (x / rect.width) : 0;
+        currentV = rect.height > 0 ? (1 - (y / rect.height)) : 0;
+        updateFromHSV(true);
+    }
+
+    box.addEventListener('mousedown', function(e) {
+        isDraggingSquare = true;
+        handleBoxDrag(e);
+    });
+
+    window.addEventListener('mousemove', function(e) {
+        if (isDraggingSquare) {
+            handleBoxDrag(e);
+        }
+    });
+
+    window.addEventListener('mouseup', function() {
+        isDraggingSquare = false;
+    });
+
+    box.addEventListener('touchstart', function(e) {
+        isDraggingSquare = true;
+        handleBoxDrag(e);
+    }, { passive: true });
+
+    window.addEventListener('touchmove', function(e) {
+        if (isDraggingSquare) {
+            handleBoxDrag(e);
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchend', function() {
+        isDraggingSquare = false;
+    });
 }
+
+// Initialisation automatique du sélecteur de couleurs lors du basculement d'onglet
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(initColorPicker, 100);
+    const tabsCont = document.querySelector('[data-tab-key="livechat"]');
+    if (tabsCont) {
+        tabsCont.addEventListener('adm:tab-changed', function(e) {
+            if (e.detail && e.detail.tabName === 'config') {
+                setTimeout(initColorPicker, 50);
+            }
+        });
+    }
+});
 
 function saveLiveChatConfig(e) {
     e.preventDefault();
@@ -1494,8 +1767,10 @@ function saveLiveChatConfig(e) {
         if (data.success) {
             feedback.style.background = '#ecfdf5';
             feedback.style.color = '#065f46';
-            feedback.innerHTML = 'Paramètres enregistrés avec succès !';
-            setTimeout(() => toggleSettingsModal(false), 1200);
+            feedback.innerHTML = '<i class="fa-solid fa-check"></i> Configuration enregistrée avec succès !';
+            if (typeof Toastify === 'function') {
+                Toastify({ text: 'Configuration LiveChat enregistrée !', duration: 3000, style: { background: 'var(--lc-accent, #1f62a9)' } }).showToast();
+            }
         } else {
             feedback.style.background = '#fef2f2';
             feedback.style.color = '#991b1b';
