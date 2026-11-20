@@ -1,4 +1,4 @@
-﻿<section class="module-card">
+<section class="module-card">
     <header>
         <h1><i class="fa-solid fa-credit-card"></i> {{Lang.ecommerce.checkout}}</h1>
     </header>

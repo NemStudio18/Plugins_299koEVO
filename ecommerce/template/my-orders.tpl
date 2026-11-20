@@ -80,3 +80,4 @@
 :root[data-theme="dark"] .order-badge-completed   { background: rgba(34, 197, 94, 0.2); color: #86efac; }
 :root[data-theme="dark"] .order-badge-cancelled   { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
 </style>
+
