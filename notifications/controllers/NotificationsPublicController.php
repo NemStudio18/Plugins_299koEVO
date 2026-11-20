@@ -17,7 +17,6 @@ class NotificationsPublicController extends PublicController
      */
     public function list()
     {
-        // TODO: Vérifier que l'utilisateur est connecté
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);
         if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('notifications:access'), $ctx)) {
@@ -25,10 +24,9 @@ class NotificationsPublicController extends PublicController
             return $this->core->redirect('/');
         }
 
-        $user = UsersManager::getCurrentUser();
-        $userId = $user->attributes['id'] ?? 0;
+        $user = $this->user ?: UsersManager::getCurrentUser();
+        $userId = (int) ($user->id ?? ($user->attributes['id'] ?? 0));
 
-        // TODO: Charger NotificationManager
         require_once PLUGINS . 'notifications/entities/NotificationManager.php';
         $manager = new \Notifications\Entities\NotificationManager();
 
@@ -59,8 +57,8 @@ class NotificationsPublicController extends PublicController
             return $this->core->redirect('/');
         }
 
-        $user = UsersManager::getCurrentUser();
-        $userId = $user->attributes['id'] ?? 0;
+        $user = $this->user ?: UsersManager::getCurrentUser();
+        $userId = (int) ($user->id ?? ($user->attributes['id'] ?? 0));
         $notificationId = trim((string) ($id ?? ''));
 
         require_once PLUGINS . 'notifications/entities/NotificationManager.php';

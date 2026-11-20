@@ -4,6 +4,8 @@ namespace Notifications\Entities;
 
 defined('ROOT') or exit('Access denied!');
 
+require_once __DIR__ . '/Notification.php';
+
 class NotificationManager
 {
     public function __construct()
