@@ -99,7 +99,7 @@
                         <div class="blog-img-actions">
                             {{filemanagerDisplayManagerButton("news-image", "depuis les fichiers")}}
                             {% IF hasGalerie %}
-                                <a class="button" data-fancybox data-type="ajax" href="{ ROUTER.generate('admin-galerie-selector', {'token': token}) }"><i class="fa-solid fa-images"></i> depuis la galerie</a>
+                                <a class="button" data-fancybox data-type="ajax" href="{{ ROUTER.generate('admin-galerie-selector', {'token': token}) }}"><i class="fa-solid fa-images"></i> depuis la galerie</a>
                             {% ENDIF %}
                             <button type="button" class="button alert small" id="news-image-clear" onclick="blogClearImage()">
                                 <i class="fa-solid fa-xmark"></i> Retirer
