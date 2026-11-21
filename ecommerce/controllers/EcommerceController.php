@@ -44,6 +44,7 @@ class EcommerceController extends PublicController
     public function shop()
     {
         $response = new PublicResponse();
+        $response->setTitle(Lang::get('ecommerce.shop') ?: 'Boutique');
         $tpl = $response->createPluginTemplate('ecommerce', 'shop');
         
         $activeOnly = !UsersManager::isLogged();
@@ -75,6 +76,7 @@ class EcommerceController extends PublicController
             return Core::getInstance()->redirect('/shop');
         }
         
+        $response->setTitle($product->getName());
         $tpl = $response->createPluginTemplate('ecommerce', 'product');
         $tpl->set('product', $product);
         $tpl->set('token', \Core\Security\Csrf::hiddenField());
@@ -100,6 +102,7 @@ class EcommerceController extends PublicController
             return Core::getInstance()->redirect('/shop');
         }
         
+        $response->setTitle(($category->getName() ?: 'Catégorie') . ' - ' . (Lang::get('ecommerce.shop') ?: 'Boutique'));
         $activeOnly = !UsersManager::isLogged();
         $products = $this->productManager->getByCategory((int)$id, $activeOnly);
         $categories = $this->categoryManager->getAll();
@@ -118,6 +121,7 @@ class EcommerceController extends PublicController
     public function cart()
     {
         $response = new PublicResponse();
+        $response->setTitle(Lang::get('ecommerce.cart') ?: 'Panier');
         $tpl = $response->createPluginTemplate('ecommerce', 'cart');
         
         $items = \Ecommerce\Entities\Cart::getItemsWithProducts();
@@ -241,6 +245,7 @@ class EcommerceController extends PublicController
     public function checkout()
     {
         $response = new PublicResponse();
+        $response->setTitle(Lang::get('ecommerce.checkout') ?: 'Validation de la commande');
         
         $items = \Ecommerce\Entities\Cart::getItemsWithProducts();
         if (empty($items)) {
@@ -407,6 +412,7 @@ class EcommerceController extends PublicController
         $items = $this->orderManager->getOrderItems($order->getId());
 
         $response = new PublicResponse();
+        $response->setTitle(Lang::get('ecommerce.order-confirmation') ?: 'Confirmation de commande');
         $tpl = $response->createPluginTemplate('ecommerce', 'order-success');
         $tpl->set('order', $order);
         $tpl->set('items', $items);

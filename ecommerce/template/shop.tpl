@@ -1,5 +1,3 @@
-<h1>{{ Lang.ecommerce.shop }}</h1>
-
 <div class="ecommerce-shop">
     {% FOR product IN products %}
     <div class="ecommerce-product-card">
