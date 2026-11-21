@@ -98,6 +98,11 @@ class Order extends \Core\Storage\JsonActiveRecord
         return $this->attributes['tracking_number'] ?? '';
     }
 
+    public function getCreatedAt(): string
+    {
+        return $this->attributes['created_at'] ?? date('d/m/Y H:i');
+    }
+
     /**
      * @return OrderItem[]
      */
