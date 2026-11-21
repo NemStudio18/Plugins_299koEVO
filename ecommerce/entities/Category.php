@@ -11,9 +11,12 @@ class Category extends \Core\Storage\JsonActiveRecord
     protected static string $primaryKey = 'id';
     protected static bool $autoIncrementId = true;
 
-    public function getId(): ?int
+    public function getId()
     {
-        return isset($this->attributes['id']) ? (int)$this->attributes['id'] : null;
+        if (!isset($this->attributes['id'])) {
+            return null;
+        }
+        return is_numeric($this->attributes['id']) ? (int)$this->attributes['id'] : (string)$this->attributes['id'];
     }
 
     public function getName(): string

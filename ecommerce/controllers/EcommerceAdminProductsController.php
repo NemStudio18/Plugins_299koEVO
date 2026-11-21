@@ -162,7 +162,12 @@ class EcommerceAdminProductsController extends AdminController
             $this->core->redirect($this->router->generate('admin-home'));
             return null;
         }
-        $id = (int)($id ?? $this->router->getParam('id') ?? $_REQUEST['id'] ?? 0);
+        $id = $id ?? $this->router->getParam('id') ?? $_REQUEST['id'] ?? null;
+        if (is_numeric($id)) {
+            $id = (int)$id;
+        } else if ($id !== null) {
+            $id = trim((string)$id);
+        }
         
         $product = $this->productManager->getById($id);
         if (!$product) {
@@ -198,7 +203,12 @@ class EcommerceAdminProductsController extends AdminController
             return null;
         }
         
-        $id = (int)($id ?? $this->router->getParam('id') ?? $_POST['id'] ?? 0);
+        $id = $id ?? $this->router->getParam('id') ?? $_POST['id'] ?? null;
+        if (is_numeric($id)) {
+            $id = (int)$id;
+        } else if ($id !== null) {
+            $id = trim((string)$id);
+        }
         $token = $_POST['token'] ?? ($_POST['_csrf'] ?? null);
         if (!$this->isValidToken($token)) {
             if ($this->request->isAjax()) {
@@ -276,7 +286,12 @@ class EcommerceAdminProductsController extends AdminController
             return null;
         }
 
-        $id = (int)($id ?? $this->router->getParam('id') ?? $_REQUEST['id'] ?? 0);
+        $id = $id ?? $this->router->getParam('id') ?? $_REQUEST['id'] ?? null;
+        if (is_numeric($id)) {
+            $id = (int)$id;
+        } else if ($id !== null) {
+            $id = trim((string)$id);
+        }
         $success = $this->productManager->delete($id);
         
         if ($this->request->isAjax()) {

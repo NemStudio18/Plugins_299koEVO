@@ -56,7 +56,12 @@ class EcommerceAdminOrdersController extends AdminController
     public function view($id = null)
     {
         $response = new AdminResponse();
-        $id = (int)($id ?? $this->router->getParam('id') ?? $_REQUEST['id'] ?? 0);
+        $id = $id ?? $this->router->getParam('id') ?? $_REQUEST['id'] ?? null;
+        if (is_numeric($id)) {
+            $id = (int)$id;
+        } else if ($id !== null) {
+            $id = trim((string)$id);
+        }
         
         $order = $this->orderManager->getById($id);
         if (!$order) {
@@ -88,7 +93,12 @@ class EcommerceAdminOrdersController extends AdminController
             return $response;
         }
         
-        $id = (int)($id ?? $this->router->getParam('id') ?? $_POST['id'] ?? 0);
+        $id = $id ?? $this->router->getParam('id') ?? $_POST['id'] ?? null;
+        if (is_numeric($id)) {
+            $id = (int)$id;
+        } else if ($id !== null) {
+            $id = trim((string)$id);
+        }
         $status = $_POST['status'] ?? '';
         $trackingNumber = isset($_POST['tracking_number']) ? trim((string)$_POST['tracking_number']) : null;
         
