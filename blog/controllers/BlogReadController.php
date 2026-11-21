@@ -278,9 +278,12 @@ class BlogReadController extends PublicController
                 }
             }
 
-            $this->core->addMeta('<meta property="og:image" content="' . htmlspecialchars($ogImgUrl, ENT_QUOTES, 'UTF-8') . '" />');
-            $this->core->addMeta('<meta property="og:image:secure_url" content="' . htmlspecialchars($ogImgUrl, ENT_QUOTES, 'UTF-8') . '" />');
-            $this->core->addMeta('<meta name="twitter:image" content="' . htmlspecialchars($ogImgUrl, ENT_QUOTES, 'UTF-8') . '" />');
+            $imgVersion = file_exists($localPath) ? '?v=' . filemtime($localPath) : '';
+            $ogImgUrlVersioned = $ogImgUrl . $imgVersion;
+
+            $this->core->addMeta('<meta property="og:image" content="' . htmlspecialchars($ogImgUrlVersioned, ENT_QUOTES, 'UTF-8') . '" />');
+            $this->core->addMeta('<meta property="og:image:secure_url" content="' . htmlspecialchars($ogImgUrlVersioned, ENT_QUOTES, 'UTF-8') . '" />');
+            $this->core->addMeta('<meta name="twitter:image" content="' . htmlspecialchars($ogImgUrlVersioned, ENT_QUOTES, 'UTF-8') . '" />');
 
             // Métadonnées d'\''image si le fichier est local
             if (file_exists($localPath)) {
