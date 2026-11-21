@@ -889,10 +889,10 @@ class LightStatsAnalyticsService
         $hasEvtCol = $this->hasColumn('ls_events', 'event_id');
         $extraCols = '';
         if ($hasEvtCol) {
-            $extraCols .= ', event_id';
+            $extraCols .= ', e.event_id';
         }
         if ($hasReqCol) {
-            $extraCols .= ', request_id';
+            $extraCols .= ', e.request_id';
         }
 
         if ((int)ini_get('memory_limit') < 256) {
@@ -900,10 +900,12 @@ class LightStatsAnalyticsService
         }
 
         $stmt = $this->db->prepare("
-            SELECT id {$extraCols}, session_id, visitor_id, module, event_type, page, event_data, created_at
-            FROM ls_events
-            WHERE created_at BETWEEN ? AND ?
-            ORDER BY session_id ASC, created_at ASC, id ASC
+            SELECT e.id {$extraCols}, e.session_id, e.visitor_id, e.module, e.event_type, e.page, e.event_data, e.created_at,
+                   s.ip_hash, s.device_type
+            FROM ls_events e
+            LEFT JOIN ls_sessions s ON s.session_id = e.session_id
+            WHERE e.created_at BETWEEN ? AND ?
+            ORDER BY e.session_id ASC, e.created_at ASC, e.id ASC
         ");
         $stmt->execute([$contextStart, $periodEnd]);
 
@@ -924,6 +926,8 @@ class LightStatsAnalyticsService
         $unmeasurableSessionsCount = 0;
 
         $consentedVisitors = [];
+        $certifiedVisitors = [];
+        $allVisitors = [];
         $anonymousSessionsCount = 0;
 
         $allPeriodHttpRequestIds = [];
@@ -945,6 +949,8 @@ class LightStatsAnalyticsService
             &$measurableSessionsCount,
             &$unmeasurableSessionsCount,
             &$consentedVisitors,
+            &$certifiedVisitors,
+            &$allVisitors,
             &$anonymousSessionsCount,
             &$allPeriodHttpRequestIds,
             &$allPeriodCertifiedRequestIds,
@@ -967,6 +973,12 @@ class LightStatsAnalyticsService
             }
             $totalBusinessEvents += $sess['business_events_count'];
 
+            $visitorKey = !empty($sess['visitor_id'])
+                ? $sess['visitor_id']
+                : (!empty($sess['ip_hash']) ? ('anon_' . $sess['ip_hash'] . '_' . ($sess['device_type'] ?? 'desktop')) : ('sess_' . $sess['session_id']));
+
+            $allVisitors[$visitorKey] = true;
+
             if (!empty($sess['visitor_id'])) {
                 $consentedVisitors[$sess['visitor_id']] = true;
             } else {
@@ -980,6 +992,7 @@ class LightStatsAnalyticsService
 
             if ($isCertified) {
                 $certifiedSessionsCount++;
+                $certifiedVisitors[$visitorKey] = true;
 
                 $lp = !empty($sess['entry_page']) ? $sess['entry_page'] : '/';
                 $ep = !empty($sess['exit_page']) ? $sess['exit_page'] : '/';
@@ -1001,9 +1014,18 @@ class LightStatsAnalyticsService
 
                 $interactions = $sess['interaction_timestamps'];
                 if (count($interactions) >= 2) {
-                    $tMin = min($interactions);
-                    $tMax = max($interactions);
-                    $durationSec = $tMax - $tMin;
+                    sort($interactions);
+                    $durationSec = 0;
+                    $maxIdlePerStep = 600; // Plafonnement d'inactivité de 10 min max par étape (standard Matomo / GA4)
+                    for ($i = 0; $i < count($interactions) - 1; $i++) {
+                        $delta = $interactions[$i + 1] - $interactions[$i];
+                        if ($delta > 0) {
+                            $durationSec += min($delta, $maxIdlePerStep);
+                        }
+                    }
+                    // Plafond global d'une session continue
+                    $durationSec = min($durationSec, 1800);
+
                     if ($durationSec > 0) {
                         $sess['duration_type'] = 'measured';
                         $sess['duration_seconds'] = $durationSec;
@@ -1063,6 +1085,8 @@ class LightStatsAnalyticsService
                 $currentSessionWindow = [
                     'session_id'                    => $sid,
                     'visitor_id'                    => $ev['visitor_id'] ?: null,
+                    'ip_hash'                       => $ev['ip_hash'] ?? null,
+                    'device_type'                   => $ev['device_type'] ?? 'desktop',
                     'started_at'                    => $ev['created_at'],
                     'ended_at'                      => $ev['created_at'],
                     'first_timestamp'               => $evTime,
@@ -1085,6 +1109,12 @@ class LightStatsAnalyticsService
 
             if (!empty($ev['visitor_id']) && empty($currentSessionWindow['visitor_id'])) {
                 $currentSessionWindow['visitor_id'] = $ev['visitor_id'];
+            }
+            if (!empty($ev['ip_hash']) && empty($currentSessionWindow['ip_hash'])) {
+                $currentSessionWindow['ip_hash'] = $ev['ip_hash'];
+            }
+            if (!empty($ev['device_type'])) {
+                $currentSessionWindow['device_type'] = $ev['device_type'];
             }
 
             $isInPeriod = ($ev['created_at'] >= $periodStart && $ev['created_at'] <= $periodEnd);
@@ -1133,6 +1163,7 @@ class LightStatsAnalyticsService
         $orphanCertificationsCount = count($allPeriodCertifiedRequestIds) - $totalValidCertifiedPages;
 
         $avgMeasuredDuration = $measurableSessionsCount > 0 ? (int)round($totalMeasuredDuration / $measurableSessionsCount) : 0;
+        $avgGlobalDuration = $certifiedSessionsCount > 0 ? (int)round($totalMeasuredDuration / $certifiedSessionsCount) : 0;
         $strictBounceRate = $certifiedSessionsCount > 0 ? round(($strictBouncesCount / $certifiedSessionsCount) * 100, 1) : 0.0;
         $certificationRate = $totalAdmissibleHttpPages > 0 ? round(($totalValidCertifiedPages / $totalAdmissibleHttpPages) * 100, 1) : 0.0;
 
@@ -1185,13 +1216,17 @@ class LightStatsAnalyticsService
                 'total_measured_seconds'        => $totalMeasuredDuration,
                 'avg_measured_seconds'          => $avgMeasuredDuration,
                 'avg_measured_formatted'        => self::formatDurationStatic($avgMeasuredDuration),
-                'notice'                        => 'Les sessions à interaction unique ne comportent pas de durée extrapolée artificielle.',
+                'avg_global_seconds'            => $avgGlobalDuration,
+                'avg_global_formatted'          => self::formatDurationStatic($avgGlobalDuration),
+                'notice'                        => 'Plafonnement d\'inactivité de 10 min max par étape appliqué (méthodologie conforme Matomo / GA4).',
             ],
             // Niveau 5 : Visiteurs & Consentement
             'visitors' => [
+                'certified_visitors_count'      => count($certifiedVisitors),
+                'total_estimated_visitors'      => count($allVisitors),
                 'consented_visitors_count'      => count($consentedVisitors),
                 'anonymous_sessions_count'      => $anonymousSessionsCount,
-                'unidentifiable_notice'         => 'Le nombre absolu de visiteurs physiques uniques est non déterminable sans consentement persistant (zéro fingerprinting intrusif conforme CNIL).',
+                'notice'                        => 'Déduplication conforme CNIL : combinaison pseudonymisée (IP hachée journalière + type terminal).',
             ],
             'sessions_sample' => $sessionsSample,
         ];

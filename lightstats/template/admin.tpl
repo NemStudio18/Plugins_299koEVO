@@ -164,7 +164,7 @@
                     <span class="ls-kpi-badge indigo"><i class="fa-solid fa-users" aria-hidden="true"></i> Audience</span>
                 </div>
                 <div class="ls-kpi-value">{{sovereignUniqueVisitors}}</div>
-                <div class="ls-kpi-subtext">{% IF certifiedSessions %}dont <strong>{{certifiedSessions}}</strong> certifiés JS ({{totalDbSessions}} sessions observées){% ELSE %}{{totalDbSessions}} sessions observées sur la période{% ENDIF %}</div>
+                <div class="ls-kpi-subtext">{% IF certifiedSessions %}dont <strong>{{certifiedVisitors}}</strong> visiteurs certifiés JS ({{certifiedSessions}} sessions certifiées / {{totalDbSessions}} observées){% ELSE %}{{totalDbSessions}} sessions observées sur la période{% ENDIF %}</div>
             </article>
 
             <!-- KPI 2 : Pages certifiées réconciliées -->
@@ -194,7 +194,7 @@
                     <span class="ls-kpi-badge amber"><i class="fa-solid fa-stopwatch" aria-hidden="true"></i> Réelle</span>
                 </div>
                 <div class="ls-kpi-value">{% IF consolidated.duration.avg_measured_formatted %}{{consolidated.duration.avg_measured_formatted}}{% ELSE %}—{% ENDIF %}</div>
-                <div class="ls-kpi-subtext">Sessions mesurables uniquement (≥ 2 actions)</div>
+                <div class="ls-kpi-subtext">Moyenne active (globale : {% IF consolidated.duration.avg_global_formatted %}{{consolidated.duration.avg_global_formatted}}{% ELSE %}0s{% ENDIF %}, plafond 10 min)</div>
             </article>
         </section>
 

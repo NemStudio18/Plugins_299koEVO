@@ -267,6 +267,8 @@ class LightStatsAdminController extends AdminController
 
         $humanVisitorsEst = (int)($kpis['unique_visitors'] ?? 0);
         $sovereignUniqueVisitors = $humanVisitorsEst > 0 ? $humanVisitorsEst : $certifiedSessions;
+        $certifiedVisitors = (int)($consolidated['visitors']['certified_visitors_count'] ?? $certifiedSessions);
+        $totalEstimatedVisitors = (int)($consolidated['visitors']['total_estimated_visitors'] ?? $sovereignUniqueVisitors);
 
         $lsPlugin = \Core\Plugin\PluginsManager::getInstance()->getPlugin('lightstats');
         $privacyMode = ($lsPlugin && $lsPlugin->getConfigVal('privacy_mode') === 'cnil_exempt')
@@ -288,6 +290,8 @@ class LightStatsAdminController extends AdminController
         $tpl->set('consolidated', $consolidated);
         $tpl->set('totalDbSessions', $totalDbSessions);
         $tpl->set('certifiedSessions', $certifiedSessions);
+        $tpl->set('certifiedVisitors', $certifiedVisitors);
+        $tpl->set('totalEstimatedVisitors', $totalEstimatedVisitors);
         $tpl->set('certifiedPageviews', $certifiedPageviews);
         $tpl->set('admissibleHttpPages', $admissibleHttpPages);
         $tpl->set('engagementRatePct', $engagementRatePct);
