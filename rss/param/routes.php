@@ -6,7 +6,9 @@ $router = \Core\Router\Router::getInstance();
 
 // Public RSS Feeds
 $router->map('GET', '/rss.xml', 'Rss\\Controllers\\RssPublicController#feed', 'rss-feed-xml');
+$router->map('GET', '/feed.xml', 'Rss\\Controllers\\RssPublicController#feed', 'rss-feed-xml-alias');
 $router->map('GET', '/feed[/?]', 'Rss\\Controllers\\RssPublicController#feed', 'rss-feed-alias');
+$router->map('GET', '/rss[/?]', 'Rss\\Controllers\\RssPublicController#feed', 'rss-feed-root');
 $router->map('GET', '/rss/[*:channel][/?]', 'Rss\\Controllers\\RssPublicController#channel', 'rss-feed-channel');
 
 // Admin Configuration

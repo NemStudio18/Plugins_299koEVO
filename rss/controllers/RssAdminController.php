@@ -59,8 +59,9 @@ class RssAdminController extends BaseAdminController
             return;
         }
 
-        if (!\Core\Security\Csrf::validate($_POST['_csrf'] ?? '')) {
-            \Utils\Show::msg('Token CSRF invalide.', 'error');
+        $submittedToken = $_POST['_csrf'] ?? $_POST['token'] ?? '';
+        if (!\Core\Security\Csrf::validate($submittedToken) && !\Utils\Util::isValidToken($submittedToken)) {
+            \Utils\Show::msg('Token de sécurité invalide ou session expirée.', 'error');
             $this->core->redirect($this->router->generate('admin-rss-home'));
             return;
         }

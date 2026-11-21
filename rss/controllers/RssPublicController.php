@@ -14,9 +14,13 @@ class RssPublicController extends BasePublicController
         return $this->renderRssFeed(null);
     }
 
-    public function channel($channel)
+    public function channel($channel = null)
     {
-        return $this->renderRssFeed(trim(strtolower((string)$channel)));
+        $chan = trim(strtolower((string)$channel));
+        if ($chan === '' || $chan === 'all' || $chan === 'global') {
+            return $this->feed();
+        }
+        return $this->renderRssFeed($chan);
     }
 
     private function renderRssFeed(?string $channelFilter)

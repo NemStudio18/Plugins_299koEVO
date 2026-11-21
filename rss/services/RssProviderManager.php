@@ -144,26 +144,86 @@ class RssProviderManager
     private static function getPageItems(string $siteUrl): array
     {
         $items = [];
-        $file = DATA . 'pages.json';
-        if (!file_exists($file)) return $items;
-        $pages = json_decode((string)@file_get_contents($file), true);
-        if (!is_array($pages)) return $items;
+        $siteUrl = rtrim($siteUrl, '/');
+        $router = class_exists(\Core\Router\Router::class) ? \Core\Router\Router::getInstance() : null;
 
-        foreach ($pages as $p) {
-            if (empty($p['published']) && (isset($p['is_active']) && !$p['is_active'])) continue;
-            $slug = $p['slug'] ?? $p['url'] ?? '';
-            if (empty($slug)) continue;
-            $title = $p['title'] ?? $p['name'] ?? 'Page';
-            $ts = !empty($p['updated_at']) ? strtotime($p['updated_at']) : (!empty($p['created_at']) ? strtotime($p['created_at']) : time());
-            $desc = strip_tags(html_entity_decode($p['content'] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        // 1. Détection via ActiveRecord PageItem (299ko EVO moderne)
+        if (class_exists(\Core\Page\PageItem::class)) {
+            try {
+                $pages = \Core\Page\PageItem::all();
+                if (is_array($pages)) {
+                    foreach ($pages as $p) {
+                        if (!empty($p->isHidden)) {
+                            continue;
+                        }
+                        $id = $p->id ?? (method_exists($p, 'getId') ? $p->getId() : '');
+                        $title = (string)($p->name ?? (method_exists($p, 'getName') ? $p->getName() : 'Page'));
+                        $content = (string)($p->content ?? '');
+                        $desc = strip_tags(html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                        
+                        if (!empty($p->isHomepage)) {
+                            $link = $siteUrl . '/';
+                        } else {
+                            try {
+                                $cleanName = preg_replace("#\<i.+\<\/i\>#i", '', $title);
+                                $slug = class_exists(\Utils\Util::class) ? \Utils\Util::strToUrl($cleanName) : 'page';
+                                $link = $router ? ($siteUrl . $router->generate('page-read', ['name' => $slug, 'id' => $id])) : ($siteUrl . '/page/' . $slug . '-' . $id);
+                            } catch (\Throwable $e) {
+                                $slug = class_exists(\Utils\Util::class) ? \Utils\Util::strToUrl($title) : 'page';
+                                $link = $siteUrl . '/page/' . $slug . '-' . $id;
+                            }
+                        }
 
-            $items[] = [
-                'title' => $title,
-                'link' => $siteUrl . '/' . ltrim($slug, '/'),
-                'timestamp' => $ts ?: time(),
-                'category' => 'Pages',
-                'description' => mb_substr($desc, 0, 350)
-            ];
+                        $items[] = [
+                            'title' => $title,
+                            'link' => $link,
+                            'timestamp' => time(),
+                            'category' => 'Pages',
+                            'description' => mb_substr($desc, 0, 350)
+                        ];
+                    }
+                    if (!empty($items)) {
+                        return $items;
+                    }
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // 2. Fallbacks fichiers JSON (data/core/page/pages.json ou data/pages.json)
+        $candidates = [
+            DATA . 'core/page/pages.json',
+            DATA . 'pages.json'
+        ];
+        foreach ($candidates as $file) {
+            if (file_exists($file)) {
+                $pages = json_decode((string)@file_get_contents($file), true);
+                if (is_array($pages)) {
+                    foreach ($pages as $p) {
+                        if (!empty($p['isHidden']) || (isset($p['is_active']) && !$p['is_active'])) {
+                            continue;
+                        }
+                        $id = $p['id'] ?? '';
+                        $title = (string)($p['name'] ?? $p['title'] ?? 'Page');
+                        $content = (string)($p['content'] ?? '');
+                        $desc = strip_tags(html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                        if (!empty($p['isHomepage'])) {
+                            $link = $siteUrl . '/';
+                        } else {
+                            $slug = class_exists(\Utils\Util::class) ? \Utils\Util::strToUrl($title) : 'page';
+                            $link = $siteUrl . '/page/' . $slug . '-' . $id;
+                        }
+
+                        $items[] = [
+                            'title' => $title,
+                            'link' => $link,
+                            'timestamp' => time(),
+                            'category' => 'Pages',
+                            'description' => mb_substr($desc, 0, 350)
+                        ];
+                    }
+                    if (!empty($items)) return $items;
+                }
+            }
         }
         return $items;
     }
@@ -193,10 +253,12 @@ class RssProviderManager
                     }
                     $desc = strip_tags(html_entity_decode($rawDesc, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
                     $slug = class_exists(\Utils\Util::class) ? \Utils\Util::strToUrl($title) : strtolower(trim((string) preg_replace('/[^a-zA-Z0-9]+/', '-', $title), '-'));
+                    $artUrl = method_exists($art, 'getUrl') ? (string)$art->getUrl() : '';
+                    $link = $artUrl !== '' ? ($baseSiteUrl . '/' . ltrim($artUrl, '/')) : ($baseSiteUrl . '/blog/' . ($slug !== '' ? $slug : 'article') . '-' . $id . '.html');
 
                     $items[] = [
                         'title' => $title,
-                        'link' => $baseSiteUrl . '/blog/' . ($slug !== '' ? $slug : 'article') . '-' . $id . '.html',
+                        'link' => $link,
                         'timestamp' => $ts ?: time(),
                         'category' => 'Blog',
                         'description' => mb_substr($desc, 0, 350),
@@ -246,10 +308,14 @@ class RssProviderManager
     private static function getAgendaItems(string $siteUrl): array
     {
         $items = [];
+        $siteUrl = rtrim($siteUrl, '/');
         if (!class_exists('\Agenda\Entities\EventManager')) return $items;
         try {
             $eventManager = new \Agenda\Entities\EventManager();
             $events = $eventManager->findFutureEvents(date('Y-m-d'));
+            if (empty($events)) {
+                $events = $eventManager->getAll(false, false);
+            }
             foreach ($events as $event) {
                 $id = $event->getId();
                 $title = $event->getTitle();
@@ -329,20 +395,23 @@ class RssProviderManager
     private static function getEcommerceItems(string $siteUrl): array
     {
         $items = [];
+        $siteUrl = rtrim($siteUrl, '/');
         if (!class_exists('\Ecommerce\Entities\ProductManager')) return $items;
         try {
             $mgr = new \Ecommerce\Entities\ProductManager();
-            $products = $mgr->getAll();
+            $products = $mgr->getAll(true);
             foreach ($products as $p) {
                 if (method_exists($p, 'isActive') && !$p->isActive()) continue;
                 $title = $p->getName();
                 $id = $p->getId();
                 $price = $p->getPrice();
                 $desc = strip_tags(html_entity_decode($p->getDescription() ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                $pUrl = method_exists($p, 'getUrl') ? (string)$p->getUrl() : '';
+                $link = $pUrl !== '' ? ($siteUrl . '/' . ltrim($pUrl, '/')) : ($siteUrl . '/shop/product/' . $id);
 
                 $items[] = [
                     'title' => '[Boutique] ' . $title . ' (' . number_format((float)$price, 2) . ' €)',
-                    'link' => $siteUrl . '/shop/product/' . $id,
+                    'link' => $link,
                     'timestamp' => time(),
                     'category' => 'Boutique',
                     'description' => mb_substr($desc, 0, 350)
