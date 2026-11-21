@@ -28,7 +28,7 @@ class CommunityPipelinePublicController extends PublicController
 
         $tpl->set('hubApiUrl', $this->hubApiUrl);
         $tpl->set('submitUrl', $this->router->generate('communitypipeline-submit'));
-        $tpl->set('tokenField', $this->core->getSecurity()->tokenField());
+        $tpl->set('tokenField', \Core\Security\Csrf::hiddenField());
 
         $response->setTitle('Soumettre un Plugin ou Thème - 299ko EVO');
         $response->addTemplate($tpl);
@@ -40,7 +40,7 @@ class CommunityPipelinePublicController extends PublicController
      */
     public function submit()
     {
-        if (!$this->core->getSecurity()->checkToken()) {
+        if (!\Core\Security\Csrf::validate($_POST['_csrf'] ?? null, false)) {
             Show::msg('Session expirée ou jeton CSRF invalide. Veuillez réessayer.', 'error');
             $this->core->redirect($this->router->generate('communitypipeline-form'));
             return;
