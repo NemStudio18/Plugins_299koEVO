@@ -111,6 +111,29 @@ class CommunityPipelinePublicController extends PublicController
         $submissionId = $result['submission_id'];
         $status = $result['status'] ?? 'queued';
 
+        // Envoi d'un email automatique avec le lien de suivi permanent au contributeur
+        if (!empty($authorEmail) && \Utils\Util::isEmail($authorEmail)) {
+            $trackingUrl = rtrim((string)$this->core->getConfigVal('siteUrl'), '/') . $this->router->generate('communitypipeline-status', ['submissionId' => $submissionId]);
+            $siteName = (string)$this->core->getConfigVal('siteName') ?: '299ko EVO';
+            $adminEmail = (string)$this->core->getConfigVal('siteEmail') ?: 'contact@299ko.flexcb.fr';
+            $subject = "[{$siteName}] Suivi de votre soumission : {$name}";
+            $authorName = !empty($author) ? $author : 'Contributeur';
+            $statusLabel = match ($status) {
+                'approved' => 'Validé (' . ($result['score'] ?? '') . '/100)',
+                'rejected' => 'Rejeté (' . ($result['score'] ?? '') . '/100)',
+                default    => 'En cours d\'analyse',
+            };
+            $msg = "Bonjour {$authorName},\n\n"
+                 . "Nous avons bien reçu votre soumission pour l'extension \"{$name}\" ({$type}).\n\n"
+                 . "Vous pouvez consulter le rapport d'audit et le suivi de validation à tout moment via votre lien de suivi permanent :\n"
+                 . "{$trackingUrl}\n\n"
+                 . "Statut initial de l'audit : {$statusLabel}\n\n"
+                 . "Merci pour votre contribution à l'écosystème 299ko EVO !\n\n"
+                 . "--\nL'équipe {$siteName}";
+            
+            @\Utils\Util::sendEmail($adminEmail, $adminEmail, $authorEmail, $subject, $msg);
+        }
+
         if ($status === 'approved') {
             Show::msg("Félicitations ! Votre extension a été auditée et validée avec succès (Score: {$result['score']}/100).", 'success');
         } elseif ($status === 'rejected') {
@@ -138,8 +161,11 @@ class CommunityPipelinePublicController extends PublicController
             return;
         }
 
+        $currentUrl = rtrim((string)$this->core->getConfigVal('siteUrl'), '/') . $this->router->generate('communitypipeline-status', ['submissionId' => $submissionId]);
+
         $tpl->set('submission', $submission);
         $tpl->set('report', $submission['report'] ?? []);
+        $tpl->set('currentUrl', $currentUrl);
         $tpl->set('formUrl', $this->router->generate('communitypipeline-form'));
         $tpl->set('apiStatusUrl', $this->router->generate('communitypipeline-api-status', ['submissionId' => $submissionId]));
 

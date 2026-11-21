@@ -13,3 +13,4 @@ $router->map('GET', '/contribuer/api/status/[*:submissionId]', 'CommunityPipelin
 // Routes administration
 $router->map('GET', '/admin/communitypipeline[/?]', 'CommunityPipelineAdminController#list', 'admin-communitypipeline');
 $router->map('GET', '/admin/communitypipeline/view/[*:submissionId]', 'CommunityPipelineAdminController#view', 'admin-communitypipeline-view');
+

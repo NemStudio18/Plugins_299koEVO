@@ -105,21 +105,48 @@
                 <div class="com-checklist" id="checklistPlugin">
                     <h4 class="com-check-group-title"><i class="fa-solid fa-puzzle-piece"></i> Pré-requis Plugin</h4>
                     <ul>
-                        <li><i class="fa-solid fa-check text-success"></i> <code>infos.json</code> avec nom, version et description.</li>
-                        <li><i class="fa-solid fa-check text-success"></i> Fichier PHP principal <code>{NomPlugin}.php</code>.</li>
-                        <li><i class="fa-solid fa-check text-success"></i> Formulaires protégés contre le CSRF (<code>tokenField</code>).</li>
-                        <li><i class="fa-solid fa-ban text-danger"></i> <strong>Interdiction stricte</strong> : <code>eval()</code>, <code>exec()</code>, <code>popen()</code>, traversée <code>../</code>.</li>
+                        <li>
+                            <i class="fa-solid fa-check text-success"></i>
+                            <div class="com-check-text"><code>infos.json</code> avec nom, version et description.</div>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-check text-success"></i>
+                            <div class="com-check-text">Fichier PHP principal <code>{NomPlugin}.php</code>.</div>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-check text-success"></i>
+                            <div class="com-check-text">Formulaires protégés contre le CSRF (<code>tokenField</code>).</div>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-ban text-danger"></i>
+                            <div class="com-check-text"><strong>Interdiction stricte :</strong> <code>eval()</code>, <code>exec()</code>, <code>popen()</code>, traversée <code>../</code>.</div>
+                        </li>
                     </ul>
                 </div>
 
                 <div class="com-checklist" id="checklistTheme" style="display: none;">
                     <h4 class="com-check-group-title"><i class="fa-solid fa-palette"></i> Pré-requis Thème</h4>
                     <ul>
-                        <li><i class="fa-solid fa-check text-success"></i> <code>infos.json</code> décrivant le thème.</li>
-                        <li><i class="fa-solid fa-check text-success"></i> Fichier gabarit principal <code>layout.tpl</code> obligatoire.</li>
-                        <li><i class="fa-solid fa-check text-success"></i> Feuille de style principale <code>styles.css</code>.</li>
-                        <li><i class="fa-solid fa-check text-success"></i> Fichier <code>functions.php</code> (optionnel) : audité et garanti sécurisé.</li>
-                        <li><i class="fa-solid fa-ban text-danger"></i> Aucune fonction d'exécution système autorisée.</li>
+                        <li>
+                            <i class="fa-solid fa-check text-success"></i>
+                            <div class="com-check-text"><code>infos.json</code> décrivant le thème.</div>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-check text-success"></i>
+                            <div class="com-check-text">Fichier gabarit principal <code>layout.tpl</code> obligatoire.</div>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-check text-success"></i>
+                            <div class="com-check-text">Feuille de style principale <code>styles.css</code>.</div>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-check text-success"></i>
+                            <div class="com-check-text">Fichier <code>functions.php</code> (optionnel) : audité et garanti sécurisé.</div>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-ban text-danger"></i>
+                            <div class="com-check-text"><strong>Interdiction stricte :</strong> aucune fonction d'exécution système autorisée.</div>
+                        </li>
                     </ul>
                 </div>
 
@@ -136,78 +163,94 @@
 </div>
 
 <style>
-.com-pipeline-container { max-width: 1140px; margin: 40px auto; padding: 0 20px; font-family: inherit; }
-.com-pipeline-header { text-align: center; margin-bottom: 40px; }
-.com-badge-tag { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-radius: 999px; font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; }
-.com-title { font-size: 2.2rem; font-weight: 700; margin-bottom: 12px; color: var(--text-color, #1e293b); }
-.com-subtitle { font-size: 1.05rem; color: var(--text-muted, #64748b); max-width: 680px; margin: 0 auto; line-height: 1.6; }
+:root {
+    --com-primary: var(--primary-color, var(--evo-accent, var(--ag-accent, #b83e22)));
+    --com-primary-hover: var(--primary-hover-color, var(--evo-accent-hover, var(--ag-accent-hover, #8e2b14)));
+    --com-primary-soft: var(--evo-accent-soft, var(--ag-accent-soft, rgba(184, 62, 34, 0.12)));
+    --com-text: var(--font-color, var(--evo-text, var(--ag-text, #26211c)));
+    --com-text-muted: var(--font-muted, var(--evo-text-muted, var(--ag-text-muted, #665c52)));
+    --com-card-bg: var(--bg-card, var(--section-bg-color, var(--evo-card-bg, #faf7f2)));
+    --com-border: var(--border-color, var(--evo-border, #d8ccbd));
+    --com-input-bg: var(--form-bg-color, var(--evo-surface, #f5f1eb));
+}
 
-.com-grid { display: grid; grid-template-columns: 1fr 360px; gap: 30px; align-items: start; }
+html[data-theme="dark"], body.ag-theme-dark {
+    --com-text: #f1f5f9;
+    --com-text-muted: #94a3b8;
+    --com-card-bg: #1e293b;
+    --com-border: #334155;
+    --com-input-bg: #0f172a;
+}
+
+.com-pipeline-container { max-width: 1140px; margin: 30px auto; padding: 0 20px; font-family: inherit; }
+.com-pipeline-header { text-align: center; margin-bottom: 35px; }
+.com-badge-tag { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--com-primary-soft); color: var(--com-primary); border-radius: 999px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; }
+.com-title { font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; color: var(--com-text); }
+.com-subtitle { font-size: 1.05rem; color: var(--com-text-muted); max-width: 680px; margin: 0 auto; line-height: 1.6; }
+
+.com-grid { display: grid; grid-template-columns: 1fr 370px; gap: 30px; align-items: start; }
 @media (max-width: 900px) { .com-grid { grid-template-columns: 1fr; } }
 
-.com-card { background: var(--bg-card, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 14px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-html[data-theme="dark"] .com-card { background: #1e293b; border-color: #334155; }
+.com-card { background: var(--com-card-bg); border: 1px solid var(--com-border); border-radius: 12px; padding: 26px; box-shadow: 0 4px 14px rgba(0,0,0,0.04); }
 
-.com-form-group { margin-bottom: 22px; }
+.com-form-group { margin-bottom: 20px; }
 .com-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media (max-width: 600px) { .com-form-row { grid-template-columns: 1fr; } }
 
-.com-label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-color, #1e293b); }
-html[data-theme="dark"] .com-label { color: #f1f5f9; }
+.com-label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: var(--com-text); }
 .com-required { color: #ef4444; }
-.com-help { display: block; font-size: 0.8rem; color: var(--text-muted, #64748b); margin-top: 5px; }
+.com-help { display: block; font-size: 0.8rem; color: var(--com-text-muted); margin-top: 5px; }
 
-.com-input, .com-textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--border-color, #cbd5e1); border-radius: 8px; background: var(--bg-input, #f8fafc); color: var(--text-color, #1e293b); font-size: 0.95rem; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; }
-html[data-theme="dark"] .com-input, html[data-theme="dark"] .com-textarea { background: #0f172a; border-color: #334155; color: #f8fafc; }
-.com-input:focus, .com-textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+.com-input, .com-textarea { width: 100%; padding: 11px 14px; border: 1px solid var(--com-border); border-radius: 8px; background: var(--com-input-bg); color: var(--com-text); font-size: 0.95rem; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; }
+.com-input:focus, .com-textarea:focus { outline: none; border-color: var(--com-primary); box-shadow: 0 0 0 3px var(--com-primary-soft); }
 
 .com-input-icon { position: relative; }
-.com-input-icon i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted, #94a3b8); }
+.com-input-icon i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--com-text-muted); }
 .com-input-icon input { padding-left: 40px; }
 
 .com-type-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.com-type-option { display: flex; align-items: center; gap: 12px; padding: 14px; border: 2px solid var(--border-color, #e2e8f0); border-radius: 10px; cursor: pointer; transition: all 0.2s; background: var(--bg-card, #fff); }
-html[data-theme="dark"] .com-type-option { background: #0f172a; border-color: #334155; }
+.com-type-option { display: flex; align-items: center; gap: 12px; padding: 14px; border: 2px solid var(--com-border); border-radius: 10px; cursor: pointer; transition: all 0.2s; background: var(--com-card-bg); }
 .com-type-option input { display: none; }
-.com-type-option i { font-size: 1.4rem; color: var(--text-muted, #94a3b8); }
+.com-type-option i { font-size: 1.4rem; color: var(--com-text-muted); }
 .com-type-option div { display: flex; flex-direction: column; }
-.com-type-option strong { font-size: 0.95rem; color: var(--text-color, #1e293b); }
-html[data-theme="dark"] .com-type-option strong { color: #f8fafc; }
-.com-type-option small { font-size: 0.75rem; color: var(--text-muted, #64748b); }
-.com-type-option.is-active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
-.com-type-option.is-active i { color: #3b82f6; }
+.com-type-option strong { font-size: 0.95rem; color: var(--com-text); }
+.com-type-option small { font-size: 0.75rem; color: var(--com-text-muted); }
+.com-type-option.is-active { border-color: var(--com-primary); background: var(--com-primary-soft); }
+.com-type-option.is-active i { color: var(--com-primary); }
 
-.com-dropzone { border: 2px dashed var(--border-color, #cbd5e1); border-radius: 10px; padding: 30px; text-align: center; cursor: pointer; position: relative; background: var(--bg-input, #f8fafc); transition: all 0.2s; }
-html[data-theme="dark"] .com-dropzone { background: #0f172a; border-color: #334155; }
-.com-dropzone:hover { border-color: #3b82f6; }
-.com-drop-icon { font-size: 2.2rem; color: #3b82f6; margin-bottom: 10px; }
-.com-drop-text { font-size: 0.95rem; margin-bottom: 6px; color: var(--text-color, #1e293b); }
-html[data-theme="dark"] .com-drop-text { color: #f8fafc; }
-.com-browse-link { color: #3b82f6; text-decoration: underline; }
-.com-drop-info { font-size: 0.8rem; color: var(--text-muted, #64748b); display: block; }
+.com-dropzone { border: 2px dashed var(--com-border); border-radius: 10px; padding: 30px; text-align: center; cursor: pointer; position: relative; background: var(--com-input-bg); transition: all 0.2s; }
+.com-dropzone:hover { border-color: var(--com-primary); }
+.com-drop-icon { font-size: 2.2rem; color: var(--com-primary); margin-bottom: 10px; }
+.com-drop-text { font-size: 0.95rem; margin-bottom: 6px; color: var(--com-text); }
+.com-browse-link { color: var(--com-primary); text-decoration: underline; font-weight: 600; }
+.com-drop-info { font-size: 0.8rem; color: var(--com-text-muted); display: block; }
 .com-file-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .com-file-name { margin-top: 10px; font-weight: 600; color: #10b981; font-size: 0.9rem; }
 
-.com-actions { margin-top: 28px; text-align: right; }
-.com-btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 26px; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; border: none; transition: all 0.2s; }
-.com-btn-primary { background: #3b82f6; color: #fff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-.com-btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+.com-actions { margin-top: 24px; text-align: right; }
+.com-btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; }
+.com-btn-primary { background: var(--com-primary); color: #fff; box-shadow: 0 4px 12px var(--com-primary-soft); }
+.com-btn-primary:hover { background: var(--com-primary-hover); transform: translateY(-1px); }
 
-.com-card-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: var(--text-color, #1e293b); }
-html[data-theme="dark"] .com-card-title { color: #f8fafc; }
-.com-text-sm { font-size: 0.85rem; color: var(--text-muted, #64748b); margin-bottom: 16px; line-height: 1.5; }
+.com-card-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: var(--com-text); }
+.com-card-title i { color: var(--com-primary); }
+.com-text-sm { font-size: 0.85rem; color: var(--com-text-muted); margin-bottom: 16px; line-height: 1.5; }
+
 .com-checklist ul { list-style: none; padding: 0; margin: 0 0 20px 0; }
-.com-checklist li { font-size: 0.85rem; padding: 8px 0; border-bottom: 1px solid var(--border-color, #f1f5f9); display: flex; align-items: flex-start; gap: 10px; line-height: 1.4; color: var(--text-color, #334155); }
-html[data-theme="dark"] .com-checklist li { border-color: #334155; color: #cbd5e1; }
-.com-check-group-title { font-size: 0.9rem; font-weight: 700; margin: 16px 0 8px 0; color: #3b82f6; display: flex; align-items: center; gap: 6px; }
+.com-checklist li { font-size: 0.85rem; padding: 10px 0; border-bottom: 1px solid var(--com-border); display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+.com-checklist li i { margin-top: 3px; flex-shrink: 0; font-size: 0.95rem; }
+.com-check-text { flex: 1; color: var(--com-text); }
+.com-check-text code { display: inline-block; padding: 2px 6px; font-size: 0.8rem; border-radius: 4px; background: rgba(0, 0, 0, 0.06); color: var(--com-text); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+html[data-theme="dark"] .com-check-text code { background: rgba(255, 255, 255, 0.1); }
+
+.com-check-group-title { font-size: 0.9rem; font-weight: 700; margin: 16px 0 8px 0; color: var(--com-primary); display: flex; align-items: center; gap: 6px; }
 .text-success { color: #10b981; }
 .text-danger { color: #ef4444; }
 
-.com-score-tip { display: flex; gap: 12px; padding: 14px; border-radius: 10px; background: rgba(59, 130, 246, 0.08); border-left: 4px solid #3b82f6; }
-.com-tip-icon { font-size: 1.3rem; color: #3b82f6; }
-.com-tip-body strong { display: block; font-size: 0.9rem; color: var(--text-color, #1e293b); margin-bottom: 4px; }
-html[data-theme="dark"] .com-tip-body strong { color: #f8fafc; }
-.com-tip-body p { margin: 0; font-size: 0.8rem; color: var(--text-muted, #64748b); line-height: 1.4; }
+.com-score-tip { display: flex; gap: 12px; padding: 14px; border-radius: 10px; background: var(--com-primary-soft); border-left: 4px solid var(--com-primary); }
+.com-tip-icon { font-size: 1.3rem; color: var(--com-primary); flex-shrink: 0; }
+.com-tip-body strong { display: block; font-size: 0.9rem; color: var(--com-text); margin-bottom: 4px; }
+.com-tip-body p { margin: 0; font-size: 0.8rem; color: var(--com-text-muted); line-height: 1.4; }
 </style>
 
 <script>

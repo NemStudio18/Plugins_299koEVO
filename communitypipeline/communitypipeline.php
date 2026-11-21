@@ -21,3 +21,4 @@ function communitypipelineInstall(): void
         @mkdir($dataDir, 0755, true);
     }
 }
+

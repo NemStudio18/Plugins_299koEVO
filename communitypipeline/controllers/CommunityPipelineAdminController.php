@@ -81,3 +81,4 @@ class CommunityPipelineAdminController extends AdminController
         return is_array($data) ? $data : [];
     }
 }
+
