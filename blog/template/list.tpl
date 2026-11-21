@@ -29,6 +29,10 @@
 					</h2>
 					<p class="date">
 						<span><i class="fa-regular fa-calendar"></i> {{v.date}}</span>
+						{% IF v.updatedDate %}
+							<span class="declic-sep" aria-hidden="true">·</span>
+							<span class="blog-date-updated" title="Mis à jour"><i class="fa-solid fa-rotate-right"></i> Mis à jour le {{v.updatedDate}}</span>
+						{% ENDIF %}
 						{% IF runPlugin.getConfigVal("comments") && v.commentsOff == false %}
 							<span class="declic-sep" aria-hidden="true">·</span>
 							<a href="{{v.url}}#comments"><i class="fa-regular fa-comment"></i> commentaire{% IF newsManager.countComments(v.id) > 1 %}s{% ENDIF %}</a>

@@ -129,10 +129,11 @@ class BlogAdminPostsController extends AdminController
         $news->setIntro($this->core->callHook('beforeSaveEditor', htmlspecialchars($_REQUEST['intro'])));
         $news->setSEODesc($_REQUEST['seoDesc']);
         $news->setDraft((isset($_POST['draft']) ? 1 : 0));
-        if (!isset($_REQUEST['date']) || $_REQUEST['date'] == "") {
-            $news->setDate($news->getDate());
-        } else {
-            $news->setDate($_REQUEST['date']);
+        $publishedAtInput = $_REQUEST['published_at'] ?? ($_REQUEST['date'] ?? null);
+        if (!empty($publishedAtInput)) {
+            $news->setPublishedAt($publishedAtInput);
+        } elseif (!$news->getPublishedAt()) {
+            $news->setPublishedAt(date('Y-m-d H:i:s'));
         }
         $imgInput = trim($this->request->post('news-image', ''));
         if ($imgInput !== '' && preg_match('~^https?://~i', $imgInput)) {

@@ -1,5 +1,10 @@
 {% set HIDE_PAGE_TITLE = true %}
 <article>
+	{% IF isScheduled %}
+		<div style="background:rgba(245,158,11,0.12); border-left:4px solid #f59e0b; padding:10px 16px; border-radius:6px; margin-bottom:16px; color:#d97706; font-size:0.9rem;">
+			<i class="fa-solid fa-clock"></i> <strong>Publication programmée :</strong> Cet article reste masqué aux visiteurs et sera automatiquement publié le {{ item.getReadablePublishedDate() }}.
+		</div>
+	{% ENDIF %}
 	<header>
 		{% IF item.getImg() %}
 			<img class="featured" src="{{item.getImgUrl}}" alt="{{item.getName}}"/>

@@ -51,8 +51,9 @@ class newsManager {
                     }
                 }
                 $v = array_merge($v, $categories);
-                $data[] = new news($v);
-                if ($v['draft'] === "0") {
+                $itemObj = new news($v);
+                $data[] = $itemObj;
+                if ($itemObj->isPublic()) {
                     $i++;
                 }
             }
@@ -88,28 +89,32 @@ class newsManager {
     public function saveNews($obj) {
         $id = intval($obj->getId());
         $isNew = ($id < 1);
-        $wasPublished = false;
+        $wasPublic = false;
 
         $now = date('Y-m-d H:i:s');
 
-        // Si ce n'est pas un nouveau, on vérifie son état actuel pour savoir s'il était déjà publié
+        // Si ce n'est pas un nouveau, on vérifie son état actuel pour savoir s'il était déjà public
         if (!$isNew) {
             $old = $this->create($id);
             if ($old) {
-                $wasPublished = ($old->getDraft() === "0");
-                // Si l'article était déjà publié et qu'il reste publié, on met à jour la date de modification
-                if ($wasPublished && $obj->getDraft() === "0") {
+                $wasPublic = $old->isPublic();
+                // Si l'article était déjà public et qu'il reste public, on met à jour la date de modification
+                if ($wasPublic && $obj->isPublic()) {
                     $obj->setUpdatedAt($now);
                 }
             }
         }
 
-        // Si l'article est publié (draft=0) pour la première fois (nouveau ou ancien brouillon qui passe en ligne)
-        if ($obj->getDraft() === "0" && !$wasPublished) {
-            $currentDate = $obj->getDate();
-            if (empty($currentDate) || strlen(trim((string)$currentDate)) <= 10) {
-                $obj->setDate($now);
+        // Pour un nouvel article, initialiser created_at
+        if ($isNew) {
+            if (!$obj->getCreatedAt()) {
+                $obj->setCreatedAt($now);
             }
+        }
+
+        // Si la date de publication n'est pas définie
+        if (!$obj->getPublishedAt()) {
+            $obj->setPublishedAt($now);
         }
 
         if ($isNew) {
@@ -123,23 +128,37 @@ class newsManager {
         }
         
         $saved = $this->save();
-        
-        // Si sauvegardé avec succès et publié (draft=0) alors qu'il ne l'était pas
-        if ($saved && $obj->getDraft() === "0" && !$wasPublished) {
-            try {
-                $data = [
-                    'user_id' => 0, // Broadcast
-                    'source_plugin' => 'blog',
-                    'entity_type' => 'post',
-                    'entity_id' => $obj->getId(),
-                    'notification_type' => 'new_post',
-                    'title' => 'Nouvel article publié',
-                    'message' => 'L\'article "' . $obj->getName() . '" vient d\'être publié sur le blog.',
-                    'link_url' => $obj->getUrl()
-                ];
-                Core::getInstance()->callHook('notifications:send', $data);
-            } catch (\Exception $e) {
-                Core::getInstance()->getLogger()->log('ERROR', "[Blog] Erreur lors de l'envoi de la notification: " . $e->getMessage());
+
+        // Gestion de la publication programmée ou immédiate
+        if ($saved) {
+            if ($obj->isScheduled()) {
+                // Enregistrer une tâche asynchrone pour la date cible
+                $delay = max(1, strtotime((string)$obj->getPublishedAt()) - time());
+                if (class_exists(Core::class)) {
+                    Core::getInstance()->tasks()->schedule(
+                        'blog_publish_' . $obj->getId(),
+                        'hook:blog_scheduled_publish',
+                        ['post_id' => $obj->getId()],
+                        $delay
+                    );
+                }
+            } elseif ($obj->isPublic() && !$wasPublic) {
+                // Publication immédiate : notification aux abonnés
+                try {
+                    $data = [
+                        'user_id' => 0, // Broadcast
+                        'source_plugin' => 'blog',
+                        'entity_type' => 'post',
+                        'entity_id' => $obj->getId(),
+                        'notification_type' => 'new_post',
+                        'title' => 'Nouvel article publié',
+                        'message' => 'L\'article "' . $obj->getName() . '" vient d\'être publié sur le blog.',
+                        'link_url' => $obj->getUrl()
+                    ];
+                    Core::getInstance()->callHook('notifications:send', $data);
+                } catch (\Exception $e) {
+                    Core::getInstance()->getLogger()->log('ERROR', "[Blog] Erreur lors de l'envoi de la notification: " . $e->getMessage());
+                }
             }
         }
 
@@ -185,11 +204,11 @@ class newsManager {
         $xml .= ' <description>' . $core->getConfigVal('siteDescription') . '</description>';
         $xml .= ' <language>' . $core->getConfigVal('siteLang') . '</language>';
         foreach ($this->getItems() as $k => $v)
-            if (!$v->getDraft()) {
+            if ($v->isPublic()) {
                 $xml .= '<item>';
                 $xml .= '<title><![CDATA[' . $v->getName() . ']]></title>';
                 $xml .= '<link>' . $core->getConfigVal('siteUrl') . '/news/' . Util::strToUrl($v->getName()) . '-' . $v->getId() . '.html</link>';
-                $xml .= '<pubDate>' . (date("D, d M Y H:i:s O", strtotime($v->getDate()))) . '</pubDate>';
+                $xml .= '<pubDate>' . (date("D, d M Y H:i:s O", strtotime($v->getPublishedAt()))) . '</pubDate>';
                 $xml .= '<description><![CDATA[' . $v->getContent() . ']]></description>';
                 $xml .= '</item>';
             }
@@ -216,6 +235,8 @@ class newsManager {
                 'intro' => $v->getIntro(),
                 'seoDesc' => $v->getSEODesc(),
                 'date' => $v->getDate(),
+                'created_at' => $v->getCreatedAt(),
+                'published_at' => $v->getPublishedAt(),
                 'updated_at' => $v->getUpdatedAt(),
                 'draft' => $v->getDraft(),
                 'img' => $v->getImg(),

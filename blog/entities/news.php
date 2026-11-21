@@ -21,6 +21,8 @@ class news
     private $id;
     private $name;
     private $date;
+    private $created_at = null;
+    private $published_at = null;
     private $updated_at = null;
     private $content = '';
     private $intro;
@@ -45,8 +47,10 @@ class news
             $this->content = (string)($val['content'] ?? '');
             $this->intro = $val['intro'] ?? '';
             $this->seoDesc = $val['seoDesc'] ?? '';
-            $this->date = $val['date'] ?? null;
+            $this->created_at = $val['created_at'] ?? ($val['date'] ?? null);
+            $this->published_at = $val['published_at'] ?? ($val['date'] ?? null);
             $this->updated_at = $val['updated_at'] ?? null;
+            $this->date = $this->published_at ?? ($val['date'] ?? null);
             $this->draft = $val['draft'] ?? '1';
             $this->img = (isset($val['img']) ? $val['img'] : '');
             $this->commentsOff = (isset($val['commentsOff']) ? $val['commentsOff'] : 0);
@@ -83,6 +87,11 @@ class news
 
     public function setDate($val)
     {
+        $this->setPublishedAt($val);
+    }
+
+    public function setPublishedAt($val)
+    {
         if ($val === null || empty($val)) {
             $val = date('Y-m-d H:i:s');
         }
@@ -90,7 +99,50 @@ class news
         if (strlen($val) === 16) {
             $val .= ':00';
         }
+        $this->published_at = $val;
         $this->date = $val;
+    }
+
+    public function getPublishedAt(): ?string
+    {
+        return $this->published_at ?? $this->date;
+    }
+
+    public function setCreatedAt($val)
+    {
+        if ($val === null || empty($val)) {
+            $val = date('Y-m-d H:i:s');
+        }
+        $val = trim(str_replace('T', ' ', (string)$val));
+        if (strlen($val) === 16) {
+            $val .= ':00';
+        }
+        $this->created_at = $val;
+    }
+
+    public function getCreatedAt(): ?string
+    {
+        return $this->created_at ?? ($this->published_at ?? $this->date);
+    }
+
+    public function isScheduled(): bool
+    {
+        $pub = $this->getPublishedAt();
+        if (empty($pub)) {
+            return false;
+        }
+        $ts = strtotime($pub);
+        return ($ts !== false && $ts > time());
+    }
+
+    public function isDraft(): bool
+    {
+        return ((string)$this->draft === "1" || (int)$this->draft === 1);
+    }
+
+    public function isPublic(): bool
+    {
+        return !$this->isDraft() && !$this->isScheduled();
     }
 
     public function setUpdatedAt($val)
@@ -182,7 +234,17 @@ class news
 
     public function getReadableDate(): string
     {
-        return self::formatReadableDate($this->date);
+        return self::formatReadableDate($this->getPublishedAt());
+    }
+
+    public function getReadablePublishedDate(): string
+    {
+        return self::formatReadableDate($this->getPublishedAt());
+    }
+
+    public function getReadableCreatedDate(): string
+    {
+        return self::formatReadableDate($this->getCreatedAt());
     }
 
     public function getReadableUpdatedDate(): ?string

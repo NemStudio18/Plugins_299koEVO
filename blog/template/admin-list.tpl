@@ -14,10 +14,20 @@
 		{% FOR item IN newsManager.getItems() %}
 			<tr id="post{{item.getId()}}">
 				<td>
-					<a title="{{Lang.blog-edit}}" href="{ ROUTER.generate("admin-blog-edit-post", ["id" => item.getId()]) }">{{item.getName()}}</a>
+					<a title="{{Lang.blog-edit}}" href="{ ROUTER.generate("admin-blog-edit-post", ["id" => item.getId()]) }"><strong>{{item.getName()}}</strong></a>
+					{% IF item.isDraft() %}
+						<span style="font-size:0.75rem; background:rgba(239,68,68,0.15); color:#ef4444; padding:2px 6px; border-radius:4px; font-weight:600; margin-left:6px;">Brouillon</span>
+					{% ELSEIF item.isScheduled() %}
+						<span style="font-size:0.75rem; background:rgba(245,158,11,0.15); color:#d97706; padding:2px 6px; border-radius:4px; font-weight:600; margin-left:6px;"><i class="fa-solid fa-clock"></i> Programmé</span>
+					{% ELSE %}
+						<span style="font-size:0.75rem; background:rgba(16,185,129,0.15); color:#10b981; padding:2px 6px; border-radius:4px; font-weight:600; margin-left:6px;">En ligne</span>
+					{% ENDIF %}
 				</td>
 				<td>
-                    {{util.getDate(item.getDate())}}
+                    {{item.getReadablePublishedDate()}}
+					{% IF item.getReadableUpdatedDate() %}
+						<br><small style="color:var(--text-muted, #64748b);">Mis à jour le {{item.getReadableUpdatedDate()}}</small>
+					{% ENDIF %}
                 </td>
 				<td class="text-center">
 					{% IF newsManager.countComments(item.getId()) > 0 %}

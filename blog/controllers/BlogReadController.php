@@ -43,9 +43,8 @@ class BlogReadController extends PublicController
             $this->core->error404();
         }
 
-        // Si l'article est en brouillon, seuls les administrateurs peuvent le prévisualiser
-        $isDraft = ((string)$item->getDraft() === "1" || (int)$item->getDraft() === 1);
-        if ($isDraft) {
+        // Si l'article n'est pas encore public (brouillon ou publication programmée future), seuls les administrateurs peuvent le prévisualiser
+        if (!$item->isPublic()) {
             $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
             $ctx = new \Core\Navigation\ConditionContext($this->user);
             if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('blog:admin'), $ctx)) {
@@ -100,7 +99,8 @@ class BlogReadController extends PublicController
         $tpl->set('categories', $categories);
         $tpl->set('newsManager', $newsManager);
         $tpl->set('commentSendUrl', $this->router->generate('blog-send'));
-        $tpl->set('isDraft', $isDraft);
+        $tpl->set('isDraft', $item->isDraft());
+        $tpl->set('isScheduled', $item->isScheduled());
         // Passer l'état d'autorisation au template
         $ctx = new \Core\Navigation\ConditionContext($this->user);
         $tpl->set('isLogged', \Core\Navigation\AccessPolicyEvaluator::getInstance()->canAccess(new \Core\Navigation\GenericResource('blog:comment'), $ctx));

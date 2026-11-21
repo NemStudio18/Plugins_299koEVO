@@ -49,11 +49,12 @@ class BlogListController extends PublicController
         $news = [];
         $i = 1;
         foreach ($newsManager->getItems() as $k => $v)
-            if (!$v->getDraft()) {
+            if ($v->isPublic()) {
                 $date = $v->getDate();
                 if ($i >= $start && $i <= $end) {
                     $news[$k]['name'] = $v->getName();
                     $news[$k]['date'] = $v->getReadableDate();
+                    $news[$k]['updatedDate'] = $v->getReadableUpdatedDate();
                     $news[$k]['id'] = $v->getId();
                     $news[$k]['cats'] = [];
                     foreach ($categoriesManager->getCategories() as $cat) {
@@ -77,7 +78,7 @@ class BlogListController extends PublicController
         // Catégories globales pour filtre et navigation
         $publishedItemIds = [];
         foreach ($newsManager->getItems() as $pubItem) {
-            if (!$pubItem->getDraft()) {
+            if ($pubItem->isPublic()) {
                 $publishedItemIds[] = $pubItem->getId();
             }
         }
