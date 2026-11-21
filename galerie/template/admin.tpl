@@ -18,7 +18,7 @@
         <ul class="tabs">
             <!-- Tab: Images -->
             <li class="tab">
-                <div class="admin-actions-bar" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
+                <div class="admin-actions-bar gallery-actions-bar">
                     <a class="button primary" href="{ ROUTER.generate("admin-galerie-edit") }">
                         <i class="fa-solid fa-plus"></i> {{ Lang.add }}
                     </a>
@@ -68,7 +68,7 @@
 
             <!-- Tab: Categories -->
             <li class="tab">
-                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+                <div class="galerie-admin-grid-categories">
                     <section class="panel">
                         <header>{{ Lang.add }} {{ Lang.galerie.category }}</header>
                         <form method="post" action="{ ROUTER.generate("admin-galerie-category-add") }">
@@ -96,44 +96,46 @@
                     <section class="panel">
                         <header>{{ Lang.galerie.existing-categories }}</header>
                         {% if galerie.getCategories() %}
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>{{ Lang.galerie.category }}</th>
-                                        <th class="text-right">{{ Lang.actions }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for cat in galerie.getCategories() %}
-                                        {% if not cat.parent %}
-                                            <tr>
-                                                <td><strong>{{ cat.name }}</strong></td>
-                                                <td class="text-right">
-                                                    <a href="{ ROUTER.generate("admin-galerie-category-delete", ["id" => cat.id]) }" 
-                                                       onclick="return confirm('{{ Lang.confirm.deleteItem }}')" 
-                                                       class="button alert small">
-                                                        <i class="fa-solid fa-trash"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                            {% for sub in galerie.getCategories() %}
-                                                {% if sub.parent == cat.id %}
-                                                    <tr>
-                                                        <td style="padding-left: 2rem;"><i class="fa-solid fa-turn-up fa-rotate-90 color-muted"></i> {{ sub.name }}</td>
-                                                        <td class="text-right">
-                                                            <a href="{ ROUTER.generate("admin-galerie-category-delete", ["id" => sub.id]) }" 
-                                                               onclick="return confirm('{{ Lang.confirm.deleteItem }}')" 
-                                                               class="button alert small">
-                                                                <i class="fa-solid fa-trash"></i>
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                {% endif %}
-                                            {% endfor %}
-                                        {% endif %}
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                            <div class="galerie-table-wrap">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ Lang.galerie.category }}</th>
+                                            <th class="text-right">{{ Lang.actions }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for cat in galerie.getCategories() %}
+                                            {% if not cat.parent %}
+                                                <tr>
+                                                    <td><strong>{{ cat.name }}</strong></td>
+                                                    <td class="text-right">
+                                                        <a href="{ ROUTER.generate("admin-galerie-category-delete", ["id" => cat.id]) }" 
+                                                           onclick="return confirm('{{ Lang.confirm.deleteItem }}')" 
+                                                           class="button alert small">
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                {% for sub in galerie.getCategories() %}
+                                                    {% if sub.parent == cat.id %}
+                                                        <tr>
+                                                            <td style="padding-left: 2rem;"><i class="fa-solid fa-turn-up fa-rotate-90 color-muted"></i> {{ sub.name }}</td>
+                                                            <td class="text-right">
+                                                                <a href="{ ROUTER.generate("admin-galerie-category-delete", ["id" => sub.id]) }" 
+                                                                   onclick="return confirm('{{ Lang.confirm.deleteItem }}')" 
+                                                                   class="button alert small">
+                                                                    <i class="fa-solid fa-trash"></i>
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         {% else %}
                             <p class="color-muted italic">{{ Lang.galerie.no-categories-yet }}</p>
                         {% endif %}
@@ -147,7 +149,7 @@
                     {{ SHOW.tokenField }}
                     <input type="hidden" name="activeTab" value="carousel" />
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div class="galerie-admin-grid-carousel">
                         <!-- Gallery Top Carousel -->
                         <section class="panel">
                             <header>{{ Lang.galerie.carousel-gallery }}</header>
@@ -239,7 +241,7 @@
 
 {% if mode == "edit" %}
     <div class="admin-edit-container">
-        <header class="mb-medium">
+        <header class="mb-medium gallery-edit-header">
             <h3>{% if item.getId() %}{{ Lang.edit }}{% else %}{{ Lang.add }}{% endif %} {{ Lang.galerie.image }}</h3>
             <a href="{ ROUTER.generate("admin-galerie-home") }" class="button small">
                 <i class="fa-solid fa-arrow-left"></i> {{ Lang.galerie.back }}
@@ -250,7 +252,7 @@
             {{ SHOW.tokenField }}
             <input type="hidden" name="id" value="{{ item.getId() }}" />
 
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+            <div class="galerie-admin-grid-edit">
                 <div class="edit-main">
                     <section class="panel">
                         <p>

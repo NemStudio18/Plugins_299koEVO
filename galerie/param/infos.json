@@ -5,7 +5,7 @@
     "description": "Une galerie photos simple et épurée",
     "authorEmail": "mx.koder@gmail.com",
     "authorWebsite": "https://299ko.flexcb.fr",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "homePublicMethod": "GalerieController#home",
     "homeAdminMethod": "GalerieAdminController#home"
 }
