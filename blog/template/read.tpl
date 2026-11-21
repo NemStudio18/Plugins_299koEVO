@@ -6,7 +6,10 @@
 		{% ENDIF %}
 		<div class="item-head">
 			<p class="date">
-			{{formattedDate}}
+				{{formattedDate}}
+				{% IF updatedDate %}
+					| <span class="blog-date-updated"><i class="fa-solid fa-rotate-right"></i> {{updatedDate}}</span>
+				{% ENDIF %}
 				{% IF runPlugin.getConfigVal("comments") && item.getCommentsOff == false %}
 					|
 					<a href="#comments">

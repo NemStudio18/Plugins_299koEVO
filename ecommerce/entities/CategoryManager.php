@@ -13,9 +13,16 @@ class CategoryManager
         return Category::queryBuilder()->orderBy('name', 'ASC')->get();
     }
 
-    public function getById(int $id): ?Category
+    public function getById($id): ?Category
     {
-        return Category::findPK($id);
+        if (empty($id)) {
+            return null;
+        }
+        $cat = Category::findPK($id);
+        if (!$cat && is_numeric($id)) {
+            $cat = Category::findPK((int)$id) ?? Category::findPK((string)$id);
+        }
+        return $cat;
     }
 
     public function getBySlug(string $slug): ?Category
@@ -36,7 +43,7 @@ class CategoryManager
         return null;
     }
 
-    public function update(int $id, array $data): bool
+    public function update($id, array $data): bool
     {
         $category = $this->getById($id);
         if (!$category) {
@@ -54,7 +61,7 @@ class CategoryManager
         return $category->save();
     }
 
-    public function delete(int $id): bool
+    public function delete($id): bool
     {
         $category = $this->getById($id);
         return $category ? $category->delete() : false;

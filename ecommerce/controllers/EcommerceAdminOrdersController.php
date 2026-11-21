@@ -53,10 +53,10 @@ class EcommerceAdminOrdersController extends AdminController
         return $response;
     }
 
-    public function view()
+    public function view($id = null)
     {
         $response = new AdminResponse();
-        $id = (int)$this->router->getParam('id');
+        $id = (int)($id ?? $this->router->getParam('id') ?? $_REQUEST['id'] ?? 0);
         
         $order = $this->orderManager->getById($id);
         if (!$order) {
@@ -71,7 +71,7 @@ class EcommerceAdminOrdersController extends AdminController
         return $response;
     }
 
-    public function updateStatus()
+    public function updateStatus($id = null)
     {
         $response = new ApiResponse();
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
@@ -88,7 +88,7 @@ class EcommerceAdminOrdersController extends AdminController
             return $response;
         }
         
-        $id = (int)($this->router->getParam('id') ?? $_POST['id'] ?? 0);
+        $id = (int)($id ?? $this->router->getParam('id') ?? $_POST['id'] ?? 0);
         $status = $_POST['status'] ?? '';
         $trackingNumber = isset($_POST['tracking_number']) ? trim((string)$_POST['tracking_number']) : null;
         

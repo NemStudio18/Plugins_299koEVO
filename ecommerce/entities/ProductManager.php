@@ -17,9 +17,16 @@ class ProductManager
         return $query->orderBy('created_at', 'DESC')->get();
     }
 
-    public function getById(int $id): ?Product
+    public function getById($id): ?Product
     {
-        return Product::findPK($id);
+        if (empty($id)) {
+            return null;
+        }
+        $product = Product::findPK($id);
+        if (!$product && is_numeric($id)) {
+            $product = Product::findPK((int)$id) ?? Product::findPK((string)$id);
+        }
+        return $product;
     }
 
     public function getBySlug(string $slug): ?Product
@@ -49,7 +56,7 @@ class ProductManager
         return null;
     }
 
-    public function update(int $id, array $data): bool
+    public function update($id, array $data): bool
     {
         $product = $this->getById($id);
         if (!$product) {
@@ -67,7 +74,7 @@ class ProductManager
         return $product->save();
     }
 
-    public function delete(int $id): bool
+    public function delete($id): bool
     {
         $product = $this->getById($id);
         return $product ? $product->delete() : false;

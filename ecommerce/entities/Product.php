@@ -11,6 +11,7 @@ class Product extends \Core\Storage\JsonActiveRecord
     protected static string $filePath = DATA_PLUGIN . 'ecommerce/products.json';
     protected static string $tableName = 'products';
     protected static string $primaryKey = 'id';
+    protected static bool $autoIncrementId = true;
 
     public function getId(): ?int
     {

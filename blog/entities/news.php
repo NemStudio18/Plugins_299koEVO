@@ -21,6 +21,7 @@ class news
     private $id;
     private $name;
     private $date;
+    private $updated_at = null;
     private $content = '';
     private $intro;
     private $seoDesc;
@@ -39,13 +40,14 @@ class news
     public function __construct($val = [])
     {
         if (count($val) > 0) {
-            $this->id = $val['id'];
-            $this->name = $val['name'];
-            $this->content = $val['content'];
+            $this->id = $val['id'] ?? null;
+            $this->name = $val['name'] ?? '';
+            $this->content = (string)($val['content'] ?? '');
             $this->intro = $val['intro'] ?? '';
             $this->seoDesc = $val['seoDesc'] ?? '';
-            $this->date = $val['date'];
-            $this->draft = $val['draft'];
+            $this->date = $val['date'] ?? null;
+            $this->updated_at = $val['updated_at'] ?? null;
+            $this->draft = $val['draft'] ?? '1';
             $this->img = (isset($val['img']) ? $val['img'] : '');
             $this->commentsOff = (isset($val['commentsOff']) ? $val['commentsOff'] : 0);
             $this->categories = $val['categories'] ?? [];
@@ -82,10 +84,40 @@ class news
     public function setDate($val)
     {
         if ($val === null || empty($val)) {
-            $val = date('Y-m-d');
+            $val = date('Y-m-d H:i:s');
         }
-        $val = trim($val);
+        $val = trim(str_replace('T', ' ', (string)$val));
+        if (strlen($val) === 16) {
+            $val .= ':00';
+        }
         $this->date = $val;
+    }
+
+    public function setUpdatedAt($val)
+    {
+        if ($val !== null && !empty($val)) {
+            $val = trim(str_replace('T', ' ', (string)$val));
+            if (strlen($val) === 16) {
+                $val .= ':00';
+            }
+            $this->updated_at = $val;
+        } else {
+            $this->updated_at = null;
+        }
+    }
+
+    public function getUpdatedAt()
+    {
+        return $this->updated_at;
+    }
+
+    public function getHtmlDatetime(): string
+    {
+        if (empty($this->date)) {
+            return date('Y-m-d\TH:i');
+        }
+        $ts = strtotime($this->date);
+        return $ts ? date('Y-m-d\TH:i', $ts) : date('Y-m-d\TH:i');
     }
 
     public function setDraft($val)
@@ -148,8 +180,40 @@ class news
         return $this->date;
     }
 
-    public function getReadableDate() {
-        return Util::getDate($this->date);
+    public function getReadableDate(): string
+    {
+        return self::formatReadableDate($this->date);
+    }
+
+    public function getReadableUpdatedDate(): ?string
+    {
+        if (empty($this->updated_at)) {
+            return null;
+        }
+        return self::formatReadableDate($this->updated_at);
+    }
+
+    public static function formatReadableDate($dateStr): string
+    {
+        if (empty($dateStr)) {
+            return '';
+        }
+        try {
+            $dt = new \DateTime($dateStr);
+            $hasTime = (strlen(trim((string)$dateStr)) > 10 && $dt->format('H:i:s') !== '00:00:00');
+            if (class_exists('IntlDateFormatter')) {
+                $locale = class_exists('\\Core\\Lang') ? (\Core\Lang::get('locale') ?: 'fr_FR') : 'fr_FR';
+                $fmt = new \IntlDateFormatter(
+                    $locale,
+                    \IntlDateFormatter::LONG,
+                    $hasTime ? \IntlDateFormatter::SHORT : \IntlDateFormatter::NONE
+                );
+                return $fmt->format($dt);
+            }
+            return $hasTime ? $dt->format('d/m/Y à H:i') : $dt->format('d/m/Y');
+        } catch (\Exception $e) {
+            return (string)$dateStr;
+        }
     }
 
     public function getDraft()

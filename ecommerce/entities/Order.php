@@ -9,6 +9,7 @@ class Order extends \Core\Storage\JsonActiveRecord
     protected static string $filePath = DATA_PLUGIN . 'ecommerce/orders.json';
     protected static string $tableName = 'orders';
     protected static string $primaryKey = 'id';
+    protected static bool $autoIncrementId = true;
 
     public function getId(): ?int
     {

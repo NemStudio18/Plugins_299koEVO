@@ -64,7 +64,7 @@
                 <label for="name">{{Lang.blog-title}}</label><br>
                 <input type="text" name="name" id="name" value="{{news.getName()}}" required="required" />
                 <label for="date">{{Lang.blog-date}}</label><br>
-                <input placeholder="{{Lang.blog-date-placeh}}" type="date" name="date" id="date" value="{{news.getDate()}}" required="required" />
+                <input placeholder="{{Lang.blog-date-placeh}}" type="datetime-local" name="date" id="date" value="{{news.getHtmlDatetime()}}" required="required" />
             </li>
             <li class='tab'>
                 <h4>{{Lang.blog-settings-post}}</h4>

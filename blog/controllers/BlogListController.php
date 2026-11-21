@@ -53,7 +53,7 @@ class BlogListController extends PublicController
                 $date = $v->getDate();
                 if ($i >= $start && $i <= $end) {
                     $news[$k]['name'] = $v->getName();
-                    $news[$k]['date'] = Util::FormatDate($date, 'en', 'fr');
+                    $news[$k]['date'] = $v->getReadableDate();
                     $news[$k]['id'] = $v->getId();
                     $news[$k]['cats'] = [];
                     foreach ($categoriesManager->getCategories() as $cat) {
@@ -141,7 +141,7 @@ class BlogListController extends PublicController
                 $date = $v->getDate();
                 if ($i >= $start && $i <= $end) {
                     $news[$k]['name'] = $v->getName();
-                    $news[$k]['date'] = Util::FormatDate($date, 'en', 'fr');
+                    $news[$k]['date'] = $v->getReadableDate();
                     $news[$k]['id'] = $v->getId();
                     $news[$k]['cats'] = [];
                     foreach ($categoriesManager->getCategories() as $cat) {

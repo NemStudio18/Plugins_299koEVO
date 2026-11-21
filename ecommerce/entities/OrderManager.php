@@ -11,9 +11,16 @@ class OrderManager
         return Order::queryBuilder()->orderBy('created_at', 'DESC')->get();
     }
 
-    public function getById(int $id): ?Order
+    public function getById($id): ?Order
     {
-        return Order::findPK($id);
+        if (empty($id)) {
+            return null;
+        }
+        $order = Order::findPK($id);
+        if (!$order && is_numeric($id)) {
+            $order = Order::findPK((int)$id) ?? Order::findPK((string)$id);
+        }
+        return $order;
     }
 
     public function findById(int $id): ?Order

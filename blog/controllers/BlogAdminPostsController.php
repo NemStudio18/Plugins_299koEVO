@@ -81,7 +81,7 @@ class BlogAdminPostsController extends AdminController
     {
         if ($id === false) {
             $news = new News();
-            $news->setDate(date('Y-m-d'));
+            $news->setDate(date('Y-m-d H:i:s'));
         } else {
             $news = $this->newsManager->create($id);
             if ($news === false) {

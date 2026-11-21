@@ -153,23 +153,25 @@ class EcommerceAdminProductsController extends AdminController
         }
     }
 
-    public function edit()
+    public function edit($id = null)
     {
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);
         if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('ecommerce:admin'), $ctx)) {
             \Utils\Show::msg(\Core\Lang::get('core-not-authorized'), 'error');
             $this->core->redirect($this->router->generate('admin-home'));
-            return;
+            return null;
         }
-        $response = new AdminResponse();
-        $id = (int)$this->router->getParam('id');
+        $id = (int)($id ?? $this->router->getParam('id') ?? $_REQUEST['id'] ?? 0);
         
         $product = $this->productManager->getById($id);
         if (!$product) {
-            return $this->core->redirect('/admin/ecommerce/products');
+            Show::msg('Produit introuvable.', 'error');
+            $this->core->redirect($this->router->generate('admin-ecommerce-products'));
+            return null;
         }
         
+        $response = new AdminResponse();
         $tpl = $response->createPluginTemplate('ecommerce', 'admin-products-edit');
         $categories = $this->categoryManager->getAll();
         
@@ -181,7 +183,7 @@ class EcommerceAdminProductsController extends AdminController
         return $response;
     }
 
-    public function editSend()
+    public function editSend($id = null)
     {
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);
@@ -196,7 +198,7 @@ class EcommerceAdminProductsController extends AdminController
             return null;
         }
         
-        $id = (int)($this->router->getParam('id') ?? $_POST['id'] ?? 0);
+        $id = (int)($id ?? $this->router->getParam('id') ?? $_POST['id'] ?? 0);
         $token = $_POST['token'] ?? ($_POST['_csrf'] ?? null);
         if (!$this->isValidToken($token)) {
             if ($this->request->isAjax()) {
@@ -246,7 +248,7 @@ class EcommerceAdminProductsController extends AdminController
         }
     }
 
-    public function delete($id)
+    public function delete($id = null)
     {
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);
@@ -261,20 +263,20 @@ class EcommerceAdminProductsController extends AdminController
             return null;
         }
         
-        $token = $_GET['token'] ?? ($_POST['token'] ?? null);
-        if (!empty($token) && !$this->isValidToken($token)) {
+        $token = $_GET['token'] ?? ($_POST['token'] ?? ($_GET['_csrf'] ?? ($_POST['_csrf'] ?? null)));
+        if (!$this->isValidToken($token)) {
             if ($this->request->isAjax()) {
                 $response = new ApiResponse();
                 $response->status = ApiResponse::STATUS_BAD_REQUEST;
                 $response->body = ['message' => Lang::get('core.bad-token')];
                 return $response;
             }
-            Show::msg(Lang::get('core.bad-token'), 'error');
+            Show::msg(Lang::get('core.bad-token') ?: 'Jeton de sécurité invalide ou session expirée.', 'error');
             $this->core->redirect($this->router->generate('admin-ecommerce-products'));
             return null;
         }
 
-        $id = (int)$id;
+        $id = (int)($id ?? $this->router->getParam('id') ?? $_REQUEST['id'] ?? 0);
         $success = $this->productManager->delete($id);
         
         if ($this->request->isAjax()) {

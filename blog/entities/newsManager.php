@@ -90,11 +90,25 @@ class newsManager {
         $isNew = ($id < 1);
         $wasPublished = false;
 
+        $now = date('Y-m-d H:i:s');
+
         // Si ce n'est pas un nouveau, on vérifie son état actuel pour savoir s'il était déjà publié
         if (!$isNew) {
             $old = $this->create($id);
             if ($old) {
                 $wasPublished = ($old->getDraft() === "0");
+                // Si l'article était déjà publié et qu'il reste publié, on met à jour la date de modification
+                if ($wasPublished && $obj->getDraft() === "0") {
+                    $obj->setUpdatedAt($now);
+                }
+            }
+        }
+
+        // Si l'article est publié (draft=0) pour la première fois (nouveau ou ancien brouillon qui passe en ligne)
+        if ($obj->getDraft() === "0" && !$wasPublished) {
+            $currentDate = $obj->getDate();
+            if (empty($currentDate) || strlen(trim((string)$currentDate)) <= 10) {
+                $obj->setDate($now);
             }
         }
 
@@ -202,6 +216,7 @@ class newsManager {
                 'intro' => $v->getIntro(),
                 'seoDesc' => $v->getSEODesc(),
                 'date' => $v->getDate(),
+                'updated_at' => $v->getUpdatedAt(),
                 'draft' => $v->getDraft(),
                 'img' => $v->getImg(),
                 'commentsOff' => $v->getCommentsOff(),

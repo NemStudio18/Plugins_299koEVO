@@ -9,6 +9,7 @@ class Category extends \Core\Storage\JsonActiveRecord
     protected static string $filePath = DATA_PLUGIN . 'ecommerce/categories.json';
     protected static string $tableName = 'ecommerce_categories';
     protected static string $primaryKey = 'id';
+    protected static bool $autoIncrementId = true;
 
     public function getId(): ?int
     {

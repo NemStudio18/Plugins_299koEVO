@@ -89,6 +89,12 @@ class BlogReadController extends PublicController
         $tpl->set('antispam', !empty($antispamField));
         $tpl->set('item', $item);
         $tpl->set('formattedDate', Lang::get('blog.posted-date', $item->getReadableDate()));
+        $updatedReadable = $item->getReadableUpdatedDate();
+        if ($updatedReadable) {
+            $tpl->set('updatedDate', Lang::get('blog.updated-date', $updatedReadable));
+        } else {
+            $tpl->set('updatedDate', false);
+        }
         $tpl->set('generatedHtml', $generatedHTML);
         $tpl->set('TOC', $toc ?: '');
         $tpl->set('categories', $categories);
@@ -252,9 +258,20 @@ class BlogReadController extends PublicController
             $localRel = preg_replace('#^https?://[^/]+/#', '', $imgUrl);
             $localPath = ROOT . str_replace('/', DIRECTORY_SEPARATOR, $localRel);
 
-            // Préférer le JPG pour les réseaux sociaux (Facebook, WhatsApp) si disponible
+            // Préférer le JPG pour les réseaux sociaux (Facebook, WhatsApp) si disponible ou le générer automatiquement
             if (str_ends_with(strtolower($localPath), '.webp')) {
                 $jpgPath = substr($localPath, 0, -5) . '.jpg';
+                if (!file_exists($jpgPath) && file_exists($localPath) && function_exists('imagecreatefromwebp')) {
+                    try {
+                        $im = @imagecreatefromwebp($localPath);
+                        if ($im) {
+                            @imagejpeg($im, $jpgPath, 90);
+                            @imagedestroy($im);
+                            @chmod($jpgPath, 0644);
+                        }
+                    } catch (\Throwable $e) {
+                    }
+                }
                 if (file_exists($jpgPath)) {
                     $ogImgUrl = substr($imgUrl, 0, -5) . '.jpg';
                     $localPath = $jpgPath;
