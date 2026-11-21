@@ -98,7 +98,7 @@
 
 .search299-wrapper:hover .search299-pill-form,
 .search299-pill-form:focus-within {
-    width: 250px;
+    width: 320px;
     background: var(--evo-card-bg);
     border-color: var(--evo-accent);
     box-shadow: 0 4px 16px var(--evo-accent-soft),
@@ -107,7 +107,7 @@
 
 .search299-wrapper:hover .search299-pill-form input.search299-input,
 .search299-pill-form:focus-within input.search299-input {
-    width: 200px;
+    width: 270px;
     opacity: 1;
     padding: 0 10px 0 14px;
 }

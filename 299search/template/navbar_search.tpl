@@ -19,19 +19,22 @@
 (function() {
     var wrapper = document.getElementById('search299Wrapper');
     var input   = document.getElementById('search299Input');
-    var header  = document.getElementById('header');
+    var header  = document.getElementById('header') || document.querySelector('header');
+    var nav     = document.getElementById('navigation') || document.querySelector('#header_content');
     var form    = document.getElementById('search299Form');
-    if (!wrapper || !header) return;
+    if (!wrapper) return;
 
     function activate() {
-        header.classList.add('search-active');
+        if (header) header.classList.add('search-active');
+        if (nav) nav.classList.add('search-active');
     }
 
     function deactivate() {
         if (input && document.activeElement === input) {
             return; // garder actif tant que l'input a le focus
         }
-        header.classList.remove('search-active');
+        if (header) header.classList.remove('search-active');
+        if (nav) nav.classList.remove('search-active');
     }
 
     // Déclenchement au SURVOL de la loupe / du wrapper
@@ -43,6 +46,13 @@
         input.addEventListener('focus', activate);
         input.addEventListener('blur', function() {
             setTimeout(deactivate, 150);
+        });
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                input.value = '';
+                input.blur();
+                deactivate();
+            }
         });
     }
 
