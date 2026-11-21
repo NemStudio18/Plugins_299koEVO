@@ -1,7 +1,6 @@
 <div class="com-pipeline-container">
     <div class="com-pipeline-header">
         <div class="com-badge-tag"><i class="fa-solid fa-code-merge"></i> Écosystème Communautaire 299ko</div>
-        <h1 class="com-title">Soumettre une Extension</h1>
         <p class="com-subtitle">
             Partagez votre plugin ou thème avec la communauté 299ko EVO. Dès votre envoi, notre pipeline asynchrone lance un audit statique approfondi de sécurité et de conformité.
         </p>
