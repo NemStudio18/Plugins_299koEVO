@@ -56,11 +56,13 @@ class ProductManager
 
     public function getAll(bool $activeOnly = false): array
     {
-        $query = Product::queryBuilder();
+        $all = Product::queryBuilder()->orderBy('created_at', 'DESC')->get();
         if ($activeOnly) {
-            $query->where('active', '=', 1);
+            $all = array_filter($all, function ($prod) {
+                return $prod->isActive();
+            });
         }
-        return $query->orderBy('created_at', 'DESC')->get();
+        return array_values($all);
     }
 
     public function getById($id): ?Product
@@ -96,11 +98,13 @@ class ProductManager
 
     public function getByCategory(int $categoryId, bool $activeOnly = false): array
     {
-        $query = Product::queryBuilder()->where('category_id', '=', $categoryId);
+        $products = Product::queryBuilder()->where('category_id', '=', $categoryId)->orderBy('created_at', 'DESC')->get();
         if ($activeOnly) {
-            $query->where('active', '=', 1);
+            $products = array_filter($products, function ($prod) {
+                return $prod->isActive();
+            });
         }
-        return $query->orderBy('created_at', 'DESC')->get();
+        return array_values($products);
     }
 
     public function create(array $data): ?Product

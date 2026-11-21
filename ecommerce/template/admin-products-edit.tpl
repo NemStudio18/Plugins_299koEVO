@@ -44,7 +44,7 @@
 
         <p>
             <label>
-                <input type="checkbox" name="active" value="1" {% IF not product || product.isActive() %}checked{% ENDIF %} />
+                <input type="checkbox" name="active" value="1" {% IF isActive %}checked{% ENDIF %} />
                 Produit actif (visible en boutique)
             </label>
         </p>

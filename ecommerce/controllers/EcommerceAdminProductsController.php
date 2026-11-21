@@ -69,6 +69,7 @@ class EcommerceAdminProductsController extends AdminController
         
         $categories = $this->categoryManager->getAll();
         $tpl->set('product', null);
+        $tpl->set('isActive', true);
         $tpl->set('categories', $categories);
         $tpl->set('token', $this->user->token);
         
@@ -181,6 +182,7 @@ class EcommerceAdminProductsController extends AdminController
         $categories = $this->categoryManager->getAll();
         
         $tpl->set('product', $product);
+        $tpl->set('isActive', $product->isActive());
         $tpl->set('categories', $categories);
         $tpl->set('token', $this->user->token);
         

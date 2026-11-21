@@ -46,7 +46,8 @@ class EcommerceController extends PublicController
         $response = new PublicResponse();
         $tpl = $response->createPluginTemplate('ecommerce', 'shop');
         
-        $products = $this->productManager->getAll();
+        $activeOnly = !UsersManager::isLogged();
+        $products = $this->productManager->getAll($activeOnly);
         $categories = $this->categoryManager->getAll();
         
         $tpl->set('products', $products);
@@ -61,16 +62,24 @@ class EcommerceController extends PublicController
     public function product()
     {
         $response = new PublicResponse();
-        $id = (int)$this->router->getParam('id');
+        $id = $this->router->getParam('id');
+        if (is_numeric($id)) {
+            $id = (int)$id;
+        } else if ($id !== null) {
+            $id = trim((string)$id);
+        }
         
         $product = $this->productManager->getById($id);
-        if (!$product) {
+        if (!$product || (!$product->isActive() && !UsersManager::isLogged())) {
+            \Utils\Show::msg(Lang::get('ecommerce.product-unavailable') ?: 'Produit indisponible.', 'error');
             return Core::getInstance()->redirect('/shop');
         }
         
         $tpl = $response->createPluginTemplate('ecommerce', 'product');
         $tpl->set('product', $product);
         $tpl->set('token', \Core\Security\Csrf::hiddenField());
+        $tpl->set('isLogged', UsersManager::isLogged());
+        $tpl->set('myOrdersUrl', Util::urlBuild('/ecommerce/mes-commandes'));
         
         $response->addTemplate($tpl);
         return $response;
@@ -79,14 +88,20 @@ class EcommerceController extends PublicController
     public function category()
     {
         $response = new PublicResponse();
-        $id = (int)$this->router->getParam('id');
+        $id = $this->router->getParam('id');
+        if (is_numeric($id)) {
+            $id = (int)$id;
+        } else if ($id !== null) {
+            $id = trim((string)$id);
+        }
         
         $category = $this->categoryManager->getById($id);
         if (!$category) {
             return Core::getInstance()->redirect('/shop');
         }
         
-        $products = $this->productManager->getByCategory($id);
+        $activeOnly = !UsersManager::isLogged();
+        $products = $this->productManager->getByCategory((int)$id, $activeOnly);
         $categories = $this->categoryManager->getAll();
         
         $tpl = $response->createPluginTemplate('ecommerce', 'shop');
@@ -128,41 +143,66 @@ class EcommerceController extends PublicController
 
     public function addToCart()
     {
-        $response = new \Core\Responses\ApiResponse();
-        
         $token = $_POST['token'] ?? ($_POST['_csrf'] ?? '');
+        $isAjax = $this->request->isAjax();
+        
         if (!\Core\Security\Csrf::validate($token, false)) {
-            $response->status = \Core\Responses\ApiResponse::STATUS_BAD_REQUEST;
-            $response->message = Lang::get('core.bad-token');
-            return $response;
+            if ($isAjax) {
+                $response = new \Core\Responses\ApiResponse();
+                $response->status = \Core\Responses\ApiResponse::STATUS_BAD_REQUEST;
+                $response->message = Lang::get('core.bad-token');
+                return $response;
+            }
+            \Utils\Show::msg(Lang::get('core.bad-token'), 'error');
+            return Core::getInstance()->redirect('/shop');
         }
         
-        $productId = (int)($_POST['product_id'] ?? 0);
-        $quantity = (int)($_POST['quantity'] ?? 1);
+        $productId = $_POST['product_id'] ?? 0;
+        if (is_numeric($productId)) {
+            $productId = (int)$productId;
+        } else if ($productId !== null) {
+            $productId = trim((string)$productId);
+        }
+        $quantity = max(1, (int)($_POST['quantity'] ?? 1));
         
         $product = $this->productManager->getById($productId);
         if (!$product) {
-            $response->status = \Core\Responses\ApiResponse::STATUS_NOT_FOUND;
-            $response->message = Lang::get('ecommerce.product-not-found');
-            return $response;
+            if ($isAjax) {
+                $response = new \Core\Responses\ApiResponse();
+                $response->status = \Core\Responses\ApiResponse::STATUS_NOT_FOUND;
+                $response->message = Lang::get('ecommerce.product-not-found') ?: 'Produit introuvable';
+                return $response;
+            }
+            \Utils\Show::msg(Lang::get('ecommerce.product-not-found') ?: 'Produit introuvable.', 'error');
+            return Core::getInstance()->redirect('/shop');
         }
         
         if (!$product->isInStock()) {
-            $response->status = \Core\Responses\ApiResponse::STATUS_ERROR;
-            $response->message = Lang::get('ecommerce.out-of-stock');
+            if ($isAjax) {
+                $response = new \Core\Responses\ApiResponse();
+                $response->status = \Core\Responses\ApiResponse::STATUS_ERROR;
+                $response->message = Lang::get('ecommerce.out-of-stock');
+                return $response;
+            }
+            \Utils\Show::msg(Lang::get('ecommerce.out-of-stock') ?: 'Rupture de stock.', 'error');
+            return Core::getInstance()->redirect($product->getUrl());
+        }
+        
+        \Ecommerce\Entities\Cart::add((int)$productId, $quantity);
+        
+        if ($isAjax) {
+            $response = new \Core\Responses\ApiResponse();
+            $response->status = \Core\Responses\ApiResponse::STATUS_SUCCESS;
+            $response->message = Lang::get('ecommerce.added-to-cart') ?: 'Produit ajouté au panier.';
+            $response->body = [
+                'cartCount' => \Ecommerce\Entities\Cart::getCount(),
+                'cartTotal' => \Ecommerce\Entities\Cart::getTotal()
+            ];
             return $response;
         }
         
-        \Ecommerce\Entities\Cart::add($productId, $quantity);
-        
-        $response->status = \Core\Responses\ApiResponse::STATUS_SUCCESS;
-        $response->message = Lang::get('ecommerce.added-to-cart');
-        $response->body = [
-            'cartCount' => \Ecommerce\Entities\Cart::getCount(),
-            'cartTotal' => \Ecommerce\Entities\Cart::getTotal()
-        ];
-        
-        return $response;
+        \Utils\Show::msg(Lang::get('ecommerce.product-added-to-cart') ?: 'Produit ajouté au panier.', 'success');
+        return Core::getInstance()->redirect('/cart');
     }
 
     public function updateCart()
