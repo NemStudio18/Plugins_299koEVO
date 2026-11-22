@@ -47,7 +47,7 @@
 }
 
 .swiper-pagination-bullet-active {
-    background: #fff;
+    background: var(--evo-accent, #ffffff);
 }
 
 /* Gallery Improvements */

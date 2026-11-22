@@ -175,7 +175,7 @@
 
 .messaging-unread-badge {
     background: var(--evo-danger, var(--alert-color, #ef4444));
-    color: #ffffff;
+    color: var(--evo-accent-text, #ffffff);
     padding: 0.5rem 1rem;
     border-radius: 20px;
     font-weight: bold;

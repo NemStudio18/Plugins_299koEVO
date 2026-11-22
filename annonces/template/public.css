@@ -689,11 +689,11 @@
 .annonce-rejection-box {
     margin-top: 0.5rem;
     padding: 0.5rem 0.75rem;
-    background: #fef2f2;
-    border: 1px solid #fee2e2;
+    background: var(--evo-danger-bg, #fef2f2);
+    border: 1px solid var(--evo-danger-border, #fee2e2);
     border-radius: 6px;
     font-size: 0.82rem;
-    color: #991b1b;
+    color: var(--evo-danger-text, #991b1b);
 }
 
 /* Liste des réservations */
