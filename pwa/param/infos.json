@@ -5,7 +5,7 @@
     "description": "Progressive Web App avec notifications push",
     "authorEmail": "maximeblanc@flexcb.fr",
     "authorWebsite": "https://299ko.flexcb.fr",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "homePublicMethod": "Pwa\\Controllers\\PwaController#home",
     "homeAdminMethod": "PwaAdminController#home",
     "hideInPublicMenu": true

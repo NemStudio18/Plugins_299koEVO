@@ -2,9 +2,10 @@
 .pwa-pre {
     word-break: break-all;
     padding: 1rem;
-    background: var(--section-head-bg-color, #f8fafc);
+    background: var(--evo-surface-alt, var(--section-head-bg-color, #f8fafc));
+    color: var(--evo-text, inherit);
     border-radius: 8px;
-    border: 1px solid var(--form-border-color, #cbd5e0);
+    border: 1px solid var(--evo-border, var(--form-border-color, #cbd5e0));
     font-family: monospace;
     white-space: pre-wrap;
 }
