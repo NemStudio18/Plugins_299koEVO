@@ -5,7 +5,7 @@
     "author": "Maxime Blanc",
     "authorEmail": "maximeblanc@flexcb.fr",
     "authorWebsite": "https://299ko.flexcb.fr",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "homePublicMethod": "Demo\\Controllers\\DemoPublicController#activate",
     "icon": "fa-solid fa-flask"
 }

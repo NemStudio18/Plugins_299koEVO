@@ -3,12 +3,14 @@
     position: fixed;
     bottom: 2rem;
     left: 2rem;
-    border-radius: 50px;
+    border-radius: var(--evo-radius-full, 50px);
     z-index: 9999;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    /* Theme handles .button colors */
+    background: var(--evo-accent);
+    color: var(--evo-accent-text, #ffffff);
+    box-shadow: var(--evo-shadow-md, 0 10px 24px rgba(0, 0, 0, 0.2));
 }
 
 .pwa-install-button i {

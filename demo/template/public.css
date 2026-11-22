@@ -3,11 +3,10 @@
 /* Cible le lien dans la navigation avec une spécificité plus forte */
 #navigation li a.demo-nav-link,
 a.demo-nav-link {
-    color: #ff9800;
-    /* Orange vif */
+    color: var(--evo-warning, #f59e0b);
     font-weight: 800;
-    background: rgba(255, 152, 0, 0.1);
-    border-radius: 4px;
+    background: var(--evo-warning-bg, rgba(245, 158, 11, 0.15));
+    border-radius: var(--evo-radius-sm, 4px);
     padding: 5px 10px;
     transition: all 0.3s ease;
 }
@@ -15,13 +14,13 @@ a.demo-nav-link {
 /* Au survol */
 #navigation li a.demo-nav-link:hover,
 a.demo-nav-link:hover {
-    background: rgba(255, 152, 0, 0.2);
+    background: var(--evo-warning-bg, rgba(245, 158, 11, 0.25));
     transform: translateY(-1px);
 }
 
 /* Icone spécifique */
 #navigation li a.demo-nav-link i,
 a.demo-nav-link i {
-    color: #ff9800;
+    color: var(--evo-warning, #f59e0b);
     margin-right: 5px;
 }
