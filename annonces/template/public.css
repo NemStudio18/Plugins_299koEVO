@@ -443,10 +443,10 @@
     line-height: 1.5;
 }
 
-.annonce-notice-info    { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
-.annonce-notice-warning { background: #fefce8; border: 1px solid #fef08a; color: #854d0e; }
-.annonce-notice-reserved{ background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
-.annonce-notice-sold    { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+.annonce-notice-info    { background: var(--evo-info-bg, #eff6ff); border: 1px solid var(--evo-info-border, #bfdbfe); color: var(--evo-info, #1e40af); }
+.annonce-notice-warning { background: var(--evo-warning-bg, #fefce8); border: 1px solid var(--evo-warning-border, #fef08a); color: var(--evo-warning, #854d0e); }
+.annonce-notice-reserved{ background: var(--evo-warning-bg, #fffbeb); border: 1px solid var(--evo-warning-border, #fde68a); color: var(--evo-warning, #92400e); }
+.annonce-notice-sold    { background: var(--evo-success-bg, #f0fdf4); border: 1px solid var(--evo-success-border, #bbf7d0); color: var(--evo-success, #166534); }
 
 .annonce-submit-btn {
     width: 100%;
@@ -807,7 +807,7 @@ html[data-theme="dark"] {
 :root[data-theme="dark"] .annonces-stat-box,
 :root[data-theme="dark"] .annonce-user-card,
 :root[data-theme="dark"] .annonce-reservation-card {
-    background: #1e293b;
-    border-color: #334155;
-    color: #f1f5f9;
+    background: var(--evo-card-bg, #1e293b);
+    border-color: var(--evo-border, #334155);
+    color: var(--evo-text, #f1f5f9);
 }

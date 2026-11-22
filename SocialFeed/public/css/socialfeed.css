@@ -2,15 +2,15 @@
  * SocialFeed - Feuille de styles moderne
  */
 :root {
-    --sf-bg: var(--bg-surface, #1e293b);
-    --sf-card-bg: var(--bg-card, rgba(30, 41, 59, 0.7));
-    --sf-border: var(--border-color, rgba(255, 255, 255, 0.08));
-    --sf-text: var(--text-main, #f8fafc);
-    --sf-text-muted: var(--text-muted, #94a3b8);
-    --sf-primary: var(--primary, #3b82f6);
-    --sf-primary-hover: var(--primary-hover, #2563eb);
-    --sf-heart: #ef4444;
-    --sf-radius: 14px;
+    --sf-bg: var(--evo-surface, #f8fafc);
+    --sf-card-bg: var(--evo-card-bg, #ffffff);
+    --sf-border: var(--evo-border, #e2e8f0);
+    --sf-text: var(--evo-text, var(--sf-bg));
+    --sf-text-muted: var(--evo-text-muted, #64748b);
+    --sf-primary: var(--evo-accent, #3b82f6);
+    --sf-primary-hover: var(--evo-accent-hover, #2563eb);
+    --sf-heart: var(--evo-danger, #ef4444);
+    --sf-radius: var(--evo-radius-lg, 14px);
 }
 
 .socialfeed-page-wrapper {
@@ -65,13 +65,14 @@
     transition: all 0.2s ease;
 }
 
-.scope-tab:hover, .scope-tab.active {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.1);
+.scope-tab:hover {
+    color: var(--sf-text);
+    background: var(--evo-accent-soft, rgba(59, 130, 246, 0.1));
 }
 
 .scope-tab.active {
     background: var(--sf-primary);
+    color: var(--evo-accent-text, #fff);
 }
 
 .social-source-chips {
@@ -419,10 +420,10 @@
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    border: 4px solid #0f172a;
+    border: 4px solid var(--sf-card-bg);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
     object-fit: cover;
-    background: #1e293b;
+    background: var(--sf-bg);
 }
 
 .profile-action-btn-wrap {
@@ -436,8 +437,8 @@
     padding: 0.6rem 1.25rem;
     border-radius: 9999px;
     border: 1px solid var(--sf-border);
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
+    background: var(--evo-surface-alt, rgba(255, 255, 255, 0.08));
+    color: var(--sf-text);
     text-decoration: none;
     font-weight: 600;
     font-size: 0.9rem;
@@ -740,7 +741,7 @@
     position: absolute;
     right: 0;
     top: calc(100% + 4px);
-    background: #1e293b;
+    background: var(--sf-bg);
     border: 1px solid var(--sf-border);
     border-radius: 10px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
@@ -1139,7 +1140,7 @@
 }
 
 .camera-recorder-card {
-    background: #0f172a;
+    background: var(--sf-card-bg);
     border: 1px solid var(--sf-border);
     border-radius: 16px;
     width: 100%;
@@ -1470,8 +1471,8 @@
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    border: 3px solid #0f172a;
-    background: #1e293b;
+    border: 3px solid var(--sf-card-bg);
+    background: var(--sf-bg);
     object-fit: cover;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
@@ -1483,7 +1484,7 @@
 }
 
 .group-card-title a {
-    color: #fff;
+    color: var(--sf-text);
     text-decoration: none;
 }
 
@@ -1695,7 +1696,7 @@
     position: absolute;
     bottom: calc(100% + 4px);
     left: 0;
-    background: #1e293b;
+    background: var(--sf-bg);
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 9999px;
     padding: 0.35rem 0.65rem;

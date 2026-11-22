@@ -3,7 +3,7 @@
     "name": "SocialFeed - Hub Communautaire",
     "icon": "fa-solid fa-users",
     "description": "Réseau social interactif complet (posts des membres, commentaires, réactions, abonnements) et agrégateur intelligent de la vie du site (blog, agenda, météo, etc.).",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "299Ko Team",
     "website": "https://299ko.flexcb.fr",
     "email": "contact@flexcb.fr",
