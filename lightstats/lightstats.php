@@ -174,15 +174,28 @@ class Hooks
             }
 
             // 8. Génération d'un request_id unique pour cette réponse HTML précise
-            $requestId = 'req_' . bin2hex(random_bytes(16));
+            $requestId = (!$isBot && !$isAdmin) ? ('req_' . bin2hex(random_bytes(16))) : null;
 
             // 9. Injection dynamique du contexte dans le HTML sans modifier le cache partagé
             // Gère uniquement le buffer propre au plugin (niveau initial conservé)
-            $pluginBufferOpened = ob_start(function($buffer) use ($requestId, $sessionId, $isCnilExempt) {
+            $pluginBufferOpened = ob_start(function($buffer) use ($requestId, $sessionId, $isCnilExempt, $isBot, $isAdmin) {
                 // N'injecter que dans les pages HTML
                 if (stripos($buffer, '<html') === false && stripos($buffer, '<!DOCTYPE') === false) {
                     return $buffer;
                 }
+
+                // Pour les bots ou les administrateurs connectés : ne JAMAIS injecter de contexte de certification
+                // et purger impérativement tout script résiduel issu du cache HTML partagé
+                if ($isBot || $isAdmin || empty($requestId)) {
+                    if (preg_match('/<script id="vb-ctx">.*?<\/script>/is', $buffer)) {
+                        $buffer = preg_replace('/<script id="vb-ctx">.*?<\/script>/is', '', $buffer);
+                    }
+                    if (stripos($buffer, 'window.__VB_CTX__') !== false) {
+                        $buffer = preg_replace('/<script[^>]*>.*?window\.__VB_CTX__.*?<\/script>/is', '', $buffer);
+                    }
+                    return $buffer;
+                }
+
                 $contextScript = '<script id="vb-ctx">window.__VB_CTX__={reqId:"' . htmlspecialchars($requestId, ENT_QUOTES, 'UTF-8') . '",sid:"' . htmlspecialchars($sessionId, ENT_QUOTES, 'UTF-8') . '",cnilExempt:' . ($isCnilExempt ? 'true' : 'false') . '};</script>';
 
                 // 1. Si le HTML contient déjà un contexte (ex: page servie depuis le cache HTML contenant l'ID d'une précédente requête),

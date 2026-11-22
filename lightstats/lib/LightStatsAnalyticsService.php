@@ -278,6 +278,39 @@ class LightStatsAnalyticsService
     }
 
     /**
+     * Normalise une URL en retirant les ancres, les paramètres de tracking (fbclid, utm_*, etc.)
+     * et le slash final redondant pour garantir une réconciliation 100% exacte entre la requête HTTP et le beacon JS.
+     */
+    public static function canonicalizePage(string $page): string
+    {
+        $page = (string) strtok($page, '#');
+        $qPos = strpos($page, '?');
+        $path = $qPos === false ? $page : substr($page, 0, $qPos);
+        $query = $qPos === false ? '' : substr($page, $qPos + 1);
+
+        if ($path === '') {
+            $path = '/';
+        } elseif (strlen($path) > 1 && substr($path, -1) === '/') {
+            $path = rtrim($path, '/');
+        }
+
+        if ($query !== '') {
+            $kept = [];
+            foreach (explode('&', $query) as $segment) {
+                if ($segment === '') continue;
+                $key = strtolower(urldecode((string) strtok($segment, '=')));
+                if (strpos($key, 'utm_') === 0 || in_array($key, ['fbclid', 'gclid', 'dclid', 'msclkid', 'yclid', '_ga', '_gl', 'mc_cid', 'mc_eid'], true)) {
+                    continue;
+                }
+                $kept[] = $segment;
+            }
+            $query = implode('&', $kept);
+        }
+
+        return $query !== '' ? ($path . '?' . $query) : $path;
+    }
+
+    /**
      * Enregistre ou met à jour une visite (pageview)
      */
     public function recordPageview(
@@ -291,6 +324,7 @@ class LightStatsAnalyticsService
         ?string $requestId = null
     ): array {
         try {
+            $page = self::canonicalizePage($page);
             $now = date('Y-m-d H:i:s');
             $module = self::classifyModule($page);
             $deviceType = self::detectDeviceType($userAgent);
@@ -393,6 +427,7 @@ class LightStatsAnalyticsService
         }
 
         try {
+            $page = self::canonicalizePage($page);
             $now = date('Y-m-d H:i:s');
             if (!empty($eventId)) {
                 $eventData['event_id'] = $eventId;
@@ -985,7 +1020,8 @@ class LightStatsAnalyticsService
                 $anonymousSessionsCount++;
             }
 
-            $distinctSessionCertifiedCount = count($sess['session_certified_request_ids']);
+            $validSessionCertifiedIds = array_intersect_key($sess['session_certified_request_ids'], $sess['period_http_request_ids']);
+            $distinctSessionCertifiedCount = count($validSessionCertifiedIds);
             $sess['distinct_certified_pages'] = $distinctSessionCertifiedCount;
             $isCertified = ($distinctSessionCertifiedCount > 0);
             $sess['is_certified'] = $isCertified;
@@ -1062,7 +1098,7 @@ class LightStatsAnalyticsService
             $reqId = $ev['request_id'] ?? ($evData['request_id'] ?? null);
             if (empty($reqId)) {
                 if ($ev['event_type'] === 'pageview' || $ev['event_type'] === 'view_certified') {
-                    $reqId = 'req_sess_' . $ev['session_id'] . '_' . md5($ev['page']);
+                    $reqId = 'req_sess_' . $ev['session_id'] . '_' . md5(self::canonicalizePage($ev['page']));
                 }
             }
             $ev['request_id'] = $reqId;
