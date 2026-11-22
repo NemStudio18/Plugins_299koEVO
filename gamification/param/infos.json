@@ -3,7 +3,7 @@
     "name": "Gamification",
     "icon": "fa-solid fa-trophy",
     "description": "Système de gamification avec points, paliers et badges.",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "Maxime Blanc",
     "authorEmail": "maximeblanc@flexcb.fr",
     "authorWebsite": "https://299ko.flexcb.fr",

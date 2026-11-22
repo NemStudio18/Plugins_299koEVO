@@ -5,7 +5,7 @@
 </div>
 
 {% IF not product.isActive() %}
-<div class="alert alert-warning" style="margin-bottom: 20px; padding: 12px 16px; border-radius: 8px; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #f59e0b;">
+<div class="alert alert-warning" style="margin-bottom: 20px; padding: 12px 16px; border-radius: 8px; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--evo-warning, #f59e0b); color: var(--evo-warning, #f59e0b);">
     <i class="fa-solid fa-triangle-exclamation"></i> <strong>Produit inactif :</strong> Ce produit est actuellement masqué pour les visiteurs publics (mode prévisualisation administrateur).
 </div>
 {% ENDIF %}

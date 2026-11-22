@@ -9,17 +9,17 @@
                 <h3><i class="fa-solid fa-address-card"></i> Informations de livraison & Contact</h3>
                 
                 <div class="form-group">
-                    <label for="customer_name">Nom complet <span style="color: #ef4444;">*</span></label>
+                    <label for="customer_name">Nom complet <span style="color: var(--evo-danger, #ef4444);">*</span></label>
                     <input type="text" id="customer_name" name="customer_name" value="{% if user %}{{user.username()}}{% endif %}" required placeholder="Ex: Jean Dupont">
                 </div>
 
                 <div class="form-group">
-                    <label for="customer_email">Adresse email <span style="color: #ef4444;">*</span></label>
+                    <label for="customer_email">Adresse email <span style="color: var(--evo-danger, #ef4444);">*</span></label>
                     <input type="email" id="customer_email" name="customer_email" value="{% if user %}{{user.email}}{% endif %}" required placeholder="Ex: jean.dupont@exemple.fr">
                 </div>
 
                 <div class="form-group">
-                    <label for="customer_address">Adresse complète de livraison <span style="color: #ef4444;">*</span></label>
+                    <label for="customer_address">Adresse complète de livraison <span style="color: var(--evo-danger, #ef4444);">*</span></label>
                     <textarea id="customer_address" name="customer_address" rows="3" required placeholder="Numéro, rue, code postal et ville..."></textarea>
                 </div>
 
@@ -29,7 +29,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="payment_method">Moyen de règlement <span style="color: #ef4444;">*</span></label>
+                    <label for="payment_method">Moyen de règlement <span style="color: var(--evo-danger, #ef4444);">*</span></label>
                     <select id="payment_method" name="payment_method">
                         {% if hasStripe %}
                             <option value="stripe">💳 Carte bancaire (Paiement sécurisé Stripe)</option>
@@ -57,7 +57,7 @@
                     </div>
                     <div class="cart-summary-row">
                         <span>{{Lang.ecommerce.shipping}}</span>
-                        <strong>{% IF shipping == 0 %}<span style="color: #22c55e;">{{Lang.ecommerce.free-shipping}}</span>{% ELSE %}{{shipping}}€{% ENDIF %}</strong>
+                        <strong>{% IF shipping == 0 %}<span style="color: var(--evo-success, #22c55e);">{{Lang.ecommerce.free-shipping}}</span>{% ELSE %}{{shipping}}€{% ENDIF %}</strong>
                     </div>
                     <div class="cart-summary-row cart-total" style="font-size: 1.25rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 2px solid var(--evo-border, #cbd5e1);">
                         <span>{{Lang.ecommerce.total}} TTC</span>

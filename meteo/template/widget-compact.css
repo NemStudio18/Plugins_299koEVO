@@ -59,7 +59,9 @@
     pointer-events: none;
 }
 
-body.theme-dark .meteo-widget-compact__temp {
+body.theme-dark .meteo-widget-compact__temp,
+:root[data-theme="dark"] .meteo-widget-compact__temp,
+html[data-theme="dark"] .meteo-widget-compact__temp {
     color: var(--evo-text, #f8fafc);
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
 }
@@ -155,6 +157,16 @@ body.theme-vegetal .meteo-widget-compact:hover {
 }
 body.theme-vegetal .meteo-widget-compact__temp {
     color: #15803d;
+}
+
+html[data-theme="dark"] body.theme-vegetal .meteo-widget-compact,
+body.theme-vegetal[data-theme="dark"] .meteo-widget-compact {
+    background: #052e16;
+    border-color: #166534;
+}
+html[data-theme="dark"] body.theme-vegetal .meteo-widget-compact__temp,
+body.theme-vegetal[data-theme="dark"] .meteo-widget-compact__temp {
+    color: #4ade80;
 }
 
 /* Thème DesktopOS : capsule acrylique macOS */

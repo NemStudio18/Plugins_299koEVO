@@ -8,7 +8,7 @@
     <div class="leaderboard-table" style="background: var(--panel-bg); border-radius: var(--panel-radius); overflow: hidden; box-shadow: var(--panel-shadow); border: 1px solid var(--panel-border);">
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
-                <tr style="background: var(--primary-color); color: white;">
+                <tr style="background: var(--evo-accent, var(--primary-color)); color: var(--evo-accent-text, #ffffff);">
                     <th style="padding: 1rem; text-align: center; width: 80px;">Rang</th>
                     <th style="padding: 1rem; text-align: left;">Utilisateur</th>
                     <th style="padding: 1rem; text-align: center;">Palier</th>
@@ -62,9 +62,9 @@
         </table>
     </div>
     {% ELSE %}
-    <div style="text-align: center; padding: 3rem; background: #f8f9fa; border-radius: 8px;">
-        <i class="fa-solid fa-trophy" style="font-size: 4rem; color: #dee2e6; margin-bottom: 1rem; display: block;"></i>
-        <p style="color: #6c757d; font-size: 1.125rem;">Aucun utilisateur dans le leaderboard pour le moment.</p>
+    <div style="text-align: center; padding: 3rem; background: var(--evo-surface, #f8f9fa); border-radius: 8px;">
+        <i class="fa-solid fa-trophy" style="font-size: 4rem; color: var(--evo-border, #dee2e6); margin-bottom: 1rem; display: block;"></i>
+        <p style="color: var(--evo-text-muted, #6c757d); font-size: 1.125rem;">Aucun utilisateur dans le leaderboard pour le moment.</p>
     </div>
     {% ENDIF %}
     

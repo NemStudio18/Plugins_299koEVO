@@ -5,12 +5,21 @@
     --sf-bg: var(--evo-surface, #f8fafc);
     --sf-card-bg: var(--evo-card-bg, #ffffff);
     --sf-border: var(--evo-border, #e2e8f0);
-    --sf-text: var(--evo-text, var(--sf-bg));
+    --sf-text: var(--evo-text, #1e293b);
     --sf-text-muted: var(--evo-text-muted, #64748b);
     --sf-primary: var(--evo-accent, #3b82f6);
     --sf-primary-hover: var(--evo-accent-hover, #2563eb);
     --sf-heart: var(--evo-danger, #ef4444);
     --sf-radius: var(--evo-radius-lg, 14px);
+}
+
+:root[data-theme="dark"],
+html[data-theme="dark"] {
+    --sf-bg: var(--evo-surface, #0f172a);
+    --sf-card-bg: var(--evo-card-bg, #1e293b);
+    --sf-border: var(--evo-border, #334155);
+    --sf-text: var(--evo-text, #f8fafc);
+    --sf-text-muted: var(--evo-text-muted, #94a3b8);
 }
 
 .socialfeed-page-wrapper {
@@ -89,21 +98,21 @@
     border-radius: 20px;
     font-size: 0.85rem;
     border: 1px solid var(--sf-border);
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--evo-surface-alt, rgba(125, 125, 125, 0.08));
     color: var(--sf-text-muted);
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .source-chip:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
+    background: var(--evo-surface-alt, rgba(125, 125, 125, 0.16));
+    color: var(--sf-text);
 }
 
 .source-chip.active {
-    background: rgba(59, 130, 246, 0.15);
+    background: var(--evo-accent-soft, rgba(59, 130, 246, 0.15));
     border-color: var(--sf-primary);
-    color: #60a5fa;
+    color: var(--sf-primary);
     font-weight: 600;
 }
 
@@ -207,7 +216,7 @@
     gap: 0.4rem;
     padding: 0.4rem 0.75rem;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--evo-surface-alt, rgba(125, 125, 125, 0.08));
     border: 1px solid var(--sf-border);
     color: var(--sf-text-muted);
     font-size: 0.85rem;
@@ -216,8 +225,8 @@
 }
 
 .btn-tool:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
+    background: var(--evo-surface-alt, rgba(125, 125, 125, 0.16));
+    color: var(--sf-text);
 }
 
 .btn-publish-submit {
@@ -225,7 +234,7 @@
     align-items: center;
     gap: 0.5rem;
     background: var(--sf-primary);
-    color: #fff;
+    color: var(--evo-accent-text, #fff);
     border: none;
     border-radius: 8px;
     padding: 0.5rem 1.25rem;
@@ -256,11 +265,11 @@
 /* TIROIRS EMOJIS & GIFS (MODERN COMPOSER) */
 .emoji-drawer, .gif-drawer {
     margin-top: 0.75rem;
-    background: rgba(15, 23, 42, 0.95);
+    background: var(--sf-card-bg);
     border: 1px solid var(--sf-border);
     border-radius: 12px;
     padding: 0.75rem;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     animation: sfFadeIn 0.2s ease-out;
 }
 
@@ -289,7 +298,7 @@
 }
 
 .btn-close-drawer:hover {
-    color: #fff;
+    color: var(--sf-text);
 }
 
 .emoji-grid {
@@ -458,7 +467,7 @@
     border-radius: 9999px;
     border: 1px solid var(--sf-primary);
     background: var(--sf-primary);
-    color: #fff;
+    color: var(--evo-accent-text, #fff);
     font-weight: 700;
     font-size: 0.9rem;
     cursor: pointer;
@@ -473,7 +482,7 @@
 .btn-follow.following {
     background: transparent;
     border-color: var(--sf-border);
-    color: #fff;
+    color: var(--sf-text);
 }
 
 .btn-follow.following .text-follow {
@@ -488,8 +497,8 @@
 
 .btn-follow.following:hover {
     background: rgba(239, 68, 68, 0.15);
-    border-color: #ef4444;
-    color: #ef4444;
+    border-color: var(--evo-danger, #ef4444);
+    color: var(--evo-danger, #ef4444);
 }
 
 .btn-follow.following:hover .text-following {
@@ -606,7 +615,7 @@
 }
 
 .btn-format {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--evo-surface-alt, rgba(125, 125, 125, 0.08));
     border: 1px solid var(--sf-border);
     color: var(--sf-text-muted);
     border-radius: 6px;
@@ -622,8 +631,8 @@
 }
 
 .btn-format:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
+    background: var(--evo-surface-alt, rgba(125, 125, 125, 0.16));
+    color: var(--sf-text);
 }
 
 /* ENRICHISSEMENT RENDU TEXTE */
@@ -633,7 +642,7 @@
 }
 
 .post-text .mention {
-    color: #38bdf8;
+    color: var(--evo-accent, #38bdf8);
     text-decoration: none;
     font-weight: 600;
 }
@@ -642,10 +651,10 @@
     text-decoration: underline;
 }
 
-.text-gold { color: #f59e0b; }
-.text-emerald { color: #10b981; }
+.text-gold { color: var(--evo-warning, #f59e0b); }
+.text-emerald { color: var(--evo-success, #10b981); }
 .text-purple { color: #a855f7; }
-.text-blue { color: #3b82f6; }
+.text-blue { color: var(--evo-info, #3b82f6); }
 .text-cyan { color: #06b6d4; }
 
 /* CARTES SOCIALES (POST, BLOG, AGENDA) */
@@ -693,14 +702,14 @@
     bottom: 24px;
     left: 50%;
     transform: translateX(-50%) translateY(100px);
-    background: rgba(15, 23, 42, 0.95);
-    color: #fff;
+    background: var(--sf-card-bg);
+    color: var(--sf-text);
     border: 1px solid var(--sf-border);
     border-radius: 9999px;
     padding: 0.75rem 1.5rem;
     font-size: 0.9rem;
     font-weight: 600;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     z-index: 99999;
     opacity: 0;
     pointer-events: none;
@@ -732,8 +741,8 @@
 }
 
 .btn-icon:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.1);
+    color: var(--sf-text);
+    background: var(--evo-surface-alt, rgba(125, 125, 125, 0.12));
 }
 
 .dropdown-menu {
@@ -842,9 +851,9 @@
     font-weight: 600;
 }
 
-.badge-blog { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
-.badge-agenda { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
-.badge-meteo { background: rgba(234, 179, 8, 0.15); color: #facc15; }
+.badge-blog { background: var(--evo-accent-soft, rgba(59, 130, 246, 0.15)); color: var(--sf-primary); }
+.badge-agenda { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+.badge-meteo { background: var(--evo-warning-soft, rgba(234, 179, 8, 0.15)); color: var(--evo-warning, #eab308); }
 
 .post-text {
     font-size: 0.95rem;
@@ -891,8 +900,8 @@
 }
 
 .action-btn:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.05);
+    color: var(--sf-text);
+    background: var(--evo-surface-alt, rgba(125, 125, 125, 0.08));
 }
 
 .action-btn.liked {
@@ -985,7 +994,7 @@
 }
 
 .comment-bubble {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--evo-surface-alt, rgba(125, 125, 125, 0.08));
     border-radius: 10px;
     padding: 0.5rem 0.75rem;
     flex: 1;
@@ -996,7 +1005,7 @@
     font-weight: 600;
     display: block;
     margin-bottom: 0.2rem;
-    color: #fff;
+    color: var(--sf-text);
 }
 
 .comment-add-form {
@@ -1006,18 +1015,18 @@
 
 .comment-input {
     flex: 1;
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--sf-bg);
     border: 1px solid var(--sf-border);
     border-radius: 20px;
     padding: 0.4rem 0.85rem;
-    color: #fff;
+    color: var(--sf-text);
     font-size: 0.88rem;
 }
 
 .btn-comment-submit {
     background: var(--sf-primary);
     border: none;
-    color: #fff;
+    color: var(--evo-accent-text, #fff);
     border-radius: 50%;
     width: 32px;
     height: 32px;
@@ -1163,7 +1172,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: #fff;
+    color: var(--sf-text);
 }
 
 .btn-close-modal {
@@ -1177,7 +1186,7 @@
 }
 
 .btn-close-modal:hover {
-    color: #fff;
+    color: var(--sf-text);
 }
 
 .camera-viewport-wrap {
@@ -1373,7 +1382,7 @@
     gap: 0.4rem;
     padding: 0.5rem 1rem;
     border-radius: 9999px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--evo-surface-alt, rgba(125, 125, 125, 0.08));
     color: var(--sf-text-muted);
     font-size: 0.9rem;
     font-weight: 600;
@@ -1383,13 +1392,13 @@
 }
 
 .groups-tab:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
+    background: var(--evo-surface-alt, rgba(125, 125, 125, 0.16));
+    color: var(--sf-text);
 }
 
 .groups-tab.active {
     background: var(--sf-primary);
-    color: #fff;
+    color: var(--evo-accent-text, #fff);
 }
 
 .groups-grid {
@@ -1529,14 +1538,14 @@
     border-radius: 9999px;
     font-size: 0.82rem;
     border: 1px solid var(--sf-border);
-    color: #fff;
+    color: var(--sf-text);
     text-decoration: none;
     font-weight: 600;
     transition: background 0.2s;
 }
 
 .btn-outline-sm:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--evo-surface-alt, rgba(125, 125, 125, 0.1));
 }
 
 .btn-join-group {
@@ -1547,7 +1556,7 @@
     font-weight: 600;
     cursor: pointer;
     background: var(--sf-primary);
-    color: #fff;
+    color: var(--evo-accent-text, #fff);
     transition: all 0.2s;
 }
 
@@ -1556,7 +1565,7 @@
 }
 
 .btn-join-group.joined {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--evo-surface-alt, rgba(125, 125, 125, 0.1));
     color: var(--sf-text-muted);
     border: 1px solid var(--sf-border);
 }
@@ -1569,7 +1578,7 @@
 .badge-owner {
     font-size: 0.78rem;
     font-weight: 700;
-    color: #f59e0b;
+    color: var(--evo-warning, #f59e0b);
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
@@ -1599,7 +1608,7 @@
     padding: 1rem;
     text-align: center;
     transition: all 0.2s;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--evo-surface-alt, rgba(125, 125, 125, 0.04));
 }
 
 .type-card-content i {
@@ -1613,7 +1622,7 @@
     display: block;
     margin-bottom: 0.2rem;
     font-size: 0.95rem;
-    color: #fff;
+    color: var(--sf-text);
 }
 
 .type-card-content span {
@@ -1659,8 +1668,8 @@
 }
 
 .audience-select option {
-    background: #0d131f;
-    color: #fff;
+    background: var(--sf-card-bg);
+    color: var(--sf-text);
 }
 
 .post-time-row {

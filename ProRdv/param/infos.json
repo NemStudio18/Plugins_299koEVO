@@ -3,7 +3,7 @@
     "name": "Rendez-vous Pro",
     "icon": "fa-solid fa-calendar-check",
     "description": "Module complet de prise de rendez-vous en ligne (prestations, collaborateurs, créneaux horaires et réservations clients).",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "Maxime Blanc",
     "authorEmail": "maximeblanc@flexcb.fr",
     "authorWebsite": "https://299ko.flexcb.fr",

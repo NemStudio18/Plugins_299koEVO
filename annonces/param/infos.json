@@ -5,7 +5,7 @@
     "description": "Plateforme communautaire de petites annonces (C2C & B2C) avec dépôt public pour les membres, modération intégrée, multi-photos et réservation sans paiement en ligne.",
     "authorEmail": "maximeblanc@flexcb.fr",
     "authorWebsite": "https://299ko.flexcb.fr",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "adminCategory": "contenu",
     "homePublicMethod": "Annonces\\Controllers\\AnnoncesController#home",
     "homeAdminMethod": "Annonces\\Controllers\\AnnoncesAdminController#home"

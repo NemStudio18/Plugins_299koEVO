@@ -1,0 +1,314 @@
+/* ==========================================================================
+   ProRdv - Rendez-vous et Espace Pro (Design System Universel --evo-*)
+   ========================================================================== */
+:root {
+    --prordv-card-bg: var(--evo-card-bg, #ffffff);
+    --prordv-surface: var(--evo-surface, #f8fafc);
+    --prordv-surface-alt: var(--evo-surface-alt, #f1f5f9);
+    --prordv-border: var(--evo-border, #e2e8f0);
+    --prordv-text: var(--evo-text, #0f172a);
+    --prordv-text-muted: var(--evo-text-muted, #64748b);
+    --prordv-primary: var(--evo-accent, #0f766e);
+    --prordv-primary-hover: var(--evo-accent-hover, #0d5f58);
+    --prordv-success: var(--evo-success, #10b981);
+    --prordv-warning: var(--evo-warning, #f59e0b);
+    --prordv-danger: var(--evo-danger, #ef4444);
+    --prordv-radius: var(--evo-radius-lg, 14px);
+}
+
+:root[data-theme="dark"],
+html[data-theme="dark"] {
+    --prordv-card-bg: var(--evo-card-bg, #1e293b);
+    --prordv-surface: var(--evo-surface, #0f172a);
+    --prordv-surface-alt: var(--evo-surface-alt, #334155);
+    --prordv-border: var(--evo-border, #334155);
+    --prordv-text: var(--evo-text, #f8fafc);
+    --prordv-text-muted: var(--evo-text-muted, #94a3b8);
+}
+
+.prordv-booking-wrapper,
+.prordv-agenda-wrapper,
+.prordv-confirm-wrapper {
+    max-width: 680px;
+    margin: 30px auto;
+    padding: 0 16px;
+    font-family: inherit;
+    color: var(--prordv-text);
+}
+
+.prordv-agenda-wrapper {
+    max-width: 850px;
+}
+
+.prordv-confirm-wrapper {
+    max-width: 580px;
+    margin: 50px auto;
+}
+
+.prordv-card {
+    background: var(--prordv-card-bg);
+    border-radius: var(--prordv-radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 30px;
+    border: 1px solid var(--prordv-border);
+}
+
+.prordv-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.prordv-badge-online {
+    display: inline-block;
+    background: var(--evo-success-soft, rgba(16, 185, 129, 0.12));
+    color: var(--prordv-success);
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+}
+
+.prordv-badge-pro {
+    display: inline-block;
+    background: var(--evo-success-soft, rgba(16, 185, 129, 0.12));
+    color: var(--prordv-success);
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 12px;
+    margin-bottom: 6px;
+}
+
+.prordv-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--prordv-text);
+    margin: 0 0 6px;
+}
+
+.prordv-subtitle {
+    color: var(--prordv-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Alertes & Bannières */
+.prordv-alert {
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.prordv-alert-success {
+    background: var(--evo-success-soft, rgba(16, 185, 129, 0.12));
+    border: 1px solid var(--prordv-success);
+    color: var(--prordv-success);
+    text-align: center;
+}
+
+.prordv-alert-danger {
+    background: var(--evo-danger-soft, rgba(239, 68, 68, 0.12));
+    border: 1px solid var(--prordv-danger);
+    color: var(--prordv-danger);
+}
+
+.prordv-alert-warning {
+    background: var(--evo-warning-soft, rgba(245, 158, 11, 0.12));
+    border: 1px solid var(--prordv-warning);
+    color: var(--prordv-warning);
+}
+
+.prordv-alert-info {
+    background: var(--evo-accent-soft, rgba(59, 130, 246, 0.12));
+    border-left: 4px solid var(--evo-info, #3b82f6);
+    color: var(--evo-info, #3b82f6);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Formulaires */
+.prordv-form-group {
+    margin-bottom: 24px;
+}
+
+.prordv-form-label {
+    display: block;
+    font-weight: 700;
+    color: var(--prordv-text);
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+
+.prordv-input,
+.prordv-select,
+.prordv-textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--prordv-border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: var(--prordv-surface);
+    color: var(--prordv-text);
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.prordv-input:focus,
+.prordv-select:focus,
+.prordv-textarea:focus {
+    outline: none;
+    border-color: var(--prordv-primary);
+}
+
+.prordv-select option {
+    background: var(--prordv-card-bg);
+    color: var(--prordv-text);
+}
+
+/* Cartes Prestations */
+.prordv-presta-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border: 2px solid var(--prordv-border);
+    border-radius: 10px;
+    background: var(--prordv-card-bg);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.prordv-presta-card.selected {
+    border-color: var(--prordv-success);
+    background: var(--evo-success-soft, rgba(16, 185, 129, 0.08));
+}
+
+.prordv-presta-duree {
+    background: var(--prordv-surface-alt);
+    color: var(--prordv-text-muted);
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.prordv-presta-prix {
+    font-weight: 700;
+    color: var(--prordv-success);
+    font-size: 1rem;
+}
+
+/* Grille Créneaux */
+.prordv-slots-box {
+    background: var(--prordv-surface);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--prordv-border);
+}
+
+.prordv-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+    gap: 8px;
+}
+
+.slot-pill {
+    display: block;
+    padding: 10px 4px;
+    border: 1px solid var(--prordv-border);
+    border-radius: 8px;
+    background: var(--prordv-card-bg);
+    color: var(--prordv-text);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+}
+
+.slot-pill:hover:not(.selected) {
+    background: var(--prordv-surface-alt);
+}
+
+.slot-pill.selected {
+    background: var(--prordv-success);
+    color: var(--evo-accent-text, #ffffff);
+    border-color: var(--prordv-success);
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+}
+
+.btn-prordv-submit {
+    width: 100%;
+    padding: 14px;
+    background: var(--prordv-success);
+    color: var(--evo-accent-text, #ffffff);
+    border: none;
+    border-radius: 10px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    transition: filter 0.2s ease;
+}
+
+.btn-prordv-submit:hover {
+    filter: brightness(0.95);
+}
+
+/* Agenda Pro */
+.prordv-agenda-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--prordv-surface);
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--prordv-border);
+    margin-bottom: 24px;
+}
+
+.prordv-rdv-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 18px 20px;
+    border-radius: 12px;
+    background: var(--prordv-card-bg);
+    border: 1px solid var(--prordv-border);
+}
+
+.prordv-rdv-card.confirme {
+    border-color: var(--prordv-success);
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.08);
+}
+
+.prordv-rdv-card.attente {
+    border-color: var(--prordv-warning);
+    background: var(--evo-warning-soft, rgba(245, 158, 11, 0.08));
+}
+
+.badge-statut-confirme {
+    background: var(--evo-success-soft, rgba(16, 185, 129, 0.15));
+    color: var(--prordv-success);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--prordv-success);
+}
+
+.badge-statut-attente {
+    background: var(--evo-warning-soft, rgba(245, 158, 11, 0.15));
+    color: var(--prordv-warning);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--prordv-warning);
+}

@@ -1,6 +1,6 @@
 <div class="gamification-public-profile">
     <header class="profile-header" style="text-align: center; margin-bottom: 2rem;">
-        <div class="profile-avatar" style="width: 80px; height: 80px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1rem;">
+        <div class="profile-avatar" style="width: 80px; height: 80px; background: var(--evo-accent, var(--primary-color)); color: var(--evo-accent-text, #ffffff); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1rem;">
             {{ targetUser.username|slice(0, 1)|upper }}
         </div>
         <h1>{{ targetUser.username }}</h1>
@@ -11,7 +11,7 @@
                 </span>
             </div>
         {% endif %}
-        <p style="color: #6c757d;">Membre depuis le {{ targetUser.created_at|date('d/m/Y') }}</p>
+        <p style="color: var(--evo-text-muted, #6c757d);">Membre depuis le {{ targetUser.created_at|date('d/m/Y') }}</p>
         
         {% IF messagingEnabled and currentUser.id != targetUser.id %}
         <div style="margin-top: 1rem;">

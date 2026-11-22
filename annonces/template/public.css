@@ -145,13 +145,13 @@
     text-transform: uppercase;
 }
 
-.annonce-badge-available { background: #22c55e; color: #fff; }
-.annonce-badge-reserved  { background: #f59e0b; color: #fff; }
-.annonce-badge-sold      { background: #0284c7; color: #fff; }
-.annonce-badge-closed    { background: #64748b; color: #fff; }
-.annonce-badge-draft     { background: #94a3b8; color: #fff; }
-.annonce-badge-pending   { background: #f59e0b; color: #fff; }
-.annonce-badge-rejected  { background: #ef4444; color: #fff; }
+.annonce-badge-available { background: var(--evo-success, #22c55e); color: var(--evo-accent-text, #fff); }
+.annonce-badge-reserved  { background: var(--evo-warning, #f59e0b); color: var(--evo-accent-text, #fff); }
+.annonce-badge-sold      { background: var(--evo-info, #0284c7); color: var(--evo-accent-text, #fff); }
+.annonce-badge-closed    { background: var(--evo-text-muted, #64748b); color: var(--evo-accent-text, #fff); }
+.annonce-badge-draft     { background: var(--evo-border-strong, #94a3b8); color: var(--evo-accent-text, #fff); }
+.annonce-badge-pending   { background: var(--evo-warning, #f59e0b); color: var(--evo-accent-text, #fff); }
+.annonce-badge-rejected  { background: var(--evo-danger, #ef4444); color: var(--evo-accent-text, #fff); }
 
 .annonce-photo-count-badge {
     position: absolute;

@@ -9,10 +9,10 @@
         <h3><a href="{{ product.getUrl() }}">{{ product.getName() }}</a></h3>
         <p class="ecommerce-product-price">{{ product.getPrice() }}€</p>
         {% IF product.isInStock() %}
-        <p style="color: green; font-weight: 600;">{{ Lang.ecommerce.in-stock }}</p>
+        <p class="ecommerce-stock-badge in-stock">{{ Lang.ecommerce.in-stock }}</p>
         <a href="{{ product.getUrl() }}" class="button primary">{{ Lang.ecommerce.add-to-cart }}</a>
         {% ELSE %}
-        <p style="color: red; font-weight: 600;">{{ Lang.ecommerce.out-of-stock }}</p>
+        <p class="ecommerce-stock-badge out-of-stock">{{ Lang.ecommerce.out-of-stock }}</p>
         <a href="{{ product.getUrl() }}" class="button secondary">Voir le produit</a>
         {% ENDIF %}
     </div>
