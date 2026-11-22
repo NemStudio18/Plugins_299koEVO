@@ -23,9 +23,10 @@ class BlogProvider implements ContentProviderInterface {
      */
     public function assertAccessible(PDO $pdo, int $contentId, ?int $userId, string $reactionType): void {
         // 1. Tenter d'utiliser le gestionnaire natif du plugin Blog s'il est chargé
-        if (class_exists('\\newsManager')) {
+        $managerClass = class_exists('\\Blog\\Entities\\NewsManager') ? '\\Blog\\Entities\\NewsManager' : (class_exists('\\newsManager') ? '\\newsManager' : null);
+        if ($managerClass !== null) {
             try {
-                $manager = new \newsManager();
+                $manager = new $managerClass();
                 $article = $manager->create($contentId);
                 if ($article && method_exists($article, 'getDraft')) {
                     if ($article->getDraft() === "1" || $article->getDraft() === true) {

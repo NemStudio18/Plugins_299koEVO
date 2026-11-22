@@ -12,7 +12,7 @@
     },
     "BlogCategory": {
         "label": "Catégories (Blog)",
-        "class": "Blog\\Entities\\BlogCategory",
+        "class": "Blog\\Entities\\Category",
         "drivers": [
             "json",
             "mysql",
@@ -23,7 +23,7 @@
     },
     "NewsComment": {
         "label": "Commentaires (Blog)",
-        "class": "Blog\\Entities\\NewsComment",
+        "class": "Blog\\Entities\\Comment",
         "drivers": [
             "json",
             "mysql",

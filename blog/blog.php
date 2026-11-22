@@ -25,6 +25,29 @@ spl_autoload_register(function ($class) {
     }
 });
 
+// 2. Backward compatibility aliases (migration from legacy entities/ to src/Entities/)
+if (!class_exists('news', false)) {
+    class_alias(\Blog\Entities\News::class, 'news');
+}
+if (!class_exists('newsManager', false)) {
+    class_alias(\Blog\Entities\NewsManager::class, 'newsManager');
+}
+if (!class_exists('newsComment', false)) {
+    class_alias(\Blog\Entities\Comment::class, 'newsComment');
+}
+if (!class_exists('BlogCategory', false)) {
+    class_alias(\Blog\Entities\Category::class, 'BlogCategory');
+}
+if (!class_exists('BlogCategoriesManager', false)) {
+    class_alias(\Blog\Entities\CategoriesManager::class, 'BlogCategoriesManager');
+}
+if (!class_exists('Blog\\Entities\\NewsComment', false)) {
+    class_alias(\Blog\Entities\Comment::class, 'Blog\\Entities\\NewsComment');
+}
+if (!class_exists('Blog\\Entities\\BlogCategory', false)) {
+    class_alias(\Blog\Entities\Category::class, 'Blog\\Entities\\BlogCategory');
+}
+
 // 2. Register Hooks
 // Hooks are now registered via param/hooks.json
 
