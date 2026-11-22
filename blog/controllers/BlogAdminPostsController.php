@@ -128,9 +128,21 @@ class BlogAdminPostsController extends AdminController
         $news->setContent($contentEditor->getPostContent());
         $news->setIntro($this->core->callHook('beforeSaveEditor', htmlspecialchars($_REQUEST['intro'])));
         $news->setSEODesc($_REQUEST['seoDesc']);
+        $wasDraft = $news->isDraft();
+        $previousPublishedAt = (string) $news->getPublishedAt();
         $news->setDraft((isset($_POST['draft']) ? 1 : 0));
         $publishedAtInput = $_REQUEST['published_at'] ?? ($_REQUEST['date'] ?? null);
-        if (!empty($publishedAtInput)) {
+        $normalizedInput = trim(str_replace('T', ' ', (string) $publishedAtInput));
+        if (strlen($normalizedInput) === 16) {
+            $normalizedInput .= ':00';
+        }
+        // Passage brouillon -> publié : la date de parution est l'heure réelle de mise en ligne,
+        // sauf si l'auteur a explicitement modifié la date (publication programmée / antidatée).
+        $isFirstPublication = $wasDraft && !$news->isDraft();
+        $dateUntouched = ($normalizedInput === '' || $normalizedInput === trim($previousPublishedAt));
+        if ($isFirstPublication && $dateUntouched) {
+            $news->setPublishedAt(date('Y-m-d H:i:s'));
+        } elseif (!empty($publishedAtInput)) {
             $news->setPublishedAt($publishedAtInput);
         } elseif (!$news->getPublishedAt()) {
             $news->setPublishedAt(date('Y-m-d H:i:s'));
