@@ -107,67 +107,117 @@ class LightStatsLogsManager {
         return false;
     }
 
-    public static function canonicalizeReferer(string $referer): array {
+    public static function canonicalizeReferer(string $referer): ?array {
         if (empty($referer)) {
             return [
-                'key' => 'direct',
+                'key' => 'Direct',
                 'label' => 'Direct / Accès direct',
                 'url' => '',
                 'is_direct' => true
             ];
         }
+
         $host = parse_url($referer, PHP_URL_HOST);
         if (!$host) {
             return [
-                'key' => 'direct',
+                'key' => 'Direct',
                 'label' => 'Direct / Accès direct',
                 'url' => '',
                 'is_direct' => true
             ];
         }
+
         $host = strtolower(preg_replace('/^www\./i', '', $host));
-        $siteHost = !empty($_SERVER['HTTP_HOST']) ? strtolower(preg_replace('/^www\./i', '', $_SERVER['HTTP_HOST'])) : '';
-        if ($siteHost !== '' && $host === $siteHost) {
-            return [
-                'key' => 'direct',
-                'label' => 'Navigation interne',
-                'url' => '',
-                'is_direct' => true
-            ];
+
+        // Détection domaines internes à exclure
+        $internalHosts = ['vivre-bourges.fr', '299ko.flexcb.fr', 'declic18.test', 'localhost', '127.0.0.1'];
+        $currentHost = !empty($_SERVER['HTTP_HOST']) ? strtolower(preg_replace('/^www\./i', '', $_SERVER['HTTP_HOST'])) : '';
+        if ($currentHost !== '') {
+            $internalHosts[] = $currentHost;
         }
-        $knownPlatforms = [
-            'facebook.com' => ['label' => 'Facebook', 'url' => 'https://facebook.com'],
-            'm.facebook.com' => ['label' => 'Facebook', 'url' => 'https://facebook.com'],
-            'l.facebook.com' => ['label' => 'Facebook', 'url' => 'https://facebook.com'],
-            'lm.facebook.com' => ['label' => 'Facebook', 'url' => 'https://facebook.com'],
-            'instagram.com' => ['label' => 'Instagram', 'url' => 'https://instagram.com'],
-            'l.instagram.com' => ['label' => 'Instagram', 'url' => 'https://instagram.com'],
-            'google.com' => ['label' => 'Google', 'url' => 'https://google.com'],
-            'google.fr' => ['label' => 'Google', 'url' => 'https://google.fr'],
-            'bing.com' => ['label' => 'Bing', 'url' => 'https://bing.com'],
-            'yahoo.com' => ['label' => 'Yahoo', 'url' => 'https://yahoo.com'],
-            't.co' => ['label' => 'X (Twitter)', 'url' => 'https://x.com'],
-            'x.com' => ['label' => 'X (Twitter)', 'url' => 'https://x.com'],
-            'twitter.com' => ['label' => 'X (Twitter)', 'url' => 'https://x.com'],
-            'linkedin.com' => ['label' => 'LinkedIn', 'url' => 'https://linkedin.com'],
-            'lnkd.in' => ['label' => 'LinkedIn', 'url' => 'https://linkedin.com'],
-            'pinterest.com' => ['label' => 'Pinterest', 'url' => 'https://pinterest.com'],
-            'qwant.com' => ['label' => 'Qwant', 'url' => 'https://qwant.com'],
-            'duckduckgo.com' => ['label' => 'DuckDuckGo', 'url' => 'https://duckduckgo.com'],
-            'ecosia.org' => ['label' => 'Ecosia', 'url' => 'https://ecosia.org'],
-        ];
-        if (isset($knownPlatforms[$host])) {
+        if (defined('SITE_URL')) {
+            $siteHost = parse_url(SITE_URL, PHP_URL_HOST);
+            if ($siteHost) {
+                $internalHosts[] = strtolower(preg_replace('/^www\./i', '', $siteHost));
+            }
+        }
+
+        foreach ($internalHosts as $internal) {
+            if ($internal !== '' && ($host === $internal || str_ends_with($host, '.' . $internal))) {
+                return null; // Exclure tout référent interne
+            }
+        }
+
+        // Regroupements réseaux sociaux et moteurs
+        if (preg_match('/(^|\.)facebook\.com$/i', $host) || $host === 'fb.me') {
             return [
-                'key' => $knownPlatforms[$host]['label'],
-                'label' => $knownPlatforms[$host]['label'],
-                'url' => $knownPlatforms[$host]['url'],
+                'key' => 'Facebook',
+                'label' => 'Facebook',
+                'url' => 'https://facebook.com',
                 'is_direct' => false
             ];
         }
+        if (preg_match('/(^|\.)instagram\.com$/i', $host)) {
+            return [
+                'key' => 'Instagram',
+                'label' => 'Instagram',
+                'url' => 'https://instagram.com',
+                'is_direct' => false
+            ];
+        }
+        if (preg_match('/(^|\.)(google\.[a-z]{2,5}|google\.com)$/i', $host)) {
+            return [
+                'key' => 'Google',
+                'label' => 'Google Search',
+                'url' => 'https://google.fr',
+                'is_direct' => false
+            ];
+        }
+        if (preg_match('/(^|\.)(bing\.com|bing\.net)$/i', $host)) {
+            return [
+                'key' => 'Bing',
+                'label' => 'Bing',
+                'url' => 'https://bing.com',
+                'is_direct' => false
+            ];
+        }
+        if ($host === 't.co' || preg_match('/(^|\.)(twitter\.com|x\.com)$/i', $host)) {
+            return [
+                'key' => 'X (Twitter)',
+                'label' => 'X (Twitter)',
+                'url' => 'https://x.com',
+                'is_direct' => false
+            ];
+        }
+        if (preg_match('/(^|\.)linkedin\.com$/i', $host)) {
+            return [
+                'key' => 'LinkedIn',
+                'label' => 'LinkedIn',
+                'url' => 'https://linkedin.com',
+                'is_direct' => false
+            ];
+        }
+        if (preg_match('/(^|\.)qwant\.com$/i', $host)) {
+            return [
+                'key' => 'Qwant',
+                'label' => 'Qwant',
+                'url' => 'https://qwant.com',
+                'is_direct' => false
+            ];
+        }
+        if (preg_match('/(^|\.)ecosia\.org$/i', $host)) {
+            return [
+                'key' => 'Ecosia',
+                'label' => 'Ecosia',
+                'url' => 'https://ecosia.org',
+                'is_direct' => false
+            ];
+        }
+
         return [
             'key' => $host,
             'label' => $host,
-            'url' => 'https://' . $host,
+            'url' => (strpos($referer, 'http') === 0 ? $referer : 'https://' . $host),
             'is_direct' => false
         ];
     }
@@ -561,20 +611,22 @@ class LightStatsLogsManager {
 
         $pagesCount[$page] = ($pagesCount[$page] ?? 0) + 1;
 
-        // Référent canonique
+        // Référent canonique (exclure domaines internes et regrouper réseaux sociaux)
         $canon = self::canonicalizeReferer($referer);
-        $refKey = $canon['key'];
-        if (!isset($referersCount[$refKey])) {
-            $referersCount[$refKey] = [
-                'label' => $canon['label'],
-                'url' => $canon['url'],
-                'is_direct' => $canon['is_direct'],
-                'hits' => 0,
-                'count' => 0
-            ];
+        if ($canon !== null) {
+            $refKey = $canon['key'];
+            if (!isset($referersCount[$refKey])) {
+                $referersCount[$refKey] = [
+                    'label' => $canon['label'],
+                    'url' => $canon['url'],
+                    'is_direct' => $canon['is_direct'],
+                    'hits' => 0,
+                    'count' => 0
+                ];
+            }
+            $referersCount[$refKey]['hits']++;
+            $referersCount[$refKey]['count']++;
         }
-        $referersCount[$refKey]['hits']++;
-        $referersCount[$refKey]['count']++;
 
         // Parsing User-Agent
         if ($rawUa !== '') {

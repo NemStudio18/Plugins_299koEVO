@@ -116,31 +116,34 @@ class LightStatsAdminController extends AdminController
         $kpis['hours_labels_js'] = !empty($hoursLabels) ? implode(',', $hoursLabels) : '';
         $kpis['hours_data_js'] = !empty($hoursData) ? implode(',', $hoursData) : '';
         
-        // Normaliser les référents
+        // Normaliser et agréger les référents (exclusion interne & regroupement social)
         if (isset($kpis['top_referers']) && is_array($kpis['top_referers'])) {
             $normalizedReferers = [];
-            foreach ($kpis['top_referers'] as $referer => $data) {
+            foreach ($kpis['top_referers'] as $refererKey => $data) {
                 if (is_array($data) && isset($data['label'])) {
-                    $normalizedReferers[$referer] = $data;
-                } elseif ($referer === '') {
-                    $normalizedReferers['Direct'] = [
-                        'label' => 'Direct / Accès direct',
-                        'url' => '',
-                        'is_direct' => true,
-                        'count' => (int)$data,
-                        'hits' => (int)$data
-                    ];
+                    $normalizedReferers[$refererKey] = $data;
                 } else {
-                    $canon = LightStatsLogsManager::canonicalizeReferer((string)$referer);
-                    $normalizedReferers[$referer] = [
-                        'label' => $canon['label'],
-                        'url' => $canon['url'],
-                        'is_direct' => $canon['is_direct'],
-                        'count' => (int)$data,
-                        'hits' => (int)$data
-                    ];
+                    $canon = LightStatsLogsManager::canonicalizeReferer((string)$refererKey);
+                    if ($canon !== null) {
+                        $key = $canon['key'];
+                        $hits = is_numeric($data) ? (int)$data : (int)($data['hits'] ?? 1);
+                        if (!isset($normalizedReferers[$key])) {
+                            $normalizedReferers[$key] = [
+                                'label' => $canon['label'],
+                                'url' => $canon['url'],
+                                'is_direct' => $canon['is_direct'],
+                                'count' => 0,
+                                'hits' => 0
+                            ];
+                        }
+                        $normalizedReferers[$key]['count'] += $hits;
+                        $normalizedReferers[$key]['hits'] += $hits;
+                    }
                 }
             }
+            uasort($normalizedReferers, function($a, $b) {
+                return ($b['hits'] ?? 0) <=> ($a['hits'] ?? 0);
+            });
             $kpis['top_referers'] = $normalizedReferers;
         }
         
