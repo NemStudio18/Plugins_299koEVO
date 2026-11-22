@@ -4,6 +4,7 @@ use Utils\Util;
 use Core\Lang;
 use Core\Plugin\PluginsManager;
 use Content\Editor;
+use Galerie\Entities\GalerieItem;
 
 /**
  * @copyright (C) 2022, 299Ko, based on code (2010-2021) 99ko https://github.com/99kocms/
@@ -165,7 +166,7 @@ function galerieSaveFeaturedImage(array $data): array {
     $file = $data['file'] ?? null;
     if ($file && !empty($file['name'])) {
         $galerie = new galerie();
-        $img = new galerieItem(array('category' => ''));
+        $img = new GalerieItem(array('category' => ''));
         $img->setTitle(($data['pageName'] ?? 'Page') . ' (' . Lang::get('galerie.featured-image') . ')');
         $img->setHidden(1);
         $galerie->saveItem($img);
@@ -214,7 +215,7 @@ class galerie {
             elseif (PluginsManager::getPluginConfVal('galerie', 'order') == 'natural')
                 $temp = Util::sort2DimArray($temp, 'id', 'asc');
             foreach ($temp as $k => $v) {
-                $data[] = new galerieItem($v);
+                $data[] = new GalerieItem($v);
             }
         }
         $this->items = $data;
@@ -444,101 +445,6 @@ class galerie {
             }
         }
         return false;
-    }
-
-}
-
-class galerieItem {
-
-    private $id;
-    private $title;
-    private $date;
-    private $content;
-    private $img;
-    private $category;
-    private $hidden;
-
-    public function __construct($data = array()) {
-        if (count($data) > 0) {
-            $this->id = $data['id'] ?? '';
-            $this->title = $data['title'] ?? '';
-            $this->content = $data['content'] ?? '';
-            $this->date = $data['date'] ?? date('Y-m-d');
-            $this->img = $data['img'] ?? '';
-            $this->category = $data['category'] ?? '';
-            $this->hidden = $data['hidden'] ?? 0;
-        }
-    }
-
-    public function setId($val) {
-        $this->id = $val;
-    }
-
-    public function setTitle($val) {
-        $val = trim($val);
-        $this->title = $val;
-    }
-
-    public function setContent($val) {
-        $this->content = trim($val);
-    }
-
-    public function setDate($val) {
-        $val = trim($val);
-        if ($val == '')
-            $val = date('Y-m-d');
-        $this->date = $val;
-    }
-
-    public function setImg($val) {
-        $this->img = trim($val);
-    }
-
-    public function setCategory($val) {
-        $this->category = trim($val);
-    }
-
-    public function setHidden($val) {
-        $this->hidden = trim($val);
-    }
-
-    public function getId() {
-        return $this->id;
-    }
-
-    public function getTitle() {
-        return $this->title;
-    }
-
-    public function getContent() {
-        return $this->content;
-    }
-
-    public function getDate($short = false) {
-        if ($short) {
-            return substr($this->date, 0, 10);
-        }
-        return $this->date;
-    }
-
-    public function getImg() {
-        return $this->img;
-    }
-
-    public function getUrl():string {
-        return Util::urlBuild(UPLOAD . 'galerie/' . $this->img);
-    }
-
-    public function getRelUrl():string {
-        return '/data/upload/galerie/' . ltrim((string)$this->img, '/');
-    }
-
-    public function getCategory() {
-        return $this->category;
-    }
-
-    public function getHidden() {
-        return $this->hidden;
     }
 
 }

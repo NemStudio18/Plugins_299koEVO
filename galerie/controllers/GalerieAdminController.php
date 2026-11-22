@@ -5,6 +5,7 @@ use Core\Responses\AdminResponse;
 use Utils\Show;
 use Core\Lang;
 use Content\Editor;
+use Galerie\Entities\GalerieItem;
 
 /**
  * @copyright (C) 2024, 299Ko
@@ -48,7 +49,7 @@ class GalerieAdminController extends AdminController
     }
 
     public function edit() {
-        $item = new galerieItem();
+        $item = new GalerieItem();
         return $this->renderEdit($item);
     }
 
@@ -98,7 +99,7 @@ class GalerieAdminController extends AdminController
         $galerie = new galerie();
         $contentEditor = new Editor('galContent', '', Lang::get('galerie.content'));
 
-        $item = ($_REQUEST['id']) ? $galerie->createItem($_REQUEST['id']) : new galerieItem();
+        $item = ($_REQUEST['id']) ? $galerie->createItem($_REQUEST['id']) : new GalerieItem();
         $item->setCategory($_REQUEST['category']);
         $item->setTitle($_REQUEST['title']);
         $item->setContent($contentEditor->getPostContent());
@@ -187,7 +188,7 @@ class GalerieAdminController extends AdminController
         return $this->core->redirect(\Core\Router\Router::getInstance()->generate('admin-galerie-home'));
     }
 
-    protected function renderEdit(galerieItem $item) {
+    protected function renderEdit(GalerieItem $item) {
         $response = new AdminResponse();
         $tpl = $response->createPluginTemplate('galerie', 'admin');
         $contentEditor = new Editor('galContent', $item->getContent(), Lang::get('galerie.content'));

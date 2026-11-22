@@ -332,11 +332,10 @@ class Block extends JsonActiveRecord
     private function renderLatestArticles(): string
     {
         $pluginsManager = PluginsManager::getInstance();
-        $hasNewsManager = class_exists('\\Blog\\Entities\\NewsManager') || class_exists('\\newsManager');
-        if (!$pluginsManager->isActivePlugin('blog') || !$hasNewsManager) {
+        if (!$pluginsManager->isActivePlugin('blog') || !class_exists('\\Blog\\Entities\\NewsManager')) {
             return $this->renderInfoMessage(Lang::get('homebuilder.messages.blog-unavailable', 'Activez le plugin Blog pour afficher des articles.'));
         }
-        $manager = class_exists('\\Blog\\Entities\\NewsManager') ? new \Blog\Entities\NewsManager() : new \newsManager();
+        $manager = new \Blog\Entities\NewsManager();
         $count = max(1, (int)($this->options['count'] ?? 3));
         $articles = array_slice(array_filter($manager->getItems(), fn($a) => method_exists($a, 'getDraft') && !$a->getDraft()), 0, $count);
         if (empty($articles)) return $this->renderInfoMessage(Lang::get('homebuilder.messages.latest-articles-empty', 'Aucun article disponible pour le moment.'));

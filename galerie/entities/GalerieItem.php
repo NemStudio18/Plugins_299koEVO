@@ -3,6 +3,7 @@
 namespace Galerie\Entities;
 
 use Core\Storage\JsonActiveRecord;
+use Utils\Util;
 
 defined('ROOT') or exit('Access denied!');
 
@@ -29,10 +30,23 @@ class GalerieItem extends JsonActiveRecord
     public function getId() { return $this->id; }
     public function getTitle() { return $this->title; }
     public function getContent() { return $this->content; }
-    public function getDate() { return $this->date; }
+    public function getDate($short = false) {
+        if ($short && is_string($this->date)) {
+            return substr($this->date, 0, 10);
+        }
+        return $this->date;
+    }
     public function getImg() { return $this->img; }
     public function getCategory() { return $this->category; }
     public function getHidden() { return $this->hidden; }
+
+    public function getUrl(): string {
+        return Util::urlBuild(UPLOAD . 'galerie/' . $this->img);
+    }
+
+    public function getRelUrl(): string {
+        return '/data/upload/galerie/' . ltrim((string)$this->img, '/');
+    }
 
     public function setId($val) { $this->id = $val; }
     public function setTitle($val) { $this->title = $val; }

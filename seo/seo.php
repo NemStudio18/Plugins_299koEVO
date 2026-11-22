@@ -161,9 +161,8 @@ function seoBlogAfterSave(int $postId, array $postData)
 function seoGenerateSitemap(): int
 {
     $items = ['/', '/recherche'];
-    $newsManagerClass = class_exists('\Blog\Entities\NewsManager') ? '\Blog\Entities\NewsManager' : (class_exists('\newsManager') ? '\newsManager' : null);
-    if ($newsManagerClass !== null) {
-        $news = (new $newsManagerClass())->getItems();
+    if (class_exists('\Blog\Entities\NewsManager')) {
+        $news = (new \Blog\Entities\NewsManager())->getItems();
         foreach ($news as $item) {
             if (!$item->getDraft()) {
                 $items[] = $item->getUrl();
