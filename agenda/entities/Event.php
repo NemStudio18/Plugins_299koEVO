@@ -55,10 +55,27 @@ class Event extends JsonActiveRecord
         return $this->attributes['color'] ?? '#3498db';
     }
 
+    public function getSlug(): string
+    {
+        $title = $this->getTitle() ?? '';
+        // Décoder les entités HTML en amont pour éviter les artefacts type "-hellip-"
+        $title = html_entity_decode($title, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // Remplacer les caractères non-lettres/chiffres par des tirets
+        $slug = preg_replace('~[^\pL\d]+~u', '-', $title);
+        if (function_exists('iconv')) {
+            $slug = iconv('utf-8', 'us-ascii//TRANSLIT', $slug);
+        }
+        $slug = preg_replace('~[^-\w]+~', '', $slug);
+        $slug = trim($slug, '-');
+        $slug = preg_replace('~-+~', '-', $slug);
+        $slug = strtolower($slug);
+        return empty($slug) ? 'evenement' : $slug;
+    }
+
     public function getUrl(): string
     {
-        $router = \Core\Router\Router::getInstance();
-        return $router->generate('agenda-event', ['id' => $this->id]);
+        $slug = $this->getSlug();
+        return '/agenda/event/' . $slug . '-' . $this->id;
     }
 
     public function getStatus(): string

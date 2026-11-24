@@ -53,7 +53,7 @@ class AgendaController extends PublicController
         $allPast = [];
         foreach ($allEvents as $event) {
             $eventData = $event->toArray();
-            $eventData['url'] = $this->router->generate('agenda-event', ['id' => $event->getId()]);
+            $eventData['url'] = $event->getUrl();
             
             // Plain text & sanitized short description for cards (avoids breaking HTML attributes and layout)
             $rawDesc = $event->getDescription() ?? '';
@@ -213,13 +213,34 @@ class AgendaController extends PublicController
     public function event()
     {
         $response = new PublicResponse();
-        $id = $this->router->getParam('id');
+        $paramId = $this->router->getParam('id');
 
-        $event = $this->eventManager->getById($id);
+        // Extraction de l'identifiant réel (numérique ou hash hexadécimal à la fin du slug)
+        // Exemples : "rencontre-d-artiste-5717" -> "5717", "foire-aux-huitres-6afe6d4e8de68" -> "6afe6d4e8de68", "5717" -> "5717"
+        $realId = $paramId;
+        if (preg_match('/(?:^|.*-)([a-f0-9]{13}|[0-9]+)$/i', (string)$paramId, $matches)) {
+            $realId = $matches[1];
+        }
+
+        $event = $this->eventManager->getById($realId);
+        if (!$event) {
+            $event = $this->eventManager->getById($paramId);
+        }
+
         if (!$event) {
             return \Core\Core::getInstance()->redirect('/agenda');
         }
 
+        // Redirection 301 canonique si l'URL appelée n'est pas le slug descriptif officiel
+        $canonicalPath = $event->getUrl(); // ex: /agenda/event/swanny-elzingre-5717
+        $requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+        $requestPath = '/' . ltrim((string)$requestUri, '/');
+        if ($requestPath !== $canonicalPath && $requestPath !== $canonicalPath . '/') {
+            header('Location: ' . $canonicalPath, true, 301);
+            exit;
+        }
+
+        $id = $event->getId();
         $eventTitle = $event->getTitle() ?? 'Événement';
         $response->setTitle('<i class="fa-solid fa-calendar-day"></i> ' . $eventTitle);
         $tpl = $response->createPluginTemplate('agenda', 'event');
@@ -238,7 +259,7 @@ class AgendaController extends PublicController
         // Balises Open Graph pour le partage Facebook
         $core = \Core\Core::getInstance();
         $siteUrl = rtrim($core->getConfigVal('siteUrl') ?: '', '/');
-        $eventUrl = $siteUrl . '/agenda/event/' . $id;
+        $eventUrl = $siteUrl . $canonicalPath;
         $eventDesc = trim(strip_tags(html_entity_decode($event->getDescription() ?? 'Événement', ENT_QUOTES | ENT_HTML5, 'UTF-8')));
         $eventImg = $event->getImageUrl() ?: '/theme/' . ($core->getConfigVal('theme') ?: 'default') . '/logo.png';
         if (!preg_match('#^https?://#i', $eventImg)) {
@@ -414,7 +435,11 @@ class AgendaController extends PublicController
     public function toggleAttendance()
     {
         $response = new ApiResponse();
-        $id = $this->router->getParam('id');
+        $paramId = $this->router->getParam('id');
+        $id = $paramId;
+        if (preg_match('/(?:^|.*-)([a-f0-9]{13}|[0-9]+)$/i', (string)$paramId, $matches)) {
+            $id = $matches[1];
+        }
 
         $event = $this->eventManager->getById($id);
         if (!$event) {
@@ -670,7 +695,11 @@ class AgendaController extends PublicController
      */
     public function exportIcal($id)
     {
-        $event = $this->eventManager->findById((int)$id);
+        $realId = $id;
+        if (preg_match('/(?:^|.*-)([a-f0-9]{13}|[0-9]+)$/i', (string)$id, $matches)) {
+            $realId = $matches[1];
+        }
+        $event = $this->eventManager->getById($realId);
         $status = $event ? strtolower((string) $event->getStatus()) : '';
         if (!$event || ($status !== '' && !in_array($status, ['approved', 'published'], true))) {
             Show::msg('Événement non trouvé ou non publié.', 'error');
