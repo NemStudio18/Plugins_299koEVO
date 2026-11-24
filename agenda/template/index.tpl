@@ -3,10 +3,10 @@
     <header class="agenda-hero-banner">
         <div class="agenda-hero-inner">
             <div class="agenda-hero-topline">
-                <span class="agenda-hero-badge"><i class="fa-solid fa-calendar-star"></i> Événements &amp; Sorties</span>
+                <span class="agenda-hero-badge"><i class="fa-solid fa-calendar-star"></i> Événements &amp; Sorties • Bourges</span>
             </div>
-            <h1 class="agenda-hero-title">L'Agenda des événements</h1>
-            <p class="agenda-hero-subtitle">Concerts, spectacles, marchés, expositions et activités à ne pas manquer.</p>
+            <h1 class="agenda-hero-title">L'Agenda de Bourges</h1>
+            <p class="agenda-hero-subtitle">Concerts, spectacles, marchés, expositions et activités à ne pas manquer à Bourges et ses alentours.</p>
         </div>
     </header>
     <div class="header-actions" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-end; margin-bottom: 1rem;">

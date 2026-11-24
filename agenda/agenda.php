@@ -359,7 +359,7 @@ namespace {
                 'title' => 'Aucun événement prévu',
                 'url' => $url,
                 'start_date' => 'À venir',
-                'location' => '',
+                'location' => 'Bourges',
                 'fallback' => true
             ];
         }
