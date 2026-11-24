@@ -228,12 +228,17 @@ class AgendaController extends PublicController
     {
         $response = new PublicResponse();
         $idParam = (string)$this->router->getParam('id');
+        $realId = $idParam;
+        if (preg_match('/(?:^|-)([0-9a-f]{13}|\d+)$/i', $idParam, $matches)) {
+            $realId = $matches[1];
+        }
 
-        $event = $this->eventManager->getById($idParam);
+        $event = $this->eventManager->getById($realId);
         if (!$event) {
             return \Core\Core::getInstance()->redirect('/agenda');
         }
 
+        $id = $event->getId();
         $eventTitle = $event->getTitle() ?? 'Événement';
         $expectedUrl = $event->getUrl();
         $expectedSlugId = basename($expectedUrl);

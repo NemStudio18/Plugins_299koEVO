@@ -71,10 +71,10 @@ class EventManager
 
     public function getById($id): ?Event
     {
-        // Extraction numérique si slug (ex: "mon-event-123" -> 123)
+        // Extraction numérique ou hash si slug (ex: "mon-event-123" ou "mon-event-6afe6d4f65fb1")
         $cleanId = $id;
-        if (is_string($id) && preg_match('/(?:^|-)(\d+)$/', $id, $matches)) {
-            $cleanId = (int)$matches[1];
+        if (is_string($id) && preg_match('/(?:^|-)([0-9a-f]{13}|\d+)$/i', $id, $matches)) {
+            $cleanId = $matches[1];
         }
 
         $event = Event::findPK($cleanId);
