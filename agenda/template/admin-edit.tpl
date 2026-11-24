@@ -40,7 +40,7 @@
         <div class="form-group">
             <label>Lieu / Commerce partenaire associé (POI ID)</label>
             <input type="number" name="poi_id" value="{{formEvent.poi_id}}" placeholder="Ex: 42 (optionnel)">
-            <small style="display:block; margin-top:4px; color:#64748b;">Relie automatiquement l'événement à la fiche commerce/lieu de Bourges.</small>
+            <small style="display:block; margin-top:4px; color:#64748b;">Relie automatiquement l'événement à la fiche commerce ou lieu associé.</small>
         </div>
 
         <div class="form-group">
