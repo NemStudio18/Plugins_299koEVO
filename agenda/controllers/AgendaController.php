@@ -315,6 +315,89 @@ class AgendaController extends PublicController
         $tpl->set('hasMap', !empty($mapHtml));
         $tpl->set('mapHtml', $mapHtml);
 
+        // Données structurées Schema.org JSON-LD (Google Rich Snippets pour Événement)
+        $rawStart = $event->getStartDate();
+        $rawEnd = $event->getEndDate() ?: $rawStart;
+        $startIso = (strpos($rawStart, ':') !== false) ? date('c', strtotime($rawStart)) : date('Y-m-d', strtotime($rawStart));
+        $endIso = (strpos($rawEnd, ':') !== false) ? date('c', strtotime($rawEnd)) : date('Y-m-d', strtotime($rawEnd));
+
+        $locationData = [
+            '@type' => 'Place',
+            'name' => $event->getLocation() ?: 'Bourges',
+            'address' => [
+                '@type' => 'PostalAddress',
+                'streetAddress' => $event->getLocation() ?: 'Bourges',
+                'addressLocality' => 'Bourges',
+                'postalCode' => '18000',
+                'addressCountry' => 'FR',
+            ],
+        ];
+        if ($lat && $lon) {
+            $locationData['geo'] = [
+                '@type' => 'GeoCoordinates',
+                'latitude' => (float)$lat,
+                'longitude' => (float)$lon,
+            ];
+        }
+
+        $isFree = (stripos($eventTitle . ' ' . $eventDesc, 'gratuit') !== false);
+        $eventJsonLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Event',
+            'name' => $eventTitle,
+            'description' => mb_substr($eventDesc, 0, 300),
+            'url' => $eventUrl,
+            'startDate' => $startIso,
+            'endDate' => $endIso,
+            'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
+            'eventStatus' => 'https://schema.org/EventScheduled',
+            'location' => $locationData,
+            'image' => [!empty($eventImg) ? $eventImg : $siteUrl . '/images/mascot/what_agenda.webp'],
+            'organizer' => [
+                '@type' => 'Organization',
+                'name' => $siteName,
+                'url' => $siteUrl,
+            ],
+            'offers' => [
+                '@type' => 'Offer',
+                'url' => !empty($externalUrl) ? $externalUrl : $eventUrl,
+                'price' => $isFree ? '0' : '0',
+                'priceCurrency' => 'EUR',
+                'availability' => 'https://schema.org/InStock',
+                'validFrom' => date('c'),
+            ],
+        ];
+
+        // Fil d'Ariane Schema.org BreadcrumbList
+        $breadcrumbJsonLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Accueil',
+                    'item' => $siteUrl . '/',
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => 'Agenda',
+                    'item' => $siteUrl . '/agenda',
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 3,
+                    'name' => $eventTitle,
+                    'item' => $eventUrl,
+                ],
+            ],
+        ];
+
+        $jsonLdScripts = '<script type="application/ld+json">' . "\n" . json_encode($eventJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>' . "\n" .
+                         '<script type="application/ld+json">' . "\n" . json_encode($breadcrumbJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>';
+        $core->addMeta($jsonLdScripts);
+
         // Load attendance data
         $attendanceManager = new \Agenda\Entities\AttendanceManager();
         $attendanceCount = $attendanceManager->getAttendanceCount($id);

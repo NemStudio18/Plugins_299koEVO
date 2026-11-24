@@ -43,6 +43,16 @@ class BlogReadController extends PublicController
             $this->core->error404();
         }
 
+        // Redirection 301 canonique si le slug d'URL ne correspond pas exactement au slug généré
+        $canonicalSlug = Util::strToUrl($item->getName());
+        if ($name !== $canonicalSlug) {
+            $queryString = !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '';
+            $canonicalTarget = rtrim($this->core->getConfigVal('siteUrl') ?: '', '/') . $this->runPlugin->getPublicUrl() . $canonicalSlug . '-' . $item->getId() . '.html' . $queryString;
+            header('HTTP/1.1 301 Moved Permanently');
+            header('Location: ' . $canonicalTarget);
+            exit;
+        }
+
         // Si l'article n'est pas encore public (brouillon ou publication programmée future), seuls les administrateurs peuvent le prévisualiser
         if (!$item->isPublic()) {
             $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
@@ -220,8 +230,12 @@ class BlogReadController extends PublicController
 
     protected function addMetas($item)
     {
-        $currentUrl = Util::getCurrentURL();
+        $siteUrl = rtrim($this->core->getConfigVal('siteUrl') ?: '', '/');
         $siteName = $this->core->getConfigVal('siteName') ?: '299koEVO';
+        $canonicalSlug = Util::strToUrl($item->getName());
+        $canonicalUrl = $siteUrl . $this->runPlugin->getPublicUrl() . $canonicalSlug . '-' . $item->getId() . '.html';
+
+        $this->core->addMeta('<link rel="canonical" href="' . htmlspecialchars($canonicalUrl, ENT_QUOTES, 'UTF-8') . '" />');
         $this->core->addMeta('<meta property="og:site_name" content="' . htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8') . '" />');
 
         // Facebook App ID si configuré
@@ -233,8 +247,8 @@ class BlogReadController extends PublicController
             }
         }
 
-        $this->core->addMeta('<meta property="og:url" content="' . $currentUrl . '" />');
-        $this->core->addMeta('<meta property="twitter:url" content="' . $currentUrl . '" />');
+        $this->core->addMeta('<meta property="og:url" content="' . htmlspecialchars($canonicalUrl, ENT_QUOTES, 'UTF-8') . '" />');
+        $this->core->addMeta('<meta property="twitter:url" content="' . htmlspecialchars($canonicalUrl, ENT_QUOTES, 'UTF-8') . '" />');
         $this->core->addMeta('<meta property="og:type" content="article" />');
         $this->core->addMeta('<meta property="og:title" content="' . htmlspecialchars($item->getName(), ENT_QUOTES, 'UTF-8') . '" />');
         $this->core->addMeta('<meta name="twitter:title" content="' . htmlspecialchars($item->getName(), ENT_QUOTES, 'UTF-8') . '" />');
@@ -297,6 +311,72 @@ class BlogReadController extends PublicController
                 }
             }
         }
+
+        // Schema.org BlogPosting JSON-LD
+        $rawDate = $item->getDate();
+        $datePublished = !empty($rawDate) ? date('c', strtotime($rawDate)) : date('c');
+        $rawUpdated = $item->getUpdatedAt();
+        $dateModified = !empty($rawUpdated) ? date('c', strtotime($rawUpdated)) : $datePublished;
+
+        $articleJsonLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BlogPosting',
+            'mainEntityOfPage' => [
+                '@type' => 'WebPage',
+                '@id' => $canonicalUrl,
+            ],
+            'headline' => $item->getName(),
+            'description' => $item->getSEODesc(),
+            'datePublished' => $datePublished,
+            'dateModified' => $dateModified,
+            'author' => [
+                '@type' => 'Organization',
+                'name' => $siteName,
+                'url' => $siteUrl,
+            ],
+            'publisher' => [
+                '@type' => 'Organization',
+                'name' => $siteName,
+                'url' => $siteUrl,
+                'logo' => [
+                    '@type' => 'ImageObject',
+                    'url' => $siteUrl . '/theme/' . ($this->core->getConfigVal('theme') ?: 'default') . '/logo.png',
+                ],
+            ],
+        ];
+        if (!empty($imgUrl)) {
+            $articleJsonLd['image'] = [$imgUrl];
+        }
+
+        // Schema.org BreadcrumbList JSON-LD
+        $breadcrumbJsonLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Accueil',
+                    'item' => $siteUrl . '/',
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => 'Actualités',
+                    'item' => $siteUrl . $this->runPlugin->getPublicUrl(),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 3,
+                    'name' => $item->getName(),
+                    'item' => $canonicalUrl,
+                ],
+            ],
+        ];
+
+        $jsonLdScripts = '<script type="application/ld+json">' . "\n" . json_encode($articleJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>' . "\n" .
+                         '<script type="application/ld+json">' . "\n" . json_encode($breadcrumbJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>';
+        $this->core->addMeta($jsonLdScripts);
     }
 
     protected function generateLastCommentsSidebar(int $nbComments = 10)
