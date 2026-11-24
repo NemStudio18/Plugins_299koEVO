@@ -761,7 +761,7 @@ html[data-theme="dark"] {
 }
 
 .dropdown-menu.show {
-    display: block !important;
+    display: block;
     animation: sfFadeIn 0.15s ease-out;
 }
 
@@ -1088,7 +1088,7 @@ html[data-theme="dark"] {
 .social-publish-card.is-collapsed .publish-format-bar,
 .social-publish-card.is-collapsed .publish-footer,
 .social-publish-card.is-collapsed .publish-url-input-wrap {
-    display: none !important;
+    display: none;
 }
 
 .social-publish-card.is-collapsed .social-publish-form textarea {
