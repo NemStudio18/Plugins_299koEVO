@@ -78,9 +78,19 @@ class AgendaController extends PublicController
             // Intelligent Categorization
             $t = mb_strtolower($event->getTitle() . ' ' . $event->getDescription());
             $loc = mb_strtolower($event->getLocation() ?? '');
+            $eventId = (string)$event->getId();
 
-            if (str_contains($t, 'cinéma') || str_contains($t, 'cinema') || str_contains($t, 'film') || str_contains($t, 'séance') || str_contains($t, 'seance') || str_contains($t, 'projection')) {
-                $eventData['category'] = 'Cinéma & Projections';
+            $isCgr = (str_contains($t, 'cgr') || str_contains($loc, 'cgr'));
+            $isAlhambra = (str_contains($t, 'alhambra') || str_contains($loc, 'alhambra') || str_contains($t, 'maison de la culture') || str_contains($loc, 'maison de la culture'));
+            $eventData['is_cgr'] = $isCgr;
+            $eventData['is_alhambra'] = $isAlhambra;
+
+            if ($isCgr) {
+                $eventData['category'] = 'Cinéma & Films';
+                $eventData['category_slug'] = 'cinema';
+                $eventData['category_icon'] = 'fa-film';
+            } elseif (str_contains($t, 'cinéma') || str_contains($t, 'cinema') || str_contains($t, 'film') || str_contains($t, 'séance') || str_contains($t, 'seance') || str_contains($t, 'projection') || $isAlhambra) {
+                $eventData['category'] = 'Cinéma';
                 $eventData['category_slug'] = 'cinema';
                 $eventData['category_icon'] = 'fa-film';
             } elseif (str_contains($t, 'exposition') || str_contains($t, 'expo') || str_contains($t, 'vernissage') || str_contains($t, 'sculpture') || str_contains($t, 'peinture') || str_contains($t, 'dessin')) {
@@ -192,6 +202,10 @@ class AgendaController extends PublicController
             );
         }
 
+        $cgrMovies = [];
+        $tpl->set('cgrMovies', $cgrMovies);
+        $tpl->set('cgrCount', count($cgrMovies));
+
         $tpl->set('events', $upcomingEvents);
         $tpl->set('upcomingEvents', $upcomingEvents);
         $tpl->set('pastEvents', $pastEvents);
@@ -213,35 +227,23 @@ class AgendaController extends PublicController
     public function event()
     {
         $response = new PublicResponse();
-        $paramId = $this->router->getParam('id');
+        $idParam = (string)$this->router->getParam('id');
 
-        // Extraction de l'identifiant réel (numérique ou hash hexadécimal à la fin du slug)
-        // Exemples : "rencontre-d-artiste-5717" -> "5717", "foire-aux-huitres-6afe6d4e8de68" -> "6afe6d4e8de68", "5717" -> "5717"
-        $realId = $paramId;
-        if (preg_match('/(?:^|.*-)([a-f0-9]{13}|[0-9]+)$/i', (string)$paramId, $matches)) {
-            $realId = $matches[1];
-        }
-
-        $event = $this->eventManager->getById($realId);
-        if (!$event) {
-            $event = $this->eventManager->getById($paramId);
-        }
-
+        $event = $this->eventManager->getById($idParam);
         if (!$event) {
             return \Core\Core::getInstance()->redirect('/agenda');
         }
 
-        // Redirection 301 canonique si l'URL appelée n'est pas le slug descriptif officiel
-        $canonicalPath = $event->getUrl(); // ex: /agenda/event/swanny-elzingre-5717
-        $requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
-        $requestPath = '/' . ltrim((string)$requestUri, '/');
-        if ($requestPath !== $canonicalPath && $requestPath !== $canonicalPath . '/') {
-            header('Location: ' . $canonicalPath, true, 301);
-            exit;
+        $eventTitle = $event->getTitle() ?? 'Événement';
+        $expectedUrl = $event->getUrl();
+        $expectedSlugId = basename($expectedUrl);
+
+        // Si l'URL actuelle est /agenda/event/123 sans le slug ou avec un mauvais slug, 301 redirection canonique vers l'URL propre avec slug
+        if ($idParam !== $expectedSlugId) {
+            header('Location: ' . $expectedUrl, true, 301);
+            exit();
         }
 
-        $id = $event->getId();
-        $eventTitle = $event->getTitle() ?? 'Événement';
         $response->setTitle('<i class="fa-solid fa-calendar-day"></i> ' . $eventTitle);
         $tpl = $response->createPluginTemplate('agenda', 'event');
         $plugin = $this->runPlugin;
@@ -256,10 +258,10 @@ class AgendaController extends PublicController
         $tpl->set('has_external_url', !empty($externalUrl));
         $tpl->set('event_external_url', $externalUrl);
 
-        // Balises Open Graph pour le partage Facebook
+        // Balises Open Graph pour le partage Facebook & SEO
         $core = \Core\Core::getInstance();
         $siteUrl = rtrim($core->getConfigVal('siteUrl') ?: '', '/');
-        $eventUrl = $siteUrl . $canonicalPath;
+        $eventUrl = $siteUrl . $expectedUrl;
         $eventDesc = trim(strip_tags(html_entity_decode($event->getDescription() ?? 'Événement', ENT_QUOTES | ENT_HTML5, 'UTF-8')));
         $eventImg = $event->getImageUrl() ?: '/theme/' . ($core->getConfigVal('theme') ?: 'default') . '/logo.png';
         if (!preg_match('#^https?://#i', $eventImg)) {
@@ -317,89 +319,6 @@ class AgendaController extends PublicController
         $tpl->set('hasMap', !empty($mapHtml));
         $tpl->set('mapHtml', $mapHtml);
 
-        // Données structurées Schema.org JSON-LD (Google Rich Snippets pour Événement)
-        $rawStart = $event->getStartDate();
-        $rawEnd = $event->getEndDate() ?: $rawStart;
-        $startIso = (strpos($rawStart, ':') !== false) ? date('c', strtotime($rawStart)) : date('Y-m-d', strtotime($rawStart));
-        $endIso = (strpos($rawEnd, ':') !== false) ? date('c', strtotime($rawEnd)) : date('Y-m-d', strtotime($rawEnd));
-
-        $locationName = $event->getLocation() ?: $siteName;
-        $locationData = [
-            '@type' => 'Place',
-            'name' => $locationName,
-            'address' => [
-                '@type' => 'PostalAddress',
-                'streetAddress' => $event->getLocation() ?: '',
-                'addressLocality' => $locationName,
-                'addressCountry' => 'FR',
-            ],
-        ];
-        if ($lat && $lon) {
-            $locationData['geo'] = [
-                '@type' => 'GeoCoordinates',
-                'latitude' => (float)$lat,
-                'longitude' => (float)$lon,
-            ];
-        }
-
-        $isFree = (stripos($eventTitle . ' ' . $eventDesc, 'gratuit') !== false);
-        $eventJsonLd = [
-            '@context' => 'https://schema.org',
-            '@type' => 'Event',
-            'name' => $eventTitle,
-            'description' => mb_substr($eventDesc, 0, 300),
-            'url' => $eventUrl,
-            'startDate' => $startIso,
-            'endDate' => $endIso,
-            'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
-            'eventStatus' => 'https://schema.org/EventScheduled',
-            'location' => $locationData,
-            'image' => [!empty($eventImg) ? $eventImg : $siteUrl . '/theme/' . ($core->getConfigVal('theme') ?: 'default') . '/logo.png'],
-            'organizer' => [
-                '@type' => 'Organization',
-                'name' => $siteName,
-                'url' => $siteUrl,
-            ],
-            'offers' => [
-                '@type' => 'Offer',
-                'url' => !empty($externalUrl) ? $externalUrl : $eventUrl,
-                'price' => $isFree ? '0' : '0',
-                'priceCurrency' => 'EUR',
-                'availability' => 'https://schema.org/InStock',
-                'validFrom' => date('c'),
-            ],
-        ];
-
-        // Fil d'Ariane Schema.org BreadcrumbList
-        $breadcrumbJsonLd = [
-            '@context' => 'https://schema.org',
-            '@type' => 'BreadcrumbList',
-            'itemListElement' => [
-                [
-                    '@type' => 'ListItem',
-                    'position' => 1,
-                    'name' => 'Accueil',
-                    'item' => $siteUrl . '/',
-                ],
-                [
-                    '@type' => 'ListItem',
-                    'position' => 2,
-                    'name' => 'Agenda',
-                    'item' => $siteUrl . '/agenda',
-                ],
-                [
-                    '@type' => 'ListItem',
-                    'position' => 3,
-                    'name' => $eventTitle,
-                    'item' => $eventUrl,
-                ],
-            ],
-        ];
-
-        $jsonLdScripts = '<script type="application/ld+json">' . "\n" . json_encode($eventJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>' . "\n" .
-                         '<script type="application/ld+json">' . "\n" . json_encode($breadcrumbJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>';
-        $core->addMeta($jsonLdScripts);
-
         // Load attendance data
         $attendanceManager = new \Agenda\Entities\AttendanceManager();
         $attendanceCount = $attendanceManager->getAttendanceCount($id);
@@ -428,6 +347,12 @@ class AgendaController extends PublicController
         }
         $tpl->set('linkedOffers', $linkedOffers);
 
+        $cgrMovies = [];
+        $isCgrMaster = false;
+        $tpl->set('isCgrMaster', $isCgrMaster);
+        $tpl->set('cgrMovies', $cgrMovies);
+        $tpl->set('cgrCount', count($cgrMovies));
+
         $response->addTemplate($tpl);
         return $response;
     }
@@ -435,11 +360,7 @@ class AgendaController extends PublicController
     public function toggleAttendance()
     {
         $response = new ApiResponse();
-        $paramId = $this->router->getParam('id');
-        $id = $paramId;
-        if (preg_match('/(?:^|.*-)([a-f0-9]{13}|[0-9]+)$/i', (string)$paramId, $matches)) {
-            $id = $matches[1];
-        }
+        $id = $this->router->getParam('id');
 
         $event = $this->eventManager->getById($id);
         if (!$event) {
@@ -695,11 +616,7 @@ class AgendaController extends PublicController
      */
     public function exportIcal($id)
     {
-        $realId = $id;
-        if (preg_match('/(?:^|.*-)([a-f0-9]{13}|[0-9]+)$/i', (string)$id, $matches)) {
-            $realId = $matches[1];
-        }
-        $event = $this->eventManager->getById($realId);
+        $event = $this->eventManager->findById((int)$id);
         $status = $event ? strtolower((string) $event->getStatus()) : '';
         if (!$event || ($status !== '' && !in_array($status, ['approved', 'published'], true))) {
             Show::msg('Événement non trouvé ou non publié.', 'error');

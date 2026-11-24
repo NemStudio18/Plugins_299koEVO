@@ -71,7 +71,13 @@ class EventManager
 
     public function getById($id): ?Event
     {
-        $event = Event::findPK($id);
+        // Extraction numérique si slug (ex: "mon-event-123" -> 123)
+        $cleanId = $id;
+        if (is_string($id) && preg_match('/(?:^|-)(\d+)$/', $id, $matches)) {
+            $cleanId = (int)$matches[1];
+        }
+
+        $event = Event::findPK($cleanId);
         if ($event) {
             return $event;
         }
@@ -80,7 +86,7 @@ class EventManager
         try {
             $db = \Core\Database::getInstance()->getPdo();
             $stmt = $db->prepare("SELECT * FROM agenda_events WHERE id = :id LIMIT 1");
-            $stmt->execute([':id' => $id]);
+            $stmt->execute([':id' => $cleanId]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             if ($row) {
                 return new Event($row);
