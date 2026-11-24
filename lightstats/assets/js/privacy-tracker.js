@@ -155,6 +155,7 @@
                 right: 24px;
                 max-width: 440px;
                 width: calc(100% - 48px);
+                box-sizing: border-box;
                 background: #ffffff;
                 color: #1e293b;
                 border: 1px solid #e2e8f0;
@@ -330,8 +331,11 @@
             @media (max-width: 600px) {
                 #vb-privacy-toast {
                     bottom: 12px;
+                    left: 12px;
                     right: 12px;
-                    width: calc(100% - 24px);
+                    width: auto;
+                    max-width: none;
+                    box-sizing: border-box;
                     padding: 16px;
                 }
                 .vb-privacy-actions {
