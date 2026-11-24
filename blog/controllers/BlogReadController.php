@@ -47,7 +47,7 @@ class BlogReadController extends PublicController
         $canonicalSlug = Util::strToUrl($item->getName());
         if ($name !== $canonicalSlug) {
             $queryString = !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '';
-            $canonicalTarget = rtrim($this->core->getConfigVal('siteUrl') ?: '', '/') . $this->runPlugin->getPublicUrl() . $canonicalSlug . '-' . $item->getId() . '.html' . $queryString;
+            $canonicalTarget = $this->runPlugin->getPublicUrl() . $canonicalSlug . '-' . $item->getId() . '.html' . $queryString;
             header('HTTP/1.1 301 Moved Permanently');
             header('Location: ' . $canonicalTarget);
             exit;
@@ -233,7 +233,7 @@ class BlogReadController extends PublicController
         $siteUrl = rtrim($this->core->getConfigVal('siteUrl') ?: '', '/');
         $siteName = $this->core->getConfigVal('siteName') ?: '299koEVO';
         $canonicalSlug = Util::strToUrl($item->getName());
-        $canonicalUrl = $siteUrl . $this->runPlugin->getPublicUrl() . $canonicalSlug . '-' . $item->getId() . '.html';
+        $canonicalUrl = $this->runPlugin->getPublicUrl() . $canonicalSlug . '-' . $item->getId() . '.html';
 
         $this->core->addMeta('<link rel="canonical" href="' . htmlspecialchars($canonicalUrl, ENT_QUOTES, 'UTF-8') . '" />');
         $this->core->addMeta('<meta property="og:site_name" content="' . htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8') . '" />');
@@ -363,7 +363,7 @@ class BlogReadController extends PublicController
                     '@type' => 'ListItem',
                     'position' => 2,
                     'name' => 'Actualités',
-                    'item' => $siteUrl . $this->runPlugin->getPublicUrl(),
+                    'item' => $this->runPlugin->getPublicUrl(),
                 ],
                 [
                     '@type' => 'ListItem',
