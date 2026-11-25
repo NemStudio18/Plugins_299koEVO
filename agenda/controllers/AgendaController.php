@@ -287,6 +287,96 @@ class AgendaController extends PublicController
         $tpl->set('event_share_url', $eventUrl);
         $tpl->set('fb_share_url', 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode($eventUrl));
 
+        // Données structurées Schema.org JSON-LD (Google Rich Snippets pour Événement)
+        $rawStart = $event->getStartDate();
+        $rawEnd = $event->getEndDate() ?: $rawStart;
+        $startIso = (strpos($rawStart, ':') !== false) ? date('c', strtotime($rawStart)) : date('Y-m-d', strtotime($rawStart));
+        $endIso = (strpos($rawEnd, ':') !== false) ? date('c', strtotime($rawEnd)) : date('Y-m-d', strtotime($rawEnd));
+
+        $locationName = $event->getLocation() ?: 'Bourges';
+        $locationData = [
+            '@type' => 'Place',
+            'name' => $locationName,
+            'address' => [
+                '@type' => 'PostalAddress',
+                'streetAddress' => $locationName,
+                'addressLocality' => 'Bourges',
+                'postalCode' => '18000',
+                'addressRegion' => 'Cher',
+                'addressCountry' => 'FR',
+            ],
+        ];
+        if ($lat && $lon) {
+            $locationData['geo'] = [
+                '@type' => 'GeoCoordinates',
+                'latitude' => (float)$lat,
+                'longitude' => (float)$lon,
+            ];
+        }
+
+        $isFree = (stripos($eventTitle . ' ' . $eventDesc, 'gratuit') !== false);
+        $performerName = !empty($event->getLocation()) ? $event->getLocation() : $siteName;
+        $eventJsonLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Event',
+            'name' => $eventTitle,
+            'description' => mb_substr($eventDesc, 0, 300),
+            'url' => $eventUrl,
+            'startDate' => $startIso,
+            'endDate' => $endIso,
+            'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
+            'eventStatus' => 'https://schema.org/EventScheduled',
+            'location' => $locationData,
+            'image' => [!empty($eventImg) ? $eventImg : $siteUrl . '/images/mascot/what_agenda.webp'],
+            'performer' => [
+                '@type' => 'PerformingGroup',
+                'name' => $performerName,
+            ],
+            'organizer' => [
+                '@type' => 'Organization',
+                'name' => $siteName,
+                'url' => $siteUrl,
+            ],
+            'offers' => [
+                '@type' => 'Offer',
+                'url' => !empty($externalUrl) ? $externalUrl : $eventUrl,
+                'price' => $isFree ? 0 : 0,
+                'priceCurrency' => 'EUR',
+                'availability' => 'https://schema.org/InStock',
+                'validFrom' => date('c'),
+            ],
+        ];
+
+        // Fil d'Ariane Schema.org BreadcrumbList
+        $breadcrumbJsonLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Accueil',
+                    'item' => $siteUrl . '/',
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => 'Agenda',
+                    'item' => $siteUrl . '/agenda',
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 3,
+                    'name' => $eventTitle,
+                    'item' => $eventUrl,
+                ],
+            ],
+        ];
+
+        $jsonLdScripts = '<script type="application/ld+json">' . "\n" . json_encode($eventJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>' . "\n" .
+                         '<script type="application/ld+json">' . "\n" . json_encode($breadcrumbJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>';
+        $core->addMeta($jsonLdScripts);
+
         // Map Hook calculation
         $lat = $event->getLatitude();
         $lon = $event->getLongitude();

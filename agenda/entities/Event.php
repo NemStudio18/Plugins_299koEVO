@@ -57,7 +57,7 @@ class Event extends JsonActiveRecord
 
     public function getUrl(): string
     {
-        $slug = \Utils\Util::slugify($this->getTitle() ?? '');
+        $slug = \Utils\Util::strToUrl($this->getTitle() ?? '');
         $param = ($slug ? $slug . '-' : '') . $this->id;
         $router = \Core\Router\Router::getInstance();
         return $router->generate('agenda-event', ['id' => $param]);
