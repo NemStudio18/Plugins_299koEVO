@@ -395,7 +395,7 @@ function gamificationEndFrontBody(): void
         <div class="gamification-progress-bar-content">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-bottom: 0.5rem;">
                 <div style="flex: 1;"></div>
-                <button onclick="toggleGamificationProgressBar()" class="gamification-close-btn" style="background: transparent; border: none; color: #6c757d; font-size: 1.2rem; cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.backgroundColor=\'#f0f0f0\'; this.style.color=\'#333\';" onmouseout="this.style.backgroundColor=\'transparent\'; this.style.color=\'#6c757d\';" title="Fermer">
+                <button onclick="toggleGamificationProgressBar()" class="gamification-close-btn" style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 4px; transition: all 0.2s;" title="Fermer">
                     <i class="fa-solid fa-times"></i>
                 </button>
             </div>
@@ -404,13 +404,13 @@ function gamificationEndFrontBody(): void
                     <i class="fa-solid ' . htmlspecialchars($currentPalierIcon, ENT_QUOTES, 'UTF-8') . '"></i>
                 </div>
                 <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: bold; color: #333; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">' . htmlspecialchars($currentPalierName, ENT_QUOTES, 'UTF-8') . '</div>
-                    <div style="color: #6c757d; font-size: 0.75rem;">' . number_format($points, 0, ',', ' ') . ' points</div>
+                    <div class="gamification-user-level-title">' . htmlspecialchars($currentPalierName, ENT_QUOTES, 'UTF-8') . '</div>
+                    <div class="gamification-user-points">' . number_format($points, 0, ',', ' ') . ' points</div>
                 </div>
             </div>
             <div style="flex: 1; min-width: 200px; max-width: 500px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-                    <span style="font-size: 0.75rem; color: #6c757d;">';
+                    <span class="gamification-next-palier-label">';
     
     if ($nextPalier) {
         $progressBarHtml .= 'Prochain palier: <strong>' . htmlspecialchars($nextPalierName, ENT_QUOTES, 'UTF-8') . '</strong> (' . number_format($nextPalierPoints, 0, ',', ' ') . ' pts)';
@@ -420,9 +420,9 @@ function gamificationEndFrontBody(): void
     
     $progressBarHtml .= '
                     </span>
-                    <span style="font-size: 0.75rem; color: #6c757d; font-weight: bold;">' . round($progressPercent) . '%</span>
+                    <span class="gamification-progress-percentage">' . round($progressPercent) . '%</span>
                 </div>
-                <div style="width: 100%; height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden;">
+                <div class="gamification-progress-track">
                     <div style="width: ' . round($progressPercent) . '%; height: 100%; background: linear-gradient(90deg, ' . htmlspecialchars($currentPalierColor, ENT_QUOTES, 'UTF-8') . ', ' . ($nextPalier ? htmlspecialchars($nextPalier['badge_color'] ?? $currentPalierColor, ENT_QUOTES, 'UTF-8') : $currentPalierColor) . '); transition: width 0.3s ease; border-radius: 4px;"></div>
                 </div>
                 ';
@@ -489,25 +489,126 @@ function gamificationEndFrontBody(): void
     
     .gamification-progress-bar-collapsed .gamification-level-name {
         font-size: 0.65rem;
-        color: #333;
+        color: #1e293b;
         font-weight: 600;
         text-align: center;
         white-space: nowrap;
-        background: white;
-        padding: 0.2rem 0.4rem;
-        border-radius: 4px;
+        background: #ffffff;
+        padding: 0.2rem 0.5rem;
+        border-radius: 6px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        border: 1px solid rgba(0,0,0,0.06);
         margin-top: 0.25rem;
+        transition: all 0.2s ease;
     }
     
     /* Mode etendu - Panneau qui s ouvre depuis le badge */
     .gamification-progress-bar-expanded {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-        padding: 1rem;
+        background: #ffffff;
+        border-radius: 14px;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 1.25rem;
         min-width: 320px;
         max-width: 500px;
+    }
+    
+    .gamification-user-level-title {
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 0.95rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .gamification-user-points {
+        color: #64748b;
+        font-size: 0.8rem;
+    }
+    
+    .gamification-next-palier-label {
+        font-size: 0.78rem;
+        color: #64748b;
+    }
+    
+    .gamification-next-palier-label strong {
+        color: #334155;
+    }
+    
+    .gamification-progress-percentage {
+        font-size: 0.78rem;
+        color: #64748b;
+        font-weight: 700;
+    }
+    
+    .gamification-progress-track {
+        width: 100%;
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .gamification-close-btn {
+        color: #64748b;
+    }
+    .gamification-close-btn:hover {
+        background-color: #f1f5f9;
+        color: #0f172a;
+    }
+    
+    /* Dark Mode Gamification */
+    :root[data-theme="dark"] .gamification-progress-bar-collapsed .gamification-level-name,
+    html[data-theme="dark"] .gamification-progress-bar-collapsed .gamification-level-name,
+    body.theme-dark .gamification-progress-bar-collapsed .gamification-level-name {
+        background: #1e293b;
+        color: #f8fafc;
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    
+    :root[data-theme="dark"] .gamification-progress-bar-expanded,
+    html[data-theme="dark"] .gamification-progress-bar-expanded,
+    body.theme-dark .gamification-progress-bar-expanded {
+        background: #1e293b;
+        border-color: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+    }
+    
+    :root[data-theme="dark"] .gamification-user-level-title,
+    html[data-theme="dark"] .gamification-user-level-title {
+        color: #f8fafc;
+    }
+    
+    :root[data-theme="dark"] .gamification-user-points,
+    html[data-theme="dark"] .gamification-user-points,
+    :root[data-theme="dark"] .gamification-next-palier-label,
+    html[data-theme="dark"] .gamification-next-palier-label,
+    :root[data-theme="dark"] .gamification-progress-percentage,
+    html[data-theme="dark"] .gamification-progress-percentage {
+        color: #94a3b8;
+    }
+    
+    :root[data-theme="dark"] .gamification-next-palier-label strong,
+    html[data-theme="dark"] .gamification-next-palier-label strong {
+        color: #e2e8f0;
+    }
+    
+    :root[data-theme="dark"] .gamification-progress-track,
+    html[data-theme="dark"] .gamification-progress-track {
+        background: #334155;
+    }
+    
+    :root[data-theme="dark"] .gamification-close-btn,
+    html[data-theme="dark"] .gamification-close-btn {
+        color: #94a3b8;
+    }
+    
+    :root[data-theme="dark"] .gamification-close-btn:hover,
+    html[data-theme="dark"] .gamification-close-btn:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
     }
     
     .gamification-progress-bar-expanded .gamification-progress-bar-content {

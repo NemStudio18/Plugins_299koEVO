@@ -619,4 +619,34 @@ a.blog-cat-pill.active .cat-pill-count {
     }
 }
 
+/* --- BLOG DARK MODE ENHANCEMENTS --- */
+:root[data-theme="dark"] .blog-post-card,
+html[data-theme="dark"] .blog-post-card,
+body.theme-dark .blog-post-card {
+    background: var(--evo-card-bg, #1e293b);
+    border-color: var(--evo-border, rgba(255, 255, 255, 0.08));
+    color: var(--evo-text, #f8fafc);
+}
+
+:root[data-theme="dark"] .blog-post-card:hover,
+html[data-theme="dark"] .blog-post-card:hover {
+    border-color: var(--evo-accent, #f59e0b);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-theme="dark"] .blog-card-title a,
+html[data-theme="dark"] .blog-card-title a {
+    color: var(--evo-text, #f8fafc);
+}
+
+:root[data-theme="dark"] .blog-card-title a:hover,
+html[data-theme="dark"] .blog-card-title a:hover {
+    color: var(--evo-accent, #f59e0b);
+}
+
+:root[data-theme="dark"] .blog-card-excerpt,
+html[data-theme="dark"] .blog-card-excerpt {
+    color: var(--evo-text-muted, #94a3b8);
+}
+
 }
