@@ -88,6 +88,21 @@
                     <label for="category-add-parentId">{{Lang.blog.categories.categoryParent}}</label>
                     {{categoriesManager.outputAsSelectOne(0, "category-add-parentId")}}
                 </div>
+
+                <div class="blog-access-restrictions-section mt-medium" style="border-top: 1px solid var(--evo-border, #e2e8f0); padding-top: 1rem; margin-top: 1.5rem;">
+                    <h4><i class="fa-solid fa-user-lock"></i> Restrictions d'accès (Groupes VIP)</h4>
+                    <p class="font-small color-muted" style="margin-bottom: 0.75rem;">
+                        Laissez décoché pour que l'article soit <strong>public et accessible à tous</strong>. Si vous cochez un ou plusieurs groupes, seuls les membres de ces groupes (et les administrateurs) pourront lire l'article complet.
+                    </p>
+                    <div class="blog-groups-checklist" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        {% for group in userGroups %}
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.95rem;">
+                                <input type="checkbox" name="allowedGroups[]" value="{{ group.getSlug() }}" {% if in_array(group.getSlug(), allowedGroups) %}checked{% endif %} />
+                                <span><strong>{{ group.getName() }}</strong> <span class="color-muted font-small">({{ group.getSlug() }})</span></span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
             </li>
             <li class='tab'>
                 <h4>{{Lang.blog-featured-img}}</h4>
@@ -131,7 +146,11 @@
         }
         var src = raw;
         if (!/^https?:\/\//i.test(raw) && !raw.startsWith('/')) {
-            src = '/' + raw;
+            if (!raw.startsWith('data/')) {
+                src = '/data/upload/blog/' + raw;
+            } else {
+                src = '/' + raw;
+            }
         }
         preview.innerHTML = '';
         var img = document.createElement('img');

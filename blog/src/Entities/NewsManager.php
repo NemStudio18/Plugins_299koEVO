@@ -245,6 +245,7 @@ class NewsManager
                 'draft' => $v->getDraft(),
                 'img' => $v->getImg(),
                 'commentsOff' => $v->getCommentsOff(),
+                'allowedGroups' => $v->getAllowedGroups(),
             );
         }
         $dataFile = (defined('DATA_PLUGIN') ? DATA_PLUGIN : ROOT . 'data/plugin/') . 'blog/blog.json';

@@ -326,24 +326,29 @@ class galerie {
 
     public function saveItem($obj) {
         $id = $obj->getId();
+        $hasUpload = !empty($_FILES['file']['name']) && (!isset($_FILES['file']['error']) || $_FILES['file']['error'] === UPLOAD_ERR_OK);
+
         if ($id == '') {
-            
             $obj->setId(uniqid());
-            $upload = Util::uploadFile('file', UPLOAD . 'galerie/', $obj->getId(), ['extensions' => ["gif", "png", "jpg", "jpeg"]]);
-            if ($upload == 'success') {
-                $ext = "." . Util::getFileExtension($_FILES['file']['name']);
-                $obj->setImg($obj->getId() . $ext);
-                galerieResize(UPLOAD . 'galerie/' . $obj->getId() . $ext, '', $this->size, 100);
+            if ($hasUpload) {
+                $upload = Util::uploadFile('file', UPLOAD . 'galerie/', $obj->getId(), ['extensions' => ["gif", "png", "jpg", "jpeg", "webp"]]);
+                if ($upload == 'success') {
+                    $ext = "." . Util::getFileExtension($_FILES['file']['name']);
+                    $obj->setImg($obj->getId() . $ext);
+                    galerieResize(UPLOAD . 'galerie/' . $obj->getId() . $ext, '', $this->size, 100);
+                }
             }
             $this->items[] = $obj;
         } else {
             foreach ($this->items as $k => $v) {
                 if ($id == $v->getId()) {
-                    $upload = Util::uploadFile('file', UPLOAD . 'galerie/', $obj->getId(), ['extensions' => ["gif", "png", "jpg", "jpeg"]]);
-                    if ($upload == 'success') {
-                        $ext = "." . Util::getFileExtension($_FILES['file']['name']);
-                        $obj->setImg($obj->getId() . $ext);
-                        galerieResize(UPLOAD . 'galerie/' . $obj->getId() . $ext, '', $this->size, 100);
+                    if ($hasUpload) {
+                        $upload = Util::uploadFile('file', UPLOAD . 'galerie/', $obj->getId(), ['extensions' => ["gif", "png", "jpg", "jpeg", "webp"]]);
+                        if ($upload == 'success') {
+                            $ext = "." . Util::getFileExtension($_FILES['file']['name']);
+                            $obj->setImg($obj->getId() . $ext);
+                            galerieResize(UPLOAD . 'galerie/' . $obj->getId() . $ext, '', $this->size, 100);
+                        }
                     }
                     $this->items[$k] = $obj;
                 }

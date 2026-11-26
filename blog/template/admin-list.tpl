@@ -1,4 +1,4 @@
-﻿<section class="overflow-auto">
+<section class="overflow-auto">
 	<header>{{Lang.blog-posts-list}}</header>
 	<a class="button" href="{ ROUTER.generate("admin-blog-edit-post") }">{{Lang.blog-add}}</a>
 	<a target="_blank" class="button" href="{ ROUTER.generate("blog-rss") }">{{Lang.rss_feed}}</a>

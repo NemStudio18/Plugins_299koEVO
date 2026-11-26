@@ -72,6 +72,16 @@ class BlogListController extends PublicController
                     $news[$k]['img'] = $v->getImg();
                     $news[$k]['imgUrl'] = $v->getImgUrl();
                     $news[$k]['commentsOff'] = $v->getcommentsOff();
+                    $isRestricted = $v->isRestricted();
+                    if (!$isRestricted) {
+                        foreach ($categoriesManager->getCategories() as $cat) {
+                            if (in_array($v->getId(), $cat->items) && !empty($cat->pluginArgs['allowedGroups'])) {
+                                $isRestricted = true;
+                                break;
+                            }
+                        }
+                    }
+                    $news[$k]['isRestricted'] = $isRestricted;
                 }
                 $i++;
             }
@@ -160,6 +170,16 @@ class BlogListController extends PublicController
                     $news[$k]['img'] = $v->getImg();
                     $news[$k]['imgUrl'] = $v->getImgUrl();
                     $news[$k]['commentsOff'] = $v->getcommentsOff();
+                    $isRestricted = $v->isRestricted();
+                    if (!$isRestricted) {
+                        foreach ($categoriesManager->getCategories() as $cat) {
+                            if (in_array($v->getId(), $cat->items) && !empty($cat->pluginArgs['allowedGroups'])) {
+                                $isRestricted = true;
+                                break;
+                            }
+                        }
+                    }
+                    $news[$k]['isRestricted'] = $isRestricted;
 
                 }
                 $i++;

@@ -26,6 +26,9 @@
 				<header class="blog-card-header">
 					<h2>
 						<a href="{{v.url}}">{{v.name}}</a>
+						{% IF v.isRestricted %}
+							<span class="blog-vip-badge" title="Contenu réservé"><i class="fa-solid fa-lock"></i> VIP</span>
+						{% ENDIF %}
 					</h2>
 					<p class="date">
 						<span><i class="fa-regular fa-calendar"></i> {{v.date}}</span>

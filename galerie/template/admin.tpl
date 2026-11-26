@@ -266,16 +266,35 @@
 
                     <section class="panel mt-medium">
                         <header>{{ Lang.galerie.image }}</header>
-                        <div class="file-upload-zone" style="border: 2px dashed #ddd; padding: 2rem; text-align: center; border-radius: 8px;">
-                            <input type="file" name="file" id="file" accept="image/*" {% if item.getImg() == "" %} required="required" {% endif %} />
-                            <p class="font-small color-muted mt-small">Format: png, jpg, jpeg, gif</p>
-                            
-                            {% if item.getImg() != "" %}
-                                <div class="mt-medium">
-                                    <p class="font-bold">{{ Lang.galerie.current-image }} :</p>
-                                    <img src="{{ item.getUrl() }}" alt="{{ item.getImg() }}" style="max-width: 100%; border-radius: 8px; margin-top: 0.5rem;" />
+                        <div class="galerie-image-select-container">
+                            <label for="media-image">{{ Lang.galerie.select-image }}</label>
+                            <input type="text" name="media-image" id="media-image" value="{{ item.getImg() }}" oninput="galerieDisplayPreview()" placeholder="Chemin ou URL de l'image (ex: /data/media/photo.jpg)" class="width-100" />
+                            <div class="galerie-img-actions mt-small" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                                {{ filemanagerDisplayManagerButton("media-image", "Parcourir la médiathèque") }}
+                                <button type="button" class="button alert small" id="media-image-clear" onclick="galerieClearImage()">
+                                    <i class="fa-solid fa-xmark"></i> Retirer
+                                </button>
+                            </div>
+
+                            <div style="margin: 1.5rem 0 1rem; border-top: 1px dashed #ccc; position: relative; text-align: center;">
+                                <span style="position: relative; top: -0.7em; background: inherit; padding: 0 0.8rem; font-size: 0.85rem; color: #888;">ou téléverser un fichier</span>
+                            </div>
+
+                            <div class="file-upload-zone" style="border: 2px dashed #ddd; padding: 1.25rem; text-align: center; border-radius: 8px;">
+                                <input type="file" name="file" id="file" accept="image/*" />
+                                <p class="font-small color-muted mt-small">Format: webp, png, jpg, jpeg, gif</p>
+                            </div>
+
+                            <div class="mt-medium" id="galerie-preview-wrap">
+                                <p class="font-bold">{{ Lang.galerie.current-image }} :</p>
+                                <div id="galerie-preview-box" style="margin-top: 0.5rem;">
+                                    {% if item.getImg() != "" %}
+                                        <img src="{{ item.getUrl() }}" alt="{{ item.getImg() }}" style="max-width: 100%; max-height: 250px; border-radius: 8px;" />
+                                    {% else %}
+                                        <span class="color-muted italic">Aucune image sélectionnée</span>
+                                    {% endif %}
                                 </div>
-                            {% endif %}
+                            </div>
                         </div>
                     </section>
                 </div>
@@ -360,4 +379,28 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+function galerieDisplayPreview() {
+    var input = document.getElementById('media-image');
+    var box = document.getElementById('galerie-preview-box');
+    if (!input || !box) return;
+    var raw = input.value.trim();
+    if (!raw) {
+        box.innerHTML = '<span class="color-muted italic">Aucune image sélectionnée</span>';
+        return;
+    }
+    var src = raw;
+    if (!/^https?:\/\//i.test(raw) && !raw.startsWith('/')) {
+        src = '/' + raw;
+    }
+    box.innerHTML = '<img src="' + src + '" style="max-width: 100%; max-height: 250px; border-radius: 8px;" />';
+}
+
+function galerieClearImage() {
+    var input = document.getElementById('media-image');
+    if (input) {
+        input.value = '';
+        galerieDisplayPreview();
+    }
+}
 </script>

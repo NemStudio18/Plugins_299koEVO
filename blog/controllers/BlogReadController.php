@@ -43,16 +43,6 @@ class BlogReadController extends PublicController
             $this->core->error404();
         }
 
-        // Redirection 301 canonique si le slug d'URL ne correspond pas exactement au slug généré
-        $canonicalSlug = Util::strToUrl($item->getName());
-        if ($name !== $canonicalSlug) {
-            $queryString = !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '';
-            $canonicalTarget = $this->runPlugin->getPublicUrl() . $canonicalSlug . '-' . $item->getId() . '.html' . $queryString;
-            header('HTTP/1.1 301 Moved Permanently');
-            header('Location: ' . $canonicalTarget);
-            exit;
-        }
-
         // Si l'article n'est pas encore public (brouillon ou publication programmée future), seuls les administrateurs peuvent le prévisualiser
         if (!$item->isPublic()) {
             $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
@@ -77,6 +67,8 @@ class BlogReadController extends PublicController
 
         $categories = [];
         $itemId = (int) $item->getId();
+        $allowedGroups = $item->getAllowedGroups();
+
         foreach ($categoriesManager->getCategories() as $cat) {
             // Convertir les items en entiers pour la comparaison stricte
             $catItems = array_map('intval', $cat->items ?? []);
@@ -86,6 +78,49 @@ class BlogReadController extends PublicController
                     'label' => $cleanLabel,
                     'url' => $this->router->generate('blog-category', ['name' => Util::strToUrl($cleanLabel), 'id' => $cat->id]),
                 ];
+                $catAllowed = $cat->pluginArgs['allowedGroups'] ?? [];
+                if (!empty($catAllowed) && is_array($catAllowed)) {
+                    $allowedGroups = array_unique(array_merge($allowedGroups, $catAllowed));
+                }
+            }
+        }
+
+        // Évaluation du content gating (Restrictions de lecture par groupes)
+        $isRestricted = !empty($allowedGroups);
+        $canReadFull = true;
+
+        if ($isRestricted) {
+            $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+            $ctx = new \Core\Navigation\ConditionContext($this->user);
+            if ($evaluator->isAdmin($ctx)) {
+                $canReadFull = true;
+            } else {
+                $currentUser = \Core\Auth\CurrentUser::get();
+                if (!$currentUser->isLogged()) {
+                    $canReadFull = false;
+                } else {
+                    $userRole = $currentUser->role();
+                    $userGroupSlug = ($this->user && method_exists($this->user, 'getGroup') && $this->user->getGroup()) ? $this->user->getGroup()->getSlug() : $userRole;
+                    $canReadFull = in_array($userRole, $allowedGroups, true) || in_array($userGroupSlug, $allowedGroups, true);
+                }
+            }
+        }
+
+        $teaser = '';
+        if (!$canReadFull) {
+            if (!empty($item->getIntro())) {
+                $teaser = $item->getIntro();
+            } else {
+                $rawClean = strip_tags($item->getContent());
+                $teaser = mb_substr($rawClean, 0, 320, 'UTF-8') . (mb_strlen($rawClean, 'UTF-8') > 320 ? '...' : '');
+            }
+        }
+
+        $groupLabels = [];
+        if ($isRestricted) {
+            foreach ($allowedGroups as $gSlug) {
+                $gObj = class_exists('\Core\Auth\Group') ? \Core\Auth\Group::find('slug', $gSlug) : null;
+                $groupLabels[] = $gObj ? $gObj->getName() : ucfirst($gSlug);
             }
         }
 
@@ -111,6 +146,15 @@ class BlogReadController extends PublicController
         $tpl->set('commentSendUrl', $this->router->generate('blog-send'));
         $tpl->set('isDraft', $item->isDraft());
         $tpl->set('isScheduled', $item->isScheduled());
+        $tpl->set('canReadFull', $canReadFull);
+        $tpl->set('isRestricted', $isRestricted);
+        $tpl->set('allowedGroups', $allowedGroups);
+        $tpl->set('teaser', $teaser);
+        $tpl->set('groupLabelsString', implode(', ', $groupLabels));
+        $tpl->set('isUserLogged', \Core\Auth\CurrentUser::get()->isLogged());
+        $tpl->set('loginUrl', $this->router->generate('login'));
+        $tpl->set('registerUrl', $this->router->generate('register'));
+        $tpl->set('allowRegistrations', (bool)$this->core->getConfigVal('allowRegistrations'));
         // Passer l'état d'autorisation au template
         $ctx = new \Core\Navigation\ConditionContext($this->user);
         $tpl->set('isLogged', \Core\Navigation\AccessPolicyEvaluator::getInstance()->canAccess(new \Core\Navigation\GenericResource('blog:comment'), $ctx));
@@ -230,12 +274,8 @@ class BlogReadController extends PublicController
 
     protected function addMetas($item)
     {
-        $siteUrl = rtrim($this->core->getConfigVal('siteUrl') ?: '', '/');
+        $currentUrl = Util::getCurrentURL();
         $siteName = $this->core->getConfigVal('siteName') ?: '299koEVO';
-        $canonicalSlug = Util::strToUrl($item->getName());
-        $canonicalUrl = $this->runPlugin->getPublicUrl() . $canonicalSlug . '-' . $item->getId() . '.html';
-
-        $this->core->addMeta('<link rel="canonical" href="' . htmlspecialchars($canonicalUrl, ENT_QUOTES, 'UTF-8') . '" />');
         $this->core->addMeta('<meta property="og:site_name" content="' . htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8') . '" />');
 
         // Facebook App ID si configuré
@@ -247,8 +287,8 @@ class BlogReadController extends PublicController
             }
         }
 
-        $this->core->addMeta('<meta property="og:url" content="' . htmlspecialchars($canonicalUrl, ENT_QUOTES, 'UTF-8') . '" />');
-        $this->core->addMeta('<meta property="twitter:url" content="' . htmlspecialchars($canonicalUrl, ENT_QUOTES, 'UTF-8') . '" />');
+        $this->core->addMeta('<meta property="og:url" content="' . $currentUrl . '" />');
+        $this->core->addMeta('<meta property="twitter:url" content="' . $currentUrl . '" />');
         $this->core->addMeta('<meta property="og:type" content="article" />');
         $this->core->addMeta('<meta property="og:title" content="' . htmlspecialchars($item->getName(), ENT_QUOTES, 'UTF-8') . '" />');
         $this->core->addMeta('<meta name="twitter:title" content="' . htmlspecialchars($item->getName(), ENT_QUOTES, 'UTF-8') . '" />');
@@ -311,72 +351,6 @@ class BlogReadController extends PublicController
                 }
             }
         }
-
-        // Schema.org BlogPosting JSON-LD
-        $rawDate = $item->getDate();
-        $datePublished = !empty($rawDate) ? date('c', strtotime($rawDate)) : date('c');
-        $rawUpdated = $item->getUpdatedAt();
-        $dateModified = !empty($rawUpdated) ? date('c', strtotime($rawUpdated)) : $datePublished;
-
-        $articleJsonLd = [
-            '@context' => 'https://schema.org',
-            '@type' => 'BlogPosting',
-            'mainEntityOfPage' => [
-                '@type' => 'WebPage',
-                '@id' => $canonicalUrl,
-            ],
-            'headline' => $item->getName(),
-            'description' => $item->getSEODesc(),
-            'datePublished' => $datePublished,
-            'dateModified' => $dateModified,
-            'author' => [
-                '@type' => 'Organization',
-                'name' => $siteName,
-                'url' => $siteUrl,
-            ],
-            'publisher' => [
-                '@type' => 'Organization',
-                'name' => $siteName,
-                'url' => $siteUrl,
-                'logo' => [
-                    '@type' => 'ImageObject',
-                    'url' => $siteUrl . '/theme/' . ($this->core->getConfigVal('theme') ?: 'default') . '/logo.png',
-                ],
-            ],
-        ];
-        if (!empty($imgUrl)) {
-            $articleJsonLd['image'] = [$imgUrl];
-        }
-
-        // Schema.org BreadcrumbList JSON-LD
-        $breadcrumbJsonLd = [
-            '@context' => 'https://schema.org',
-            '@type' => 'BreadcrumbList',
-            'itemListElement' => [
-                [
-                    '@type' => 'ListItem',
-                    'position' => 1,
-                    'name' => 'Accueil',
-                    'item' => $siteUrl . '/',
-                ],
-                [
-                    '@type' => 'ListItem',
-                    'position' => 2,
-                    'name' => 'Actualités',
-                    'item' => $this->runPlugin->getPublicUrl(),
-                ],
-                [
-                    '@type' => 'ListItem',
-                    'position' => 3,
-                    'name' => $item->getName(),
-                    'item' => $canonicalUrl,
-                ],
-            ],
-        ];
-
-        $jsonLdScripts = '<script type="application/ld+json">' . "\n" . json_encode($articleJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>' . "\n" .
-                         '<script type="application/ld+json">' . "\n" . json_encode($breadcrumbJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>';
-        $this->core->addMeta($jsonLdScripts);
     }
 
     protected function generateLastCommentsSidebar(int $nbComments = 10)

@@ -100,6 +100,8 @@ class BlogAdminPostsController extends AdminController
         $tpl->set('categoriesManager', $this->categoriesManager);
         $tpl->set('hasGalerie', $this->pluginsManager->isActivePlugin('galerie'));
         $tpl->set('token', $this->user->token);
+        $tpl->set('userGroups', class_exists('\Core\Auth\Group') ? \Core\Auth\Group::all() : []);
+        $tpl->set('allowedGroups', $news->getAllowedGroups());
 
         $response->addTemplate($tpl);
         return $response;
@@ -166,6 +168,12 @@ class BlogAdminPostsController extends AdminController
         }
         $news->setImg($imgInput);
         $news->setCommentsOff(isset($_POST['commentsOff']) ? 1 : 0);
+        $allowedGroups = $_POST['allowedGroups'] ?? [];
+        if (is_array($allowedGroups)) {
+            $news->setAllowedGroups($allowedGroups);
+        } else {
+            $news->setAllowedGroups([]);
+        }
         if ($this->newsManager->saveNews($news)) {
             $choosenCats = [];
             if (isset($_POST['categoriesCheckbox'])) {

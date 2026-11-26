@@ -88,6 +88,8 @@ class BlogAdminCategoriesController extends AdminController
         $tpl->set('categoriesManager', $this->categoriesManager);
         $tpl->set('category', $category);
         $tpl->set('token', $this->user->token);
+        $tpl->set('userGroups', class_exists('\Core\Auth\Group') ? \Core\Auth\Group::all() : []);
+        $tpl->set('categoryAllowedGroups', $category->pluginArgs['allowedGroups'] ?? []);
         $response->addTemplate($tpl);
         return $response;
     }
@@ -123,6 +125,12 @@ class BlogAdminCategoriesController extends AdminController
         $category = $this->categoriesManager->getCategory($id);
         $category->parentId = $parentId;
         $category->label = $label;
+        $allowedGroups = $this->jsonData['allowedGroups'] ?? $_POST['allowedGroups'] ?? [];
+        if (is_array($allowedGroups)) {
+            $category->pluginArgs['allowedGroups'] = array_values(array_filter(array_map('trim', $allowedGroups)));
+        } else {
+            $category->pluginArgs['allowedGroups'] = [];
+        }
         $this->categoriesManager->saveCategory($category);
         $response->status = ApiResponse::STATUS_ACCEPTED;
         return $response;

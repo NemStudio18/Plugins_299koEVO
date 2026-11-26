@@ -41,10 +41,32 @@ class GalerieItem extends JsonActiveRecord
     public function getHidden() { return $this->hidden; }
 
     public function getUrl(): string {
+        if (empty($this->img)) {
+            return '';
+        }
+        if (preg_match('~^https?://~i', $this->img)) {
+            return $this->img;
+        }
+        $trimmed = ltrim((string)$this->img, '/');
+        if (str_starts_with($trimmed, 'data/') || strpos($this->img, '/') !== false) {
+            return Util::urlBuild($trimmed);
+        }
         return Util::urlBuild(UPLOAD . 'galerie/' . $this->img);
     }
 
     public function getRelUrl(): string {
+        if (empty($this->img)) {
+            return '';
+        }
+        if (preg_match('~^https?://~i', $this->img)) {
+            return $this->img;
+        }
+        if (str_starts_with($this->img, '/')) {
+            return $this->img;
+        }
+        if (str_starts_with($this->img, 'data/')) {
+            return '/' . $this->img;
+        }
         return '/data/upload/galerie/' . ltrim((string)$this->img, '/');
     }
 

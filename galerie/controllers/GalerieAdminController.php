@@ -99,12 +99,16 @@ class GalerieAdminController extends AdminController
         $galerie = new galerie();
         $contentEditor = new Editor('galContent', '', Lang::get('galerie.content'));
 
-        $item = ($_REQUEST['id']) ? $galerie->createItem($_REQUEST['id']) : new GalerieItem();
-        $item->setCategory($_REQUEST['category']);
-        $item->setTitle($_REQUEST['title']);
+        $item = (!empty($_REQUEST['id'])) ? $galerie->createItem($_REQUEST['id']) : new GalerieItem();
+        $item->setCategory($_REQUEST['category'] ?? '');
+        $item->setTitle($_REQUEST['title'] ?? '');
         $item->setContent($contentEditor->getPostContent());
-        $item->setDate($_REQUEST['date']);
+        $item->setDate($_REQUEST['date'] ?? date('Y-m-d'));
         $item->setHidden((isset($_POST['hidden'])) ? 1 : 0);
+
+        if (isset($_POST['media-image'])) {
+            $item->setImg(trim((string)$_POST['media-image']));
+        }
         if ($galerie->saveItem($item)) {
             Show::msg(Lang::get('core-changes-saved'), 'success');
         } else {

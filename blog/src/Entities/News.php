@@ -22,6 +22,7 @@ class News
     private $draft;
     private $img;
     private $commentsOff;
+    private array $allowedGroups = [];
 
     private ContentParser $parser;
 
@@ -47,6 +48,7 @@ class News
             $this->img = (isset($val['img']) ? $val['img'] : '');
             $this->commentsOff = (isset($val['commentsOff']) ? $val['commentsOff'] : 0);
             $this->categories = $val['categories'] ?? [];
+            $this->allowedGroups = is_array($val['allowedGroups'] ?? null) ? $val['allowedGroups'] : [];
         }
         $this->parser = new ContentParser($this->content);
     }
@@ -305,5 +307,20 @@ class News
     public function getCommentsOff()
     {
         return $this->commentsOff;
+    }
+
+    public function getAllowedGroups(): array
+    {
+        return $this->allowedGroups ?? [];
+    }
+
+    public function setAllowedGroups(array $groups): void
+    {
+        $this->allowedGroups = array_values(array_filter(array_map('trim', $groups)));
+    }
+
+    public function isRestricted(): bool
+    {
+        return !empty($this->allowedGroups);
     }
 }
