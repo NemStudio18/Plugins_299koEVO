@@ -96,7 +96,7 @@ class BlogAdminCategoriesController extends AdminController
 
     public function saveCategory($id)
     {
-        $__csrf = $_POST['_csrf'] ?? ($_POST['csrf_token'] ?? ($_POST['token'] ?? null));
+        $__csrf = $this->jsonData['token'] ?? ($this->jsonData['_csrf'] ?? ($_POST['_csrf'] ?? ($_POST['csrf_token'] ?? ($_POST['token'] ?? null))));
         if (!\Core\Security\Csrf::validate($__csrf, false)) {
             if (class_exists('\Utils\Show')) {
                 \Utils\Show::msg("Session expirée ou jeton de sécurité invalide. Veuillez réessayer.", 'error');

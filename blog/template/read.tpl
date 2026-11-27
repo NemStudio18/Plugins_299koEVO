@@ -40,34 +40,8 @@
 		</div>
 		
 	</header>
-	{% IF not canReadFull %}
-		<div class="blog-gated-container">
-			<div class="blog-teaser-content">
-				<div class="blog-teaser-lead">{{teaser}}</div>
-				<div class="blog-content-blur-fade"></div>
-			</div>
-			<div class="blog-vip-gate-card">
-				<div class="vip-gate-icon"><i class="fa-solid fa-lock"></i></div>
-				<h3 class="vip-gate-title">Contenu exclusif réservé</h3>
-				<p class="vip-gate-desc">
-					La suite de cet article est réservée aux membres <strong>{{groupLabelsString}}</strong>.
-				</p>
-				<div class="vip-gate-actions">
-					{% IF not isUserLogged %}
-						<a href="{{loginUrl}}" class="button primary"><i class="fa-solid fa-arrow-right-to-bracket"></i> Connexion</a>
-						{% IF allowRegistrations %}
-							<a href="{{registerUrl}}" class="button"><i class="fa-solid fa-user-plus"></i> Inscription</a>
-						{% ENDIF %}
-					{% ELSE %}
-						<p class="vip-gate-notice">Votre profil actuel ne dispose pas des droits requis pour lire cet article.</p>
-					{% ENDIF %}
-				</div>
-			</div>
-		</div>
-	{% ELSE %}
-		{{TOC}}
-		{{generatedHtml}}
-	{% ENDIF %}
+	{{TOC}}
+	{{generatedHtml}}
 
 	<section class="blog-share-section">
 		<div class="blog-share-label">

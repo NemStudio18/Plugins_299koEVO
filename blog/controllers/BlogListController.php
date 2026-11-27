@@ -5,6 +5,7 @@ use Core\Responses\PublicResponse;
 use Utils\Util;
 use Blog\Entities\NewsManager;
 use Blog\Entities\CategoriesManager;
+use Blog\Services\BlogAccessService;
 
 /**
  * @copyright (C) 2024, 299Ko
@@ -29,8 +30,17 @@ class BlogListController extends PublicController
     {
         $newsManager = new NewsManager();
         $categoriesManager = new CategoriesManager();
-        // Contruction de la pagination
-        $nbNews = $newsManager->getNbItemsToPublic();
+
+        // 1. Filtrer les articles accessibles à l'utilisateur courant
+        $accessibleItems = [];
+        foreach ($newsManager->getItems() as $k => $v) {
+            if ($v->isPublic() && BlogAccessService::canAccessNews($v, $categoriesManager)) {
+                $accessibleItems[$k] = $v;
+            }
+        }
+
+        // Construction de la pagination basée UNIQUEMENT sur les articles accessibles
+        $nbNews = count($accessibleItems);
         $mode = ($nbNews > 0) ? 'list' : 'list_empty';
         $newsByPage = max(1, (int)($this->runPlugin->getConfigVal('items_per_page') ?: $this->runPlugin->getConfigVal('itemsByPage') ?: 10));
         $nbPages = max(1, (int)ceil($nbNews / $newsByPage));
@@ -45,57 +55,46 @@ class BlogListController extends PublicController
                 ? $this->router->generate('blog-page', ['page' => $page])
                 : $this->runPlugin->getPublicUrl();
         });
-        // Récupération des news
+
+        // Récupération des news de la page courante
         $news = [];
         $i = 1;
-        foreach ($newsManager->getItems() as $k => $v)
-            if ($v->isPublic()) {
-                $date = $v->getDate();
-                if ($i >= $start && $i <= $end) {
-                    $news[$k]['name'] = $v->getName();
-                    $news[$k]['date'] = $v->getReadableDate();
-                    $news[$k]['updatedDate'] = $v->getReadableUpdatedDate();
-                    $news[$k]['id'] = $v->getId();
-                    $news[$k]['cats'] = [];
-                    foreach ($categoriesManager->getCategories() as $cat) {
-                        if (in_array($v->getId(), $cat->items)) {
-                            $cleanLabel = html_entity_decode($cat->label, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                            $news[$k]['cats'][] = [
-                                'label' => $cleanLabel,
-                                'url' => $this->router->generate('blog-category', ['name' => Util::strToUrl($cleanLabel), 'id' => $cat->id]),
-                            ];
-                        }
+        foreach ($accessibleItems as $k => $v) {
+            if ($i >= $start && $i <= $end) {
+                $news[$k]['name'] = $v->getName();
+                $news[$k]['date'] = $v->getReadableDate();
+                $news[$k]['updatedDate'] = $v->getReadableUpdatedDate();
+                $news[$k]['id'] = $v->getId();
+                $news[$k]['cats'] = [];
+                foreach ($categoriesManager->getCategories() as $cat) {
+                    if (in_array($v->getId(), $cat->items) && BlogAccessService::canAccessCategory($cat)) {
+                        $cleanLabel = html_entity_decode($cat->label, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        $news[$k]['cats'][] = [
+                            'label' => $cleanLabel,
+                            'url' => $this->router->generate('blog-category', ['name' => Util::strToUrl($cleanLabel), 'id' => $cat->id]),
+                        ];
                     }
-                    $news[$k]['content'] = $v->getContent();
-                    $news[$k]['intro'] = $v->getIntro();
-                    $news[$k]['url'] = $this->runPlugin->getPublicUrl() . Util::strToUrl($v->getName()) . '-' . $v->getId() . '.html';
-                    $news[$k]['img'] = $v->getImg();
-                    $news[$k]['imgUrl'] = $v->getImgUrl();
-                    $news[$k]['commentsOff'] = $v->getcommentsOff();
-                    $isRestricted = $v->isRestricted();
-                    if (!$isRestricted) {
-                        foreach ($categoriesManager->getCategories() as $cat) {
-                            if (in_array($v->getId(), $cat->items) && !empty($cat->pluginArgs['allowedGroups'])) {
-                                $isRestricted = true;
-                                break;
-                            }
-                        }
-                    }
-                    $news[$k]['isRestricted'] = $isRestricted;
                 }
-                $i++;
+                $news[$k]['content'] = $v->getContent();
+                $news[$k]['intro'] = $v->getIntro();
+                $news[$k]['url'] = $this->runPlugin->getPublicUrl() . Util::strToUrl($v->getName()) . '-' . $v->getId() . '.html';
+                $news[$k]['img'] = $v->getImg();
+                $news[$k]['imgUrl'] = $v->getImgUrl();
+                $news[$k]['commentsOff'] = $v->getcommentsOff();
+                $news[$k]['isRestricted'] = BlogAccessService::isItemRestricted($v, $categoriesManager);
             }
-        // Catégories globales pour filtre et navigation
-        $publishedItemIds = [];
-        foreach ($newsManager->getItems() as $pubItem) {
-            if ($pubItem->isPublic()) {
-                $publishedItemIds[] = $pubItem->getId();
-            }
+            $i++;
         }
+
+        // Catégories globales pour filtre et navigation (uniquement celles accessibles avec au moins 1 article visible)
+        $accessibleItemIds = array_map(fn($item) => $item->getId(), $accessibleItems);
         $allCategories = [];
         foreach ($categoriesManager->getCategories() as $cat) {
+            if (!BlogAccessService::canAccessCategory($cat)) {
+                continue;
+            }
             $catItems = is_array($cat->items ?? null) ? $cat->items : [];
-            $catCount = count(array_intersect($catItems, $publishedItemIds));
+            $catCount = count(array_intersect($catItems, $accessibleItemIds));
             if ($catCount > 0) {
                 $cleanLabel = html_entity_decode($cat->label, ENT_QUOTES | ENT_HTML5, 'UTF-8');
                 $allCategories[] = [
@@ -131,62 +130,29 @@ class BlogListController extends PublicController
     {
         $categoriesManager = new CategoriesManager();
         $category = $categoriesManager->getCategory($id);
-        if (!$category) {
+        if (!$category || !BlogAccessService::canAccessCategory($category)) {
             $this->core->error404();
+            return;
         }
-        $newsManager = new NewsManager();
-        $news = [];
 
+        $newsManager = new NewsManager();
+        $accessibleCatItems = [];
+        foreach ($newsManager->getItems() as $k => $v) {
+            if ($v->isPublic() && in_array($v->getId(), $category->items)) {
+                if (BlogAccessService::canAccessNews($v, $categoriesManager)) {
+                    $accessibleCatItems[$k] = $v;
+                }
+            }
+        }
+
+        $nbNews = count($accessibleCatItems);
+        $mode = ($nbNews > 0) ? 'list' : 'list_empty';
         $newsByPage = max(1, (int)($this->runPlugin->getConfigVal('items_per_page') ?: $this->runPlugin->getConfigVal('itemsByPage') ?: 10));
         $currentPage = max(1, (int)$currentPage);
 
         $start = ($currentPage - 1) * $newsByPage + 1;
         $end = $start + $newsByPage - 1;
-        $i = 1;
 
-        foreach ($newsManager->getItems() as $k => $v) {
-            if ($v->getDraft()) {
-                continue;
-            }
-            if (in_array($v->getId(), $category->items)) {
-                $date = $v->getDate();
-                if ($i >= $start && $i <= $end) {
-                    $news[$k]['name'] = $v->getName();
-                    $news[$k]['date'] = $v->getReadableDate();
-                    $news[$k]['id'] = $v->getId();
-                    $news[$k]['cats'] = [];
-                    foreach ($categoriesManager->getCategories() as $cat) {
-                        if (in_array($v->getId(), $cat->items)) {
-                            $cleanLabel = html_entity_decode($cat->label, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                            $news[$k]['cats'][] = [
-                                'label' => $cleanLabel,
-                                'url' => $this->router->generate('blog-category', ['name' => Util::strToUrl($cleanLabel), 'id' => $cat->id]),
-                            ];
-                        }
-                    }
-                    $news[$k]['content'] = $v->getContent();
-                    $news[$k]['intro'] = $v->getIntro();
-                    $news[$k]['url'] = $this->runPlugin->getPublicUrl() . Util::strToUrl($v->getName()) . '-' . $v->getId() . '.html';
-                    $news[$k]['img'] = $v->getImg();
-                    $news[$k]['imgUrl'] = $v->getImgUrl();
-                    $news[$k]['commentsOff'] = $v->getcommentsOff();
-                    $isRestricted = $v->isRestricted();
-                    if (!$isRestricted) {
-                        foreach ($categoriesManager->getCategories() as $cat) {
-                            if (in_array($v->getId(), $cat->items) && !empty($cat->pluginArgs['allowedGroups'])) {
-                                $isRestricted = true;
-                                break;
-                            }
-                        }
-                    }
-                    $news[$k]['isRestricted'] = $isRestricted;
-
-                }
-                $i++;
-            }
-        }
-        $nbNews = $i - 1;
-        $mode = ($nbNews > 0) ? 'list' : 'list_empty';
         if ($mode === 'list') {
             $nbPages = max(1, (int)ceil($nbNews / $newsByPage));
             if ($currentPage > $nbPages) {
@@ -203,17 +169,49 @@ class BlogListController extends PublicController
             $pagination = false;
         }
 
+        $news = [];
+        $i = 1;
+        foreach ($accessibleCatItems as $k => $v) {
+            if ($i >= $start && $i <= $end) {
+                $news[$k]['name'] = $v->getName();
+                $news[$k]['date'] = $v->getReadableDate();
+                $news[$k]['updatedDate'] = $v->getReadableUpdatedDate();
+                $news[$k]['id'] = $v->getId();
+                $news[$k]['cats'] = [];
+                foreach ($categoriesManager->getCategories() as $cat) {
+                    if (in_array($v->getId(), $cat->items) && BlogAccessService::canAccessCategory($cat)) {
+                        $cleanLabel = html_entity_decode($cat->label, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        $news[$k]['cats'][] = [
+                            'label' => $cleanLabel,
+                            'url' => $this->router->generate('blog-category', ['name' => Util::strToUrl($cleanLabel), 'id' => $cat->id]),
+                        ];
+                    }
+                }
+                $news[$k]['content'] = $v->getContent();
+                $news[$k]['intro'] = $v->getIntro();
+                $news[$k]['url'] = $this->runPlugin->getPublicUrl() . Util::strToUrl($v->getName()) . '-' . $v->getId() . '.html';
+                $news[$k]['img'] = $v->getImg();
+                $news[$k]['imgUrl'] = $v->getImgUrl();
+                $news[$k]['commentsOff'] = $v->getcommentsOff();
+                $news[$k]['isRestricted'] = BlogAccessService::isItemRestricted($v, $categoriesManager);
+            }
+            $i++;
+        }
+
         // Catégories globales pour filtre et navigation
-        $publishedItemIds = [];
+        $globalAccessibleItemIds = [];
         foreach ($newsManager->getItems() as $pubItem) {
-            if (!$pubItem->getDraft()) {
-                $publishedItemIds[] = $pubItem->getId();
+            if ($pubItem->isPublic() && BlogAccessService::canAccessNews($pubItem, $categoriesManager)) {
+                $globalAccessibleItemIds[] = $pubItem->getId();
             }
         }
         $allCategories = [];
         foreach ($categoriesManager->getCategories() as $cat) {
+            if (!BlogAccessService::canAccessCategory($cat)) {
+                continue;
+            }
             $catItems = is_array($cat->items ?? null) ? $cat->items : [];
-            $catCount = count(array_intersect($catItems, $publishedItemIds));
+            $catCount = count(array_intersect($catItems, $globalAccessibleItemIds));
             if ($catCount > 0) {
                 $cLabel = html_entity_decode($cat->label, ENT_QUOTES | ENT_HTML5, 'UTF-8');
                 $allCategories[] = [

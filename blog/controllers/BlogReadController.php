@@ -9,6 +9,7 @@ use Core\Router\Router;
 use Blog\Entities\NewsManager;
 use Blog\Entities\CategoriesManager;
 use Blog\Entities\Comment;
+use Blog\Services\BlogAccessService;
 use Core\Auth\UsersManager;
 
 /**
@@ -52,6 +53,11 @@ class BlogReadController extends PublicController
             }
         }
 
+        // Restrictions d'accès par groupe (au niveau de l'article ou de ses catégories)
+        if (!BlogAccessService::canAccessNews($item, $categoriesManager)) {
+            $this->core->error404();
+        }
+
         $newsManager->loadComments($item->getId());
         $this->addMetas($item);
 
@@ -67,62 +73,19 @@ class BlogReadController extends PublicController
 
         $categories = [];
         $itemId = (int) $item->getId();
-        $allowedGroups = $item->getAllowedGroups();
 
         foreach ($categoriesManager->getCategories() as $cat) {
-            // Convertir les items en entiers pour la comparaison stricte
             $catItems = array_map('intval', $cat->items ?? []);
-            if (in_array($itemId, $catItems, true)) {
+            if (in_array($itemId, $catItems, true) && BlogAccessService::canAccessCategory($cat)) {
                 $cleanLabel = html_entity_decode($cat->label, ENT_QUOTES | ENT_HTML5, 'UTF-8');
                 $categories[] = [
                     'label' => $cleanLabel,
                     'url' => $this->router->generate('blog-category', ['name' => Util::strToUrl($cleanLabel), 'id' => $cat->id]),
                 ];
-                $catAllowed = $cat->pluginArgs['allowedGroups'] ?? [];
-                if (!empty($catAllowed) && is_array($catAllowed)) {
-                    $allowedGroups = array_unique(array_merge($allowedGroups, $catAllowed));
-                }
             }
         }
 
-        // Évaluation du content gating (Restrictions de lecture par groupes)
-        $isRestricted = !empty($allowedGroups);
-        $canReadFull = true;
-
-        if ($isRestricted) {
-            $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
-            $ctx = new \Core\Navigation\ConditionContext($this->user);
-            if ($evaluator->isAdmin($ctx)) {
-                $canReadFull = true;
-            } else {
-                $currentUser = \Core\Auth\CurrentUser::get();
-                if (!$currentUser->isLogged()) {
-                    $canReadFull = false;
-                } else {
-                    $userRole = $currentUser->role();
-                    $userGroupSlug = ($this->user && method_exists($this->user, 'getGroup') && $this->user->getGroup()) ? $this->user->getGroup()->getSlug() : $userRole;
-                    $canReadFull = in_array($userRole, $allowedGroups, true) || in_array($userGroupSlug, $allowedGroups, true);
-                }
-            }
-        }
-
-        $teaser = '';
-        if (!$canReadFull) {
-            if (!empty($item->getIntro())) {
-                $teaser = $item->getIntro();
-            } else {
-                $rawClean = strip_tags($item->getContent());
-                $teaser = mb_substr($rawClean, 0, 320, 'UTF-8') . (mb_strlen($rawClean, 'UTF-8') > 320 ? '...' : '');
-            }
-        }
-
-        $groupLabels = [];
-        if ($isRestricted) {
-            foreach ($allowedGroups as $gSlug) {
-                $gObj = class_exists('\Core\Auth\Group') ? \Core\Auth\Group::find('slug', $gSlug) : null;
-                $groupLabels[] = $gObj ? $gObj->getName() : ucfirst($gSlug);
-            }
-        }
+        $isRestricted = BlogAccessService::isItemRestricted($item, $categoriesManager);
 
         $tpl = $response->createPluginTemplate('blog', 'read');
 
@@ -146,11 +109,8 @@ class BlogReadController extends PublicController
         $tpl->set('commentSendUrl', $this->router->generate('blog-send'));
         $tpl->set('isDraft', $item->isDraft());
         $tpl->set('isScheduled', $item->isScheduled());
-        $tpl->set('canReadFull', $canReadFull);
+        $tpl->set('canReadFull', true);
         $tpl->set('isRestricted', $isRestricted);
-        $tpl->set('allowedGroups', $allowedGroups);
-        $tpl->set('teaser', $teaser);
-        $tpl->set('groupLabelsString', implode(', ', $groupLabels));
         $tpl->set('isUserLogged', \Core\Auth\CurrentUser::get()->isLogged());
         $tpl->set('loginUrl', $this->router->generate('login'));
         $tpl->set('registerUrl', $this->router->generate('register'));
@@ -356,8 +316,12 @@ class BlogReadController extends PublicController
     protected function generateLastCommentsSidebar(int $nbComments = 10)
     {
         $comments = NewsManager::getLatestComments($nbComments);
+        $categoriesManager = new CategoriesManager();
         $str = '<ul class="comments-recent-list">';
         foreach ($comments as $comment) {
+            if (!BlogAccessService::canAccessNews($comment['news'], $categoriesManager)) {
+                continue;
+            }
             $str .= "<li class='comment-recent'>";
             $str .= "<span class='comment-recent-author'>";
             if ($comment['comment']->getAuthorWebsite()) {
@@ -495,6 +459,9 @@ class BlogReadController extends PublicController
         }
         $content .= '<ul>';
         foreach ($categories as $category) {
+            if (!BlogAccessService::canAccessCategory($category)) {
+                continue;
+            }
             $content .= $this->generateCategorySidebar($category);
         }
         $content .= '</ul>';
@@ -503,16 +470,21 @@ class BlogReadController extends PublicController
 
     protected function generateCategorySidebar($category)
     {
+        if (!BlogAccessService::canAccessCategory($category)) {
+            return '';
+        }
         $router = Router::getInstance();
         $cleanLabel = html_entity_decode($category->label, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $content = '<li><a href="' . $router->generate('blog-category', ['name' => Util::strToUrl($cleanLabel), 'id' => $category->id]) . '">' .
             htmlspecialchars($cleanLabel, ENT_QUOTES, 'UTF-8') . '</a>';
         if (!empty($category->children)) {
-            $content .= '<ul>';
+            $childrenContent = '';
             foreach ($category->children as $child) {
-                $content .= $this->generateCategorySidebar($child);
+                $childrenContent .= $this->generateCategorySidebar($child);
             }
-            $content .= '</ul>';
+            if ($childrenContent !== '') {
+                $content .= '<ul>' . $childrenContent . '</ul>';
+            }
         }
         $content .= '</li>';
         return $content;
