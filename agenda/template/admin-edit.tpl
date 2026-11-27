@@ -27,8 +27,11 @@
             </div>
             {% ENDIF %}
             <input type="file" name="image_file" accept="image/jpeg,image/png,image/webp,image/gif">
-            <small style="display:block; margin-top:4px; color:#64748b;">Téléversez une affiche/photo depuis votre appareil, ou saisissez une URL ci-dessous (laissez vide pour extraire automatiquement une image de la description si présente) :</small>
-            <input type="text" name="image_url" value="{{formEvent.image_url}}" placeholder="https://... ou /data/upload/...">
+            <small style="display:block; margin-top:4px; color:#64748b;">Téléversez une affiche/photo depuis votre appareil, ou choisissez depuis la médiathèque :</small>
+            <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
+                <input type="text" id="event_image_url" name="image_url" value="{{formEvent.image_url}}" placeholder="/data/media/... ou https://..." style="flex: 1;">
+                {{ filemanagerDisplayManagerButton("event_image_url", "Médiathèque") }}
+            </div>
         </div>
 
         <div class="form-group">

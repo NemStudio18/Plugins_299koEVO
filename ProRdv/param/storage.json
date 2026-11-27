@@ -1,0 +1,48 @@
+{
+    "RdvCommerce": {
+        "label": "Commerces / Professionnels RDV",
+        "drivers": [
+            "sqlite",
+            "mysql"
+        ],
+        "table": "lbp_rdv_commerces",
+        "schema": "CREATE TABLE lbp_rdv_commerces (id INT AUTO_INCREMENT PRIMARY KEY, poi_id INT NULL, user_id INT NULL, slug VARCHAR(60) NOT NULL UNIQUE, nom VARCHAR(120) NOT NULL, type VARCHAR(30) NOT NULL DEFAULT 'coiffeur', email VARCHAR(160) NOT NULL, telephone VARCHAR(30) NULL, mot_de_passe VARCHAR(255) NULL, config TEXT NOT NULL, is_active TINYINT(1) NOT NULL DEFAULT 1, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)"
+    },
+    "RdvCollaborateur": {
+        "label": "Collaborateurs RDV",
+        "drivers": [
+            "sqlite",
+            "mysql"
+        ],
+        "table": "lbp_rdv_collaborateurs",
+        "schema": "CREATE TABLE lbp_rdv_collaborateurs (id INT AUTO_INCREMENT PRIMARY KEY, commerce_id INT NOT NULL, nom VARCHAR(80) NOT NULL, is_active TINYINT(1) NOT NULL DEFAULT 1)"
+    },
+    "RdvPrestation": {
+        "label": "Prestations RDV",
+        "drivers": [
+            "sqlite",
+            "mysql"
+        ],
+        "table": "lbp_rdv_prestations",
+        "schema": "CREATE TABLE lbp_rdv_prestations (id INT AUTO_INCREMENT PRIMARY KEY, commerce_id INT NOT NULL, nom VARCHAR(120) NOT NULL, duree_min INT NOT NULL DEFAULT 30, prix DECIMAL(8,2) NULL, description TEXT NULL, is_active TINYINT(1) NOT NULL DEFAULT 1)"
+    },
+    "RdvHoraire": {
+        "label": "Horaires RDV",
+        "drivers": [
+            "sqlite",
+            "mysql"
+        ],
+        "table": "lbp_rdv_horaires",
+        "schema": "CREATE TABLE lbp_rdv_horaires (id INT AUTO_INCREMENT PRIMARY KEY, commerce_id INT NOT NULL, jour INT NOT NULL, debut VARCHAR(10) NOT NULL, fin VARCHAR(10) NOT NULL)"
+    },
+    "RdvRendezVous": {
+        "label": "Rendez-vous",
+        "drivers": [
+            "sqlite",
+            "mysql"
+        ],
+        "table": "lbp_rdv_rendez_vous",
+        "schema": "CREATE TABLE lbp_rdv_rendez_vous (id INT AUTO_INCREMENT PRIMARY KEY, commerce_id INT NOT NULL, collaborateur_id INT NULL, prestation_id INT NOT NULL, debut DATETIME NOT NULL, fin DATETIME NOT NULL, nom VARCHAR(120) NOT NULL, tel VARCHAR(30) NOT NULL, email VARCHAR(160) NOT NULL, extra TEXT NULL, statut VARCHAR(20) NOT NULL DEFAULT 'a_verifier', token CHAR(32) NOT NULL UNIQUE, cree_le DATETIME DEFAULT CURRENT_TIMESTAMP)"
+    }
+}
+

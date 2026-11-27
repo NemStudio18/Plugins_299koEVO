@@ -38,8 +38,16 @@
         </p>
 
         <p>
-            <label for="prod_image">URL de l'image</label><br>
-            <input type="text" id="prod_image" name="image" value="{% IF product %}{{ product.getImage() }}{% ENDIF %}" placeholder="/data/upload/..." style="width: 100%; max-width: 500px;" />
+            <label for="prod_image">Image du produit</label><br>
+            <div style="display: flex; gap: 8px; align-items: center; max-width: 500px;">
+                <input type="text" id="prod_image" name="image" value="{% IF product %}{{ product.getImage() }}{% ENDIF %}" placeholder="/data/media/..." style="flex: 1;" />
+                {{ filemanagerDisplayManagerButton("prod_image", "Médiathèque") }}
+            </div>
+            {% IF product && product.getImage() %}
+            <div style="margin-top: 8px;">
+                <img src="{{ product.getImage() }}" alt="" style="max-height: 80px; border-radius: 4px; border: 1px solid var(--evo-border, #ddd);" />
+            </div>
+            {% ENDIF %}
         </p>
 
         <p>

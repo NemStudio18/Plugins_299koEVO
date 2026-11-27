@@ -1,0 +1,21 @@
+{
+    "LiveChatConversation": {
+        "label": "Conversations LiveChat",
+        "drivers": [
+            "sqlite",
+            "mysql"
+        ],
+        "table": "vb_livechat_conversations",
+        "schema": "CREATE TABLE vb_livechat_conversations (id INT AUTO_INCREMENT PRIMARY KEY, session_token VARCHAR(64) NOT NULL UNIQUE, visitor_name VARCHAR(120), visitor_contact VARCHAR(160), last_message TEXT, unread_admin INT NOT NULL DEFAULT 0, unread_visitor INT NOT NULL DEFAULT 0, status VARCHAR(20) NOT NULL DEFAULT 'open', created_at DATETIME, updated_at DATETIME)"
+    },
+    "LiveChatMessage": {
+        "label": "Messages LiveChat",
+        "drivers": [
+            "sqlite",
+            "mysql"
+        ],
+        "table": "vb_livechat_messages",
+        "schema": "CREATE TABLE vb_livechat_messages (id INT AUTO_INCREMENT PRIMARY KEY, conversation_id INT NOT NULL, sender VARCHAR(20) NOT NULL, sender_name VARCHAR(120), message TEXT NOT NULL, is_read TINYINT(1) NOT NULL DEFAULT 0, created_at DATETIME)"
+    }
+}
+

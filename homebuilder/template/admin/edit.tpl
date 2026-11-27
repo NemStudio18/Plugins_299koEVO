@@ -61,8 +61,11 @@
                 </div>
             </div>
 
-            <label for="hero_image" style="margin-top: 10px;">URL de l'image de fond (optionnelle)</label>
-            <input type="text" id="hero_image" name="hero_image" value="{{ hero_image }}" placeholder="https://... ou /data/media/mon-image.jpg">
+            <label for="hero_image" style="margin-top: 10px;">Image de fond (optionnelle)</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="hero_image" name="hero_image" value="{{ hero_image }}" placeholder="/data/media/mon-image.jpg" style="flex: 1;">
+                {{ filemanagerDisplayManagerButton("hero_image", "Médiathèque") }}
+            </div>
         </div>
 
         <!-- Options COLONNES / AVANTAGES -->
@@ -177,8 +180,11 @@
         <!-- Options image -->
         <div id="image-options" class="form-section-panel" style="display: none; background: var(--evo-card-bg,#fff); border: 1px solid var(--adm-border); border-radius: 10px; padding: 20px; margin-bottom: 16px;">
             <h3 style="margin-top: 0;">Options de l'image</h3>
-            <label for="image_src">URL de l'image</label>
-            <input type="url" id="image_src" name="image_src" value="{{ image_src }}">
+            <label for="image_src">Image</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="image_src" name="image_src" value="{{ image_src }}" placeholder="/data/media/mon-image.jpg" style="flex: 1;">
+                {{ filemanagerDisplayManagerButton("image_src", "Médiathèque") }}
+            </div>
             <label for="image_alt">Texte alternatif</label>
             <input type="text" id="image_alt" name="image_alt" value="{{ image_alt }}">
             <div style="display: flex; gap: 16px;">

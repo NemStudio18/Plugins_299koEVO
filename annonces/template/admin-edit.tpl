@@ -139,8 +139,11 @@
                 <div id="ann_upload_preview" class="ann-thumbs-grid" style="margin-top: 6px;"></div>
 
                 <div style="margin-top: 6px;">
-                    <label for="ann_image_url" style="font-size: 0.85rem; color: var(--text-color-muted, #64748b);">Ou ajouter une URL / chemin média direct :</label>
-                    <input type="text" id="ann_image_url" name="image" value="" maxlength="255" placeholder="/data/upload/annonces/..." style="width: 100%; box-sizing: border-box; margin-top: 4px;" />
+                    <label for="ann_image_url" style="font-size: 0.85rem; color: var(--text-color-muted, #64748b);">Ou choisir depuis la médiathèque :</label>
+                    <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                        <input type="text" id="ann_image_url" name="image" value="" maxlength="255" placeholder="/data/media/... ou /data/upload/..." style="flex: 1; box-sizing: border-box;" />
+                        {{ filemanagerDisplayManagerButton("ann_image_url", "Médiathèque") }}
+                    </div>
                 </div>
             </div>
         </div>
