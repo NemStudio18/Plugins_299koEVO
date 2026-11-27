@@ -1,0 +1,7 @@
+{
+    "game.name": "Tetris",
+    "game.description": "Faithful Game Boy & Game Boy Color Tetris reproduction with online multiplayer leaderboard.",
+    "game.play": "Play",
+    "game.leaderboard": "Leaderboard",
+    "game.scores": "Scores"
+}

@@ -1,0 +1,551 @@
+/* ==========================================================================
+   GAME BOY TETRIS & LEADERBOARD - 299ko EVO
+   Screen-Centric Arcade Edition - Strictly Zero !important
+   ========================================================================== */
+
+/* DMG Original Pea-Soup Palette */
+:root {
+    --gb-c0: #9bbc0f; /* Lightest */
+    --gb-c1: #8bac0f; /* Light */
+    --gb-c2: #306230; /* Dark */
+    --gb-c3: #0f380f; /* Darkest */
+    --gb-cabinet-bg: #1e1b18;
+    --gb-bezel-border: #383430;
+    --gb-led: #ef4444;
+}
+
+/* GBC Color Palette (High contrast, vibrant arcade colors) */
+[data-palette="gbc_color"] {
+    --gb-c0: #0f172a; /* Matrix background */
+    --gb-c1: #1e293b;
+    --gb-c2: #94a3b8;
+    --gb-c3: #f8fafc;
+    --gb-cabinet-bg: #0f111a;
+    --gb-bezel-border: #2e3650;
+    --gb-led: #22c55e;
+}
+
+/* Pocket Silver Monochrome Palette */
+[data-palette="gb_pocket"] {
+    --gb-c0: #f1f5f9;
+    --gb-c1: #cbd5e1;
+    --gb-c2: #475569;
+    --gb-c3: #0f172a;
+    --gb-cabinet-bg: #1e293b;
+    --gb-bezel-border: #475569;
+    --gb-led: #ef4444;
+}
+
+.evo-game-wrapper {
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 0 16px;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 32px;
+    align-items: start;
+}
+
+/* Main Screen Column */
+.evo-gb-main-screen-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Top Toolbar */
+.evo-gb-screen-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 520px;
+    margin-bottom: 14px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.evo-gb-mode-selector {
+    display: flex;
+    gap: 6px;
+}
+
+.evo-gb-tool-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--evo-border, #cbd5e1);
+    background: var(--evo-card-bg, #ffffff);
+    color: var(--evo-text, #1e293b);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.evo-gb-tool-btn.is-active,
+.evo-gb-tool-btn:hover {
+    background: var(--evo-accent, #6366f1);
+    border-color: var(--evo-accent, #6366f1);
+    color: #ffffff;
+}
+
+/* Screen Cabinet Frame (Focused entirely on the display) */
+.evo-gb-display-cabinet {
+    background: var(--gb-cabinet-bg);
+    border: 2px solid var(--gb-bezel-border);
+    border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    padding: 16px;
+    width: 100%;
+    max-width: 520px;
+    box-sizing: border-box;
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* Screen Header Bar */
+.evo-gb-display-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 6px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 12px;
+}
+
+.evo-gb-led-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.evo-gb-battery-led {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gb-led);
+    box-shadow: 0 0 8px var(--gb-led);
+}
+
+.evo-gb-led-text {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+}
+
+.evo-gb-title-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #cbd5e1;
+    letter-spacing: 0.06em;
+    font-family: monospace;
+}
+
+.evo-gb-fps-counter {
+    font-size: 0.68rem;
+    color: #64748b;
+    font-family: monospace;
+}
+
+/* Viewport Area (Board + HUD) */
+.evo-gb-screen-viewport {
+    display: flex;
+    gap: 16px;
+    background: var(--gb-c1);
+    border: 3px solid #000000;
+    border-radius: 6px;
+    padding: 12px;
+    box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.6);
+    font-family: "Courier New", Courier, monospace;
+    color: var(--gb-c3);
+    user-select: none;
+}
+
+/* Board Frame */
+.evo-gb-board-frame {
+    flex-shrink: 0;
+}
+
+/* Large 10x18 Grid Matrix (28px cells = 280px x 504px) */
+.evo-gb-board {
+    display: grid;
+    grid-template-columns: repeat(10, 28px);
+    grid-template-rows: repeat(18, 28px);
+    border: 2px solid var(--gb-c3);
+    background: var(--gb-c0);
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+.evo-gb-cell {
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-sizing: border-box;
+}
+
+/* Classic DMG Cell Styling */
+.evo-gb-cell.on {
+    background: var(--gb-c3);
+    border: 3px solid var(--gb-c1);
+    outline: 2px solid var(--gb-c3);
+    outline-offset: -5px;
+}
+
+.evo-gb-cell.flash {
+    background: var(--gb-c0);
+}
+
+/* Game Boy Color Cell Stylings */
+[data-palette="gbc_color"] .evo-gb-cell.piece-i { background: #06b6d4; border: 3px solid #22d3ee; }
+[data-palette="gbc_color"] .evo-gb-cell.piece-j { background: #2563eb; border: 3px solid #60a5fa; }
+[data-palette="gbc_color"] .evo-gb-cell.piece-l { background: #ea580c; border: 3px solid #fb923c; }
+[data-palette="gbc_color"] .evo-gb-cell.piece-o { background: #eab308; border: 3px solid #fde047; }
+[data-palette="gbc_color"] .evo-gb-cell.piece-s { background: #16a34a; border: 3px solid #4ade80; }
+[data-palette="gbc_color"] .evo-gb-cell.piece-t { background: #9333ea; border: 3px solid #c084fc; }
+[data-palette="gbc_color"] .evo-gb-cell.piece-z { background: #dc2626; border: 3px solid #f87171; }
+
+/* Side HUD Info */
+.evo-gb-hud {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.evo-gb-hud-box {
+    border: 2px solid var(--gb-c3);
+    background: var(--gb-c0);
+    padding: 6px 8px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    text-align: right;
+}
+
+.evo-gb-hud-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-align: left;
+    margin-bottom: 2px;
+    opacity: 0.85;
+}
+
+.evo-gb-hud-val {
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+/* Next Piece Preview Grid */
+.evo-gb-next-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 16px);
+    grid-template-rows: repeat(4, 16px);
+    justify-content: center;
+    margin-top: 4px;
+}
+
+.evo-gb-next-grid .evo-gb-cell.on {
+    outline: none;
+    border-width: 1px;
+}
+
+/* Play / Start Button inside HUD */
+.evo-gb-play-trigger {
+    background: var(--gb-c3);
+    color: var(--gb-c0);
+    border: 2px solid var(--gb-c3);
+    border-radius: 4px;
+    padding: 10px;
+    font-family: inherit;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+    margin-top: auto;
+}
+
+.evo-gb-play-trigger:hover {
+    background: var(--gb-c2);
+}
+
+/* Bottom Status Strip */
+.evo-gb-status-strip {
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #94a3b8;
+    margin-top: 10px;
+    min-height: 20px;
+    font-family: monospace;
+}
+
+/* Touch Controls Bar (Mobile / Tablets) */
+.evo-gb-touch-bar {
+    display: none;
+    width: 100%;
+    max-width: 520px;
+    margin-top: 14px;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+@media (pointer: coarse), (max-width: 768px) {
+    .evo-gb-touch-bar {
+        display: flex;
+    }
+}
+
+.evo-gb-touch-group {
+    display: flex;
+    gap: 8px;
+}
+
+.evo-gb-touch-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: var(--evo-card-bg, #ffffff);
+    border: 2px solid var(--evo-border, #cbd5e1);
+    color: var(--evo-text, #1e293b);
+    font-size: 1.15rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.evo-gb-touch-btn:active {
+    background: var(--evo-accent, #6366f1);
+    color: #ffffff;
+    border-color: var(--evo-accent, #6366f1);
+}
+
+.evo-gb-touch-btn.evo-btn-rotate {
+    width: 58px;
+    font-size: 0.85rem;
+}
+
+/* Right Sidebar: Player Profile & Leaderboard */
+.evo-game-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.evo-player-card,
+.evo-lead-card,
+.evo-guide-card {
+    background: var(--evo-card-bg, #ffffff);
+    border: 1px solid var(--evo-border, #e2e8f0);
+    border-radius: var(--evo-radius-lg, 12px);
+    padding: 18px;
+    box-shadow: var(--evo-shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.04));
+}
+
+.evo-player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.evo-player-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--evo-text, #1e293b);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.evo-player-edit-btn {
+    background: none;
+    border: none;
+    color: var(--evo-accent, #6366f1);
+    cursor: pointer;
+    font-size: 0.85rem;
+    text-decoration: underline;
+}
+
+.evo-player-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.evo-player-stat-box {
+    background: var(--evo-surface-alt, #f8fafc);
+    border: 1px solid var(--evo-border, #e2e8f0);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+}
+
+.evo-player-stat-val {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--evo-accent, #6366f1);
+}
+
+.evo-player-stat-lbl {
+    font-size: 0.75rem;
+    color: var(--evo-text-muted, #64748b);
+    text-transform: uppercase;
+}
+
+/* Leaderboard Tabs */
+.evo-lead-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--evo-border, #e2e8f0);
+    margin-bottom: 14px;
+    gap: 6px;
+}
+
+.evo-lead-tab {
+    background: none;
+    border: none;
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--evo-text-muted, #64748b);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.evo-lead-tab.is-active {
+    color: var(--evo-accent, #6366f1);
+    border-bottom-color: var(--evo-accent, #6366f1);
+}
+
+.evo-lead-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 220px;
+}
+
+.evo-lead-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: var(--evo-surface-alt, #f8fafc);
+    border: 1px solid var(--evo-border, #e2e8f0);
+    font-size: 0.88rem;
+}
+
+.evo-lead-rank {
+    font-weight: 800;
+    color: var(--evo-accent, #6366f1);
+    width: 24px;
+}
+
+.evo-lead-rank.top-1 { color: #eab308; }
+.evo-lead-rank.top-2 { color: #94a3b8; }
+.evo-lead-rank.top-3 { color: #b45309; }
+
+.evo-lead-user {
+    flex: 1;
+    font-weight: 600;
+    color: var(--evo-text, #1e293b);
+    margin: 0 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.evo-lead-pts {
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 0.95rem;
+    color: var(--evo-text, #1e293b);
+}
+
+.evo-lead-sub {
+    font-size: 0.72rem;
+    color: var(--evo-text-muted, #64748b);
+    display: block;
+    text-align: right;
+}
+
+.evo-lead-empty {
+    text-align: center;
+    color: var(--evo-text-muted, #64748b);
+    padding: 30px 10px;
+    font-size: 0.9rem;
+}
+
+.evo-guide-kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    border: 1px solid var(--evo-border, #cbd5e1);
+    border-radius: 4px;
+    background: var(--evo-surface-alt, #f1f5f9);
+    font-family: monospace;
+    font-size: 0.78rem;
+    color: var(--evo-text, #0f172a);
+}
+
+/* Dark Mode Tokens Surcharges */
+:root[data-theme="dark"] .evo-player-card,
+html[data-theme="dark"] .evo-player-card,
+:root[data-theme="dark"] .evo-lead-card,
+html[data-theme="dark"] .evo-lead-card,
+:root[data-theme="dark"] .evo-guide-card,
+html[data-theme="dark"] .evo-guide-card {
+    background: #181514;
+    border-color: #332a26;
+}
+
+:root[data-theme="dark"] .evo-player-stat-box,
+html[data-theme="dark"] .evo-player-stat-box,
+:root[data-theme="dark"] .evo-lead-item,
+html[data-theme="dark"] .evo-lead-item,
+:root[data-theme="dark"] .evo-gb-tool-btn,
+html[data-theme="dark"] .evo-gb-tool-btn,
+:root[data-theme="dark"] .evo-gb-touch-btn,
+html[data-theme="dark"] .evo-gb-touch-btn {
+    background: #241f1c;
+    border-color: #332a26;
+    color: #e2e8f0;
+}
+
+:root[data-theme="dark"] .evo-guide-kbd,
+html[data-theme="dark"] .evo-guide-kbd {
+    background: #241f1c;
+    border-color: #3e332e;
+    color: #f1f5f9;
+}
+
+/* Responsive scaling for mobile devices */
+@media (max-width: 900px) {
+    .evo-game-wrapper {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 520px) {
+    .evo-gb-board {
+        grid-template-columns: repeat(10, 22px);
+        grid-template-rows: repeat(18, 22px);
+    }
+
+    .evo-gb-screen-viewport {
+        gap: 10px;
+        padding: 8px;
+    }
+
+    .evo-gb-next-grid {
+        grid-template-columns: repeat(4, 12px);
+        grid-template-rows: repeat(4, 12px);
+    }
+}

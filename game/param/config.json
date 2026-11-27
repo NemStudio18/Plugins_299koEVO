@@ -1,0 +1,8 @@
+{
+    "activate": 1,
+    "nav_label": "Tetris",
+    "default_palette": "gbc_color",
+    "sound_enabled": 1,
+    "max_leaderboard": 10,
+    "allow_anonymous": 1
+}

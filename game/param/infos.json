@@ -1,0 +1,12 @@
+{
+    "slug": "game",
+    "name": "Game Boy Tetris & Leaderboard",
+    "icon": "fa-solid fa-gamepad",
+    "description": "Véritable reproduction fidèle du Tetris Game Boy & Game Boy Color avec leaderboard en ligne, multi-joueurs et physiques authentiques.",
+    "author": "299Ko Team",
+    "authorEmail": "contact@299ko.flexcb.fr",
+    "authorWebsite": "https://299ko.flexcb.fr",
+    "version": "1.0.0",
+    "homePublicMethod": "GameController#play",
+    "homeAdminMethod": "GameAdminController#index"
+}

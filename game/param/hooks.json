@@ -1,0 +1,4 @@
+{
+    "navigation:build": "gameNavigation",
+    "endFrontHead": "gameEndFrontHead"
+}

@@ -1,0 +1,7 @@
+{
+    "game.name": "Tetris",
+    "game.description": "Véritable reproduction fidèle du Tetris Game Boy & Game Boy Color avec leaderboard en ligne.",
+    "game.play": "Jouer",
+    "game.leaderboard": "Classement",
+    "game.scores": "Scores"
+}

@@ -1,0 +1,13 @@
+{
+    "GameScore": {
+        "label": "Scores Tetris",
+        "class": "Game\\Entities\\GameScore",
+        "drivers": [
+            "json",
+            "sqlite",
+            "mysql"
+        ],
+        "table": "game_scores",
+        "schema": "CREATE TABLE game_scores (id INT AUTO_INCREMENT PRIMARY KEY, player_token VARCHAR(64) NOT NULL, player_name VARCHAR(20) NOT NULL, score INT NOT NULL, lines INT NOT NULL, level INT NOT NULL, palette VARCHAR(20) DEFAULT 'gbc_color', created_at DATETIME)"
+    }
+}
