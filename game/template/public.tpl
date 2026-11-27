@@ -15,6 +15,9 @@
                 </button>
             </div>
             <div class="evo-gb-audio-actions">
+                <button type="button" class="evo-gb-tool-btn" id="btn-toggle-fullscreen" title="Basculer en mode Plein Écran">
+                    <i class="fa-solid fa-expand" aria-hidden="true"></i> Plein écran
+                </button>
                 <button type="button" class="evo-gb-tool-btn" id="btn-toggle-sound" title="Activer / Désactiver le son 8-bit">
                     <i class="fa-solid fa-volume-high" aria-hidden="true"></i> Son : Activé
                 </button>

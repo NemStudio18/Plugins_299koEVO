@@ -445,6 +445,7 @@
         const k = btn.dataset.gbK;
         btn.addEventListener('pointerdown', e => {
             e.preventDefault();
+            if (navigator.vibrate) navigator.vibrate(12);
             window.dispatchEvent(new KeyboardEvent('keydown', { key: k }));
         });
         btn.addEventListener('pointerup', () => {
@@ -483,6 +484,92 @@
                 ? '<i class="fa-solid fa-volume-high" aria-hidden="true"></i> Son : Activé'
                 : '<i class="fa-solid fa-volume-xmark" aria-hidden="true"></i> Son : Muet';
         });
+    }
+
+    // Fullscreen Toggle Handler (Native API + CSS Full-Window Fallback)
+    const fsBtn = $('btn-toggle-fullscreen');
+    const stage = $('gb-stage');
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            const req = stage.requestFullscreen || stage.webkitRequestFullscreen || stage.mozRequestFullScreen || stage.msRequestFullscreen;
+            if (req) {
+                req.call(stage).catch(() => {
+                    stage.classList.toggle('is-fullscreen');
+                });
+            } else {
+                stage.classList.toggle('is-fullscreen');
+            }
+        } else {
+            const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+            if (exit) exit.call(document);
+            stage.classList.remove('is-fullscreen');
+        }
+    }
+
+    if (fsBtn) {
+        fsBtn.addEventListener('click', toggleFullscreen);
+    }
+
+    const onFullscreenChange = () => {
+        const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || (stage && stage.classList.contains('is-fullscreen')));
+        if (stage) stage.classList.toggle('is-fullscreen', isFs);
+        if (fsBtn) {
+            fsBtn.innerHTML = isFs
+                ? '<i class="fa-solid fa-compress" aria-hidden="true"></i> Quitter plein écran'
+                : '<i class="fa-solid fa-expand" aria-hidden="true"></i> Plein écran';
+        }
+    };
+
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+    // Mobile Touch & Swipe Gestures on Screen
+    let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+    const cabinet = document.querySelector('.evo-gb-display-cabinet');
+    if (cabinet) {
+        cabinet.addEventListener('touchstart', e => {
+            if (e.touches.length === 1) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchStartTime = Date.now();
+            }
+        }, { passive: true });
+
+        cabinet.addEventListener('touchmove', e => {
+            if (!touchStartX || !touchStartY || state !== 'play') return;
+            const dx = e.touches[0].clientX - touchStartX;
+            const dy = e.touches[0].clientY - touchStartY;
+
+            // Horizontal Swipe (Move piece)
+            if (Math.abs(dx) > 22 && Math.abs(dx) > Math.abs(dy)) {
+                move(dx > 0 ? 1 : -1);
+                if (navigator.vibrate) navigator.vibrate(10);
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }
+            // Vertical Swipe Down (Soft Drop)
+            else if (dy > 28 && Math.abs(dy) > Math.abs(dx)) {
+                if (!hit(g.m, g.x, g.y + 1)) {
+                    g.y++;
+                    g.s++;
+                    sound.drop();
+                    if (navigator.vibrate) navigator.vibrate(8);
+                }
+                touchStartY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        cabinet.addEventListener('touchend', e => {
+            const dt = Date.now() - touchStartTime;
+            if (dt < 250 && Math.abs(e.changedTouches[0].clientX - touchStartX) < 15 && Math.abs(e.changedTouches[0].clientY - touchStartY) < 15) {
+                // Quick Tap: Rotate Clockwise
+                turn(true);
+                if (navigator.vibrate) navigator.vibrate(12);
+            }
+            touchStartX = 0;
+            touchStartY = 0;
+        }, { passive: true });
     }
 
     // Player Pseudo Edit Handler
