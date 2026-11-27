@@ -116,9 +116,9 @@ if (class_exists('\Content\ContentParser')) {
         }
 
         if ($title !== '') {
-            return '<section class="adcom-section" style="background-color: var(--adcom-bg-alt);">' . "\n"
-                . '    <div class="adcom-container adcom-fade-up">' . "\n"
-                . '        <h2 class="adcom-section-title">' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</h2>' . "\n"
+            return '<section class="adcom-section evo-section faq-section" style="background-color: var(--adcom-bg-alt, var(--evo-surface-alt, #f8f6f4));">' . "\n"
+                . '    <div class="adcom-container evo-container adcom-fade-up">' . "\n"
+                . '        <h2 class="adcom-section-title evo-section-title">' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</h2>' . "\n"
                 . '        ' . $accordion . "\n"
                 . '    </div>' . "\n"
                 . '</section>';
