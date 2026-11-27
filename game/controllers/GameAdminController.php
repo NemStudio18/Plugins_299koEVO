@@ -20,7 +20,7 @@ class GameAdminController extends AdminController
     {
         $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
         $ctx = new \Core\Navigation\ConditionContext($this->user);
-        if (!$evaluator->canAccess(new \Core\Navigation\GenericResource('game:admin'), $ctx)) {
+        if (!$evaluator->isAdmin($ctx)) {
             Show::msg(Lang::get('core-not-authorized'), 'error');
             $this->core->redirect($this->router->generate('admin-home'));
             return;
@@ -53,7 +53,7 @@ class GameAdminController extends AdminController
         $tpl->set('totalLines', $totalLines);
         $tpl->set('uniquePlayers', $uniquePlayers);
         $tpl->set('config', $this->runPlugin->getConfig());
-        $tpl->set('csrfToken', $this->core->getCsrfToken());
+        $tpl->set('csrfToken', \Core\Security\Csrf::token());
 
         $response->addTemplate($tpl);
         return $response;
@@ -64,7 +64,20 @@ class GameAdminController extends AdminController
      */
     public function saveConfig()
     {
-        $this->checkCsrf();
+        $evaluator = \Core\Navigation\AccessPolicyEvaluator::getInstance();
+        $ctx = new \Core\Navigation\ConditionContext($this->user);
+        if (!$evaluator->isAdmin($ctx)) {
+            Show::msg(Lang::get('core-not-authorized'), 'error');
+            $this->core->redirect($this->router->generate('admin-home'));
+            return;
+        }
+
+        $token = $_POST['_csrf'] ?? '';
+        if (!\Core\Security\Csrf::validate($token) && $token !== $this->user->token) {
+            Show::msg('Token de sécurité invalide.', 'error');
+            $this->core->redirect($this->router->generate('admin-game-index'));
+            return;
+        }
 
         $navLabel = trim(filter_var($_POST['nav_label'] ?? 'Tetris', FILTER_SANITIZE_FULL_SPECIAL_CHARS));
         $defaultPalette = in_array($_POST['default_palette'] ?? '', ['gb_classic', 'gbc_color', 'gb_pocket']) 
@@ -90,7 +103,7 @@ class GameAdminController extends AdminController
      */
     public function deleteScore($id, $token)
     {
-        if (!$this->core->checkCsrfToken($token)) {
+        if (!\Core\Security\Csrf::validate($token) && $token !== $this->user->token) {
             Show::msg('Token CSRF invalide', 'error');
             $this->core->redirect($this->router->generate('admin-game-index'));
             return;
@@ -112,7 +125,7 @@ class GameAdminController extends AdminController
      */
     public function resetScores($token)
     {
-        if (!$this->core->checkCsrfToken($token)) {
+        if (!\Core\Security\Csrf::validate($token) && $token !== $this->user->token) {
             Show::msg('Token CSRF invalide', 'error');
             $this->core->redirect($this->router->generate('admin-game-index'));
             return;

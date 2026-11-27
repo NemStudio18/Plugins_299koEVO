@@ -57,25 +57,25 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% LOOP scores %}
+                    {% FOR score IN scores %}
                     <tr style="border-bottom: 1px solid var(--evo-border, #e2e8f0);">
-                        <td style="padding: 10px 8px; font-weight: 700;">{{ scores.index + 1 }}</td>
-                        <td style="padding: 10px 8px; font-weight: 600;">{{ scores.getPlayerName() }}</td>
+                        <td style="padding: 10px 8px; font-weight: 700;">{{ score.index + 1 }}</td>
+                        <td style="padding: 10px 8px; font-weight: 600;">{{ score.getPlayerName() }}</td>
                         <td style="padding: 10px 8px; font-family: monospace; font-size: 1.05rem; font-weight: 700; color: var(--evo-accent, #6366f1);">
-                            {{ scores.getScore() }}
+                            {{ score.getScore() }}
                         </td>
-                        <td style="padding: 10px 8px;">{{ scores.getLines() }}</td>
-                        <td style="padding: 10px 8px;">{{ scores.getLevel() }}</td>
+                        <td style="padding: 10px 8px;">{{ score.getLines() }}</td>
+                        <td style="padding: 10px 8px;">{{ score.getLevel() }}</td>
                         <td style="padding: 10px 8px; font-size: 0.85rem; color: var(--evo-text-muted, #64748b);">
-                            {{ scores.getCreatedAt() }}
+                            {{ score.getCreatedAt() }}
                         </td>
                         <td style="padding: 10px 8px; text-align: right;">
-                            <a href="/admin/game/delete/{{ scores.getId() }}/{{ csrfToken }}" class="button small danger" onclick="return confirm('Supprimer ce score ?');" title="Supprimer">
+                            <a href="/admin/game/delete/{{ score.getId() }}/{{ csrfToken }}" class="button small danger" onclick="return confirm('Supprimer ce score ?');" title="Supprimer">
                                 <i class="fa-solid fa-trash"></i>
                             </a>
                         </td>
                     </tr>
-                    {% ENDLOOP %}
+                    {% ENDFOR %}
                 </tbody>
             </table>
         </div>
