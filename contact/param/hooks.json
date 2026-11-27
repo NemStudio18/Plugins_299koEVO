@@ -1,5 +1,4 @@
 {
-    "endFrontHead": "contactEndFrontHead",
     "endAdminHead": "contactEndAdminHead",
     "endFooter": "contactEndFooter",
     "beforeRunPlugin": "contactInjectTemplateVars",

@@ -63,12 +63,12 @@ function faqRenderQuestions(string $category = ''): string
             ],
         ];
 
-        $itemsHtml .= '    <div class="adcom-faq-item faq-item">' . "\n";
-        $itemsHtml .= '        <button class="adcom-faq-header faq-question" type="button" aria-expanded="false">' . "\n";
+        $itemsHtml .= '    <div class="adcom-faq-item">' . "\n";
+        $itemsHtml .= '        <button class="adcom-faq-header" type="button" aria-expanded="false">' . "\n";
         $itemsHtml .= '            <span>' . htmlspecialchars($qTitle, ENT_QUOTES, 'UTF-8') . '</span>' . "\n";
-        $itemsHtml .= '            <i class="fa-solid fa-plus adcom-faq-icon"></i>' . "\n";
+        $itemsHtml .= '            <i class="fa-solid fa-plus adcom-faq-icon" aria-hidden="true"></i>' . "\n";
         $itemsHtml .= '        </button>' . "\n";
-        $itemsHtml .= '        <div class="adcom-faq-body faq-answer">' . "\n";
+        $itemsHtml .= '        <div class="adcom-faq-body">' . "\n";
         $itemsHtml .= '            ' . $qAnswerRaw . "\n";
         $itemsHtml .= '        </div>' . "\n";
         $itemsHtml .= '    </div>' . "\n";
@@ -82,7 +82,7 @@ function faqRenderQuestions(string $category = ''): string
 
     $catAttr = $category !== '' ? ' data-category="' . htmlspecialchars($category, ENT_QUOTES, 'UTF-8') . '"' : '';
 
-    $output = '<div class="adcom-faq-wrapper faq-accordion"' . $catAttr . '>' . "\n";
+    $output = '<div class="adcom-faq-wrapper"' . $catAttr . '>' . "\n";
     $output .= $itemsHtml;
     $output .= '</div>' . "\n";
     $output .= '<script type="application/ld+json">' . "\n" . $schemaJson . "\n" . '</script>' . "\n";
