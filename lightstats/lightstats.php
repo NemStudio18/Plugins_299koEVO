@@ -109,11 +109,10 @@ class Hooks
             [$page, $query] = self::splitRequestUri($_SERVER['REQUEST_URI'] ?? '/');
             $requestMethod = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
-            // 2. Classification multi-niveaux du client (bot / humain / outil / scan)
-            $classification = self::classifyClient($userAgent, $rawIp, $page, $query);
-            $botCategory = $classification['category'];
-            // Seuls les vrais navigateurs humains sont comptabilisés comme non-bot
-            $isBot = ($botCategory !== self::BOT_HUMAN);
+            // 2. Pré-classification ultra-rapide en mémoire (< 0.1 ms, sans reverse DNS réseau)
+            // Le reverse DNS éventuel (Googlebot/Bingbot) est différé après l'envoi de la réponse HTTP.
+            $fastClassification = self::classifyClient($userAgent, $rawIp, $page, $query, false);
+            $isBot = ($fastClassification['category'] !== self::BOT_HUMAN);
 
             // 3. Détection Administrateur (authentifié côté serveur)
             $isAdminUser = false;
@@ -229,67 +228,101 @@ class Hooks
             });
 
             $hasJs = !empty($_COOKIE['vb_sid']);
+            $visitorId = $isCnilExempt ? null : ($_COOKIE['vb_vid'] ?? null);
+            $isCachedHit = !empty($context['cached']);
 
-            // 10. Dossier de stockage journalier
-            $folder = DATA_PLUGIN . 'lightstats/logs/' . date('Y/m') . '/';
-            if (!is_dir($folder) && !@mkdir($folder, 0755, true) && !is_dir($folder)) {
-                error_log('[LightStats] Impossible de créer le dossier de logs : ' . $folder);
-                return;
-            }
-
-            // Écriture append-only JSONL
-            $filename = $folder . date('d') . '.jsonl';
-
-            $ok = self::writeLogEntry($filename, [
-                'method' => $requestMethod,
-                'ip' => $anonymizedIp,
-                'ipHash' => $dailyHash,
-                'page' => $page,
-                'query' => $query,
-                'referer' => $cleanReferer,
-                'userAgent' => $userAgent,
-                'isBot' => $isBot,
-                'botCategory' => $botCategory,
-                'date' => $date,
-                'status' => $statusCode,
-                'isAdmin' => $isAdmin,
-                'hasJs' => $hasJs,
-                'sessionId' => $sessionId,
-                'requestId' => $requestId,
-            ]);
-
-            if (!$ok) {
-                error_log('[LightStats] Echec ecriture du log : ' . $filename);
-            }
-
-            // Enregistrement dans le moteur Analytics (Mode C) strictement pour les vraies pages publiques humaines conformes AdSense (GET, 200 OK, non-admin, non-bot, routes publiques non-système)
-            if ($requestMethod === 'GET' && !$isBot && !$isAdmin && $statusCode === 200 && !self::isSuspiciousRequest($page, $query) && !self::isExcludedPublicRoute($page)) {
+            // 10. Écriture disque, reverse DNS et agrégation Analytics différés en arrière-plan (asynchrone post-réponse)
+            register_shutdown_function(static function () use (
+                $userAgent,
+                $rawIp,
+                $page,
+                $query,
+                $requestMethod,
+                $anonymizedIp,
+                $dailyHash,
+                $cleanReferer,
+                $date,
+                $statusCode,
+                $isAdmin,
+                $hasJs,
+                $sessionId,
+                $requestId,
+                $visitorId,
+                $isCachedHit
+            ): void {
                 try {
-                    require_once __DIR__ . '/lib/LightStatsAnalyticsService.php';
-                    $visitorId = $isCnilExempt ? null : ($_COOKIE['vb_vid'] ?? null);
-                    $analytics = \LightStats\Lib\LightStatsAnalyticsService::getInstance();
-                    $analytics->recordPageview(
-                        $page,
-                        $dailyHash,
-                        $visitorId,
-                        $sessionId,
-                        $cleanReferer,
-                        $userAgent,
-                        ['query' => $query, 'cached' => !empty($context['cached'])],
-                        $requestId
-                    );
+                    // Libérer immédiatement la connexion HTTP vers le navigateur client sous PHP-FPM
+                    if (function_exists('fastcgi_finish_request')) {
+                        @fastcgi_finish_request();
+                    }
+
+                    // Classification complète (incluant reverse DNS pour Googlebot / Bingbot hors temps de rendu)
+                    $classification = self::classifyClient($userAgent, $rawIp, $page, $query, true);
+                    $botCategory = $classification['category'];
+                    $finalIsBot = ($botCategory !== self::BOT_HUMAN);
+
+                    // Statut HTTP final observé en fin de cycle si modifié entre-temps
+                    $finalStatus = http_response_code();
+                    $finalStatus = is_int($finalStatus) && $finalStatus > 0 ? $finalStatus : $statusCode;
+
+                    $folder = DATA_PLUGIN . 'lightstats/logs/' . substr($date, 0, 4) . '/' . substr($date, 5, 2) . '/';
+                    if (!is_dir($folder) && !@mkdir($folder, 0755, true) && !is_dir($folder)) {
+                        error_log('[LightStats] Impossible de créer le dossier de logs : ' . $folder);
+                        return;
+                    }
+
+                    $filename = $folder . substr($date, 8, 2) . '.jsonl';
+                    $ok = self::writeLogEntry($filename, [
+                        'method' => $requestMethod,
+                        'ip' => $anonymizedIp,
+                        'ipHash' => $dailyHash,
+                        'page' => $page,
+                        'query' => $query,
+                        'referer' => $cleanReferer,
+                        'userAgent' => $userAgent,
+                        'isBot' => $finalIsBot,
+                        'botCategory' => $botCategory,
+                        'date' => $date,
+                        'status' => $finalStatus,
+                        'isAdmin' => $isAdmin,
+                        'hasJs' => $hasJs,
+                        'sessionId' => $sessionId,
+                        'requestId' => $requestId,
+                    ]);
+
+                    if (!$ok) {
+                        error_log('[LightStats] Echec ecriture du log : ' . $filename);
+                    }
+
+                    if ($requestMethod === 'GET' && !$finalIsBot && !$isAdmin && $finalStatus === 200 && !self::isSuspiciousRequest($page, $query) && !self::isExcludedPublicRoute($page)) {
+                        try {
+                            require_once __DIR__ . '/lib/LightStatsAnalyticsService.php';
+                            $analytics = \LightStats\Lib\LightStatsAnalyticsService::getInstance();
+                            $analytics->recordPageview(
+                                $page,
+                                $dailyHash,
+                                $visitorId,
+                                $sessionId,
+                                $cleanReferer,
+                                $userAgent,
+                                ['query' => $query, 'cached' => $isCachedHit],
+                                $requestId
+                            );
+                            if (mt_rand(1, 200) === 1) {
+                                $analytics->purgeOldData(30);
+                            }
+                        } catch (\Throwable $e) {
+                            error_log('[LightStatsAnalytics] Async hook error: ' . $e->getMessage());
+                        }
+                    }
+
                     if (mt_rand(1, 200) === 1) {
-                        $analytics->purgeOldData(30);
+                        self::purgeOldLogs(30);
                     }
                 } catch (\Throwable $e) {
-                    error_log('[LightStatsAnalytics] Hook error: ' . $e->getMessage());
+                    error_log('[LightStats] Erreur enregistrement asynchrone : ' . $e->getMessage());
                 }
-            }
-
-            // Purge automatique probabiliste (1 chance sur 200 à chaque visite)
-            if (mt_rand(1, 200) === 1) {
-                self::purgeOldLogs(30);
-            }
+            });
         } catch (\Throwable $e) {
             // Sécurité : si une exception survient, fermer UNIQUEMENT le buffer du plugin s'il a été ouvert
             if ($pluginBufferOpened && ob_get_level() > $initialBufferLevel) {
@@ -302,7 +335,7 @@ class Hooks
     /**
      * Classification multi-niveaux du visiteur
      */
-    public static function classifyClient(string $userAgent, string $ip, string $page = '', string $query = ''): array
+    public static function classifyClient(string $userAgent, string $ip, string $page = '', string $query = '', bool $allowDnsLookup = true): array
     {
         // 1. Détection immédiate des requêtes d'attaque / sondage de fichiers
         if ($page !== '' && self::isSuspiciousRequest($page, $query)) {
@@ -339,6 +372,9 @@ class Hooks
 
         // Vérification renforcée pour Googlebot et Bingbot (reverse DNS conforme aux specs officielles)
         if (strpos($uaLower, 'googlebot') !== false) {
+            if (!$allowDnsLookup) {
+                return ['category' => self::BOT_DECLARED, 'name' => 'Googlebot (Pré-détection)'];
+            }
             if (self::verifyDnsBot($ip, ['.googlebot.com', '.google.com'])) {
                 return ['category' => self::BOT_VERIFIED, 'name' => 'Googlebot (Vérifié)'];
             }
@@ -354,6 +390,9 @@ class Hooks
         }
 
         if (strpos($uaLower, 'bingbot') !== false) {
+            if (!$allowDnsLookup) {
+                return ['category' => self::BOT_DECLARED, 'name' => 'Bingbot (Pré-détection)'];
+            }
             if (self::verifyDnsBot($ip, ['.search.msn.com'])) {
                 return ['category' => self::BOT_VERIFIED, 'name' => 'Bingbot (Vérifié)'];
             }

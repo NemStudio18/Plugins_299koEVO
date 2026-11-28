@@ -5,6 +5,6 @@
     "description": "Statistiques simples et respectueuses des visiteurs",
     "authorEmail": "mx.koder@gmail.com",
     "authorWebsite": "https://299ko.flexcb.fr",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "homeAdminMethod": "LightStats\\Controllers\\LightStatsAdminController#home"
 }
